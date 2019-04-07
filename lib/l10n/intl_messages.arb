@@ -1,0 +1,808 @@
+{
+  "@@last_modified": "2018-12-12T21:53:56.145721",
+  "exercise": "Exercise",
+  "@exercise": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "skill": "Skill",
+  "@skill": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "familyAndFriends": "Family and friends",
+  "@familyAndFriends": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "meTime": "Me time",
+  "@meTime": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "organizeMyLife": "Organize my life",
+  "@organizeMyLife": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "appName": "DataLife",
+  "@appName": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "exerciseCaption": "Run, do yoga, get your body moving",
+  "@exerciseCaption": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "skillCaption": "Lean a language, practice an instrument",
+  "@skillCaption": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "familyAndFriendsCaption": "Make time for those who matter most",
+  "@familyAndFriendsCaption": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "meTimeCaption": "Read, meditate, take care of yourself",
+  "@meTimeCaption": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "organizeMyLifeCaption": "Stay on top of things",
+  "@organizeMyLifeCaption": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "author": "Zhang Yi Chi",
+  "@author": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "workOut": "Work out",
+  "@workOut": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "run": "Run",
+  "@run": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "walk": "Walk",
+  "@walk": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "doYoga": "Do yoga",
+  "@doYoga": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "learnLanguage": "Learn a language",
+  "@learnLanguage": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "learnToCode": "Learn to code",
+  "@learnToCode": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "practiceInstrument": "Practice an instrument",
+  "@practiceInstrument": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "makeArt": "Make art",
+  "@makeArt": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "reachOutToFriend": "Reach out to a friend",
+  "@reachOutToFriend": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "eatWithFamily": "Eat with family",
+  "@eatWithFamily": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "callMom": "Call Mom",
+  "@callMom": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "callDad": "Call Dad",
+  "@callDad": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "read": "Read",
+  "@read": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "meditate": "Meditate",
+  "@meditate": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "personalHobby": "Personal hobby",
+  "@personalHobby": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "planTheDay": "Plan the day",
+  "@planTheDay": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "clean": "Clean",
+  "@clean": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "doChores": "Do chores",
+  "@doChores": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "customActivity": "Custom...",
+  "@customActivity": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "moreOptions": "More options...",
+  "@moreOptions": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "moreOptionsLiteral": "More options",
+  "@moreOptionsLiteral": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "goalSummary": "Goal summary:",
+  "@goalSummary": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "selectGoal": "Select a Goal",
+  "@selectGoal": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "whichExercise": "Which exercise?",
+  "@whichExercise": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "whichSkill": "Which skill?",
+  "@whichSkill": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "whichActivity": "Which activity?",
+  "@whichActivity": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "howOften": "How often?",
+  "@howOften": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "forHowLong": "For how long?",
+  "@forHowLong": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "bestTime": "Best time?",
+  "@bestTime": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "onceMonth": "Once a month",
+  "@onceMonth": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "twiceMonth": "Twice a month",
+  "@twiceMonth": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "onceWeek": "Once a week",
+  "@onceWeek": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "twiceWeek": "Twice a week",
+  "@twiceWeek": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "threeTimesWeek": "3 times a week",
+  "@threeTimesWeek": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "fourTimesWeek": "4 times a week",
+  "@fourTimesWeek": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "fiveTimesWeek": "5 times a week",
+  "@fiveTimesWeek": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "sixTimesWeek": "6 times a week",
+  "@sixTimesWeek": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "everyday": "Every day",
+  "@everyday": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "fifteenMinutes": "15 minutes",
+  "@fifteenMinutes": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "thirtyMinutes": "30 minutes",
+  "@thirtyMinutes": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "oneHour": "1 hour",
+  "@oneHour": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "twoHours": "2 hours",
+  "@twoHours": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "halfDay": "Half day",
+  "@halfDay": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "wholeDay": "Whole day",
+  "@wholeDay": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "morning": "Morning",
+  "@morning": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "afternoon": "Afternoon",
+  "@afternoon": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "evening": "Evening",
+  "@evening": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "anyTime": "Any time",
+  "@anyTime": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "discardNewActivity": "Are you sure you want to discard this activity?",
+  "@discardNewActivity": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "save": "Save",
+  "@save": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "cancel": "Cancel",
+  "@cancel": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "discard": "Discard",
+  "@discard": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "keepEditing": "Keep editing",
+  "@keepEditing": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "createdBy": "Created by",
+  "@createdBy": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "time": "Time",
+  "@time": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "hike": "Hike",
+  "@hike": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "bike": "Bike",
+  "@bike": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "swim": "Swim",
+  "@swim": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "rockClimb": "Rock climb",
+  "@rockClimb": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "playTennis": "Play tennis",
+  "@playTennis": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "playBadminton": "Play badminton",
+  "@playBadminton": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "playBaseball": "Play baseball",
+  "@playBaseball": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "playBasketball": "Play basketball",
+  "@playBasketball": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "playSoccer": "Play soccer",
+  "@playSoccer": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "wiggleEars": "Wiggle ears",
+  "@wiggleEars": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "practicePhotography": "Practice photography",
+  "@practicePhotography": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "honeCarpentrySkills": "Hone carpentry skills",
+  "@honeCarpentrySkills": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "sing": "Sing",
+  "@sing": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "learnKnot": "Learn a knot",
+  "@learnKnot": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "learnNewSoftware": "Learn new software",
+  "@learnNewSoftware": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "cookSomethingNew": "Cook something new",
+  "@cookSomethingNew": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "learnToDrive": "Learn to drive",
+  "@learnToDrive": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "learnToFly": "Learn to fly",
+  "@learnToFly": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "planDate": "Plan a date",
+  "@planDate": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "getDinnerWithFriends": "Get dinner with friends",
+  "@getDinnerWithFriends": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "visitFamily": "Visit family",
+  "@visitFamily": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "haveBBQ": "Have a BBQ",
+  "@haveBBQ": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "playBoardGame": "Play a board game",
+  "@playBoardGame": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "planReunion": "Plan a reunion",
+  "@planReunion": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "planFamilyVacation": "Plan family vacation",
+  "@planFamilyVacation": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "walkTheDog": "Walk the dog",
+  "@walkTheDog": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "cook": "Cook",
+  "@cook": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "journal": "Journal",
+  "@journal": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "pray": "Pray",
+  "@pray": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "watchMovie": "Watch a movie",
+  "@watchMovie": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "takeSnap": "Take a snap",
+  "@takeSnap": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "getMassage": "Get a massage",
+  "@getMassage": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "sitInTheGrass": "Sit in the grass",
+  "@sitInTheGrass": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "takeTheBoatOut": "Take the boat out",
+  "@takeTheBoatOut": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "lieInHammock": "Lie in a hammock",
+  "@lieInHammock": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "takeSelfie": "Take a selfie",
+  "@takeSelfie": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "makeTodoList": "Make a to-do list",
+  "@makeTodoList": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "buyGroceries": "Buy groceries",
+  "@buyGroceries": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "study": "Study",
+  "@study": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "doLaundry": "Do laundry",
+  "@doLaundry": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "doFinances": "Do finances",
+  "@doFinances": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "planTheWeek": "Plan the week",
+  "@planTheWeek": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "clearEmailInbox": "Clear email inbox",
+  "@clearEmailInbox": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "cleanTheHouse": "Clean the house",
+  "@cleanTheHouse": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "totalTime": "Total time",
+  "@totalTime": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "activities": "Activities",
+  "@activities": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "goals": "Goals",
+  "@goals": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "statistics": "Statistics",
+  "@statistics": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "addActivity": "Add activity",
+  "@addActivity": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "activity": "Activity",
+  "@activity": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "timer": "Timer",
+  "@timer": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "addEvent": "Add event...",
+  "@addEvent": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "enterEvent": "Enter event",
+  "@enterEvent": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "event": "Event",
+  "@event": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "pleaseEnterEventName": "Please enter event name",
+  "@pleaseEnterEventName": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "events": "Events",
+  "@events": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "discardNewEvent": "Are you sure you want to discard this event?",
+  "@discardNewEvent": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "detail": "Detail",
+  "@detail": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "sentiment": "Sentiment",
+  "@sentiment": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "eventDetail": "Event detail",
+  "@eventDetail": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "enterEventDetail": "Enter event detail",
+  "@enterEventDetail": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "selectSentiment": "Please select a sentiment",
+  "@selectSentiment": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "from": "From",
+  "@from": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "to": "To",
+  "@to": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "expend": "Expend",
+  "@expend": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "currencySign": "$",
+  "@currencySign": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "currencyName": "USD",
+  "@currencyName": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "pleaseInputNumbers": "Please input numbers",
+  "@pleaseInputNumbers": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "location": "Location",
+  "@location": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "enterLocation": "Enter location",
+  "@enterLocation": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "enterEventNameOrSelectOne": "Enter event name or select one",
+  "@enterEventNameOrSelectOne": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "people": "People",
+  "@people": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "goal": "Goal",
+  "@goal": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "pleaseEnterEventTitle": "Please enter event title",
+  "@pleaseEnterEventTitle": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "enterTitle": "Enter title",
+  "@enterTitle": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "title": "Title",
+  "@title": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "enterTarget": "Enter target",
+  "@enterTarget": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "target": "Target",
+  "@target": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "enterEventTitleOrSelectOne": "Enter event title or select one",
+  "@enterEventTitleOrSelectOne": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "enterProgress": "Enter progress",
+  "@enterProgress": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "enterCurrentProgress": "Enter current progress",
+  "@enterCurrentProgress": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "progress": "Progress",
+  "@progress": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "setProgress": "Set progress",
+  "@setProgress": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "progressTarget": "Progress/Target",
+  "@progressTarget": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "toDo": "To do",
+  "@toDo": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "alreadyCompleted": "Already completed",
+  "@alreadyCompleted": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "enterAlreadyCompleted": "Enter already completed",
+  "@enterAlreadyCompleted": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "completed": "Completed",
+  "@completed": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "enterCompleted": "Enter completed",
+  "@enterCompleted": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "done": "Done",
+  "@done": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "alreadyDone": "Already done",
+  "@alreadyDone": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "enterDone": "Enter done",
+  "@enterDone": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "enterAlreadyDone": "Enter aready done",
+  "@enterAlreadyDone": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "activityForGoal": "Activity for goal",
+  "@activityForGoal": {
+    "type": "text",
+    "placeholders": {}
+  }
+}

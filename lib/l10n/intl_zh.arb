@@ -1,0 +1,808 @@
+{
+  "@@last_modified": "2018-11-23T23:57:05.053698",
+  "exercise": "锻炼",
+  "@exercise": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "skill": "培养技能",
+  "@skill": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "familyAndFriends": "家人和朋友",
+  "@familyAndFriends": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "meTime": "私人专属时间",
+  "@meTime": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "organizeMyLife": "规划生活",
+  "@organizeMyLife": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "appName": "DataLife",
+  "@appName": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "exerciseCaption": "跑步、做瑜伽、活动身体",
+  "@exerciseCaption": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "skillCaption": "学习语言、练习乐器",
+  "@skillCaption": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "familyAndFriendsCaption": "陪伴最重要的人",
+  "@familyAndFriendsCaption": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "meTimeCaption": "阅读、沉思、照顾自己",
+  "@meTimeCaption": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "organizeMyLifeCaption": "掌握大小事物",
+  "@organizeMyLifeCaption": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "author": "张一驰",
+  "@author": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "workOut": "锻炼",
+  "@workOut": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "run": "跑步",
+  "@run": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "walk": "步行",
+  "@walk": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "doYoga": "练瑜伽",
+  "@doYoga": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "learnLanguage": "学习语言",
+  "@learnLanguage": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "learnToCode": "学习编码",
+  "@learnToCode": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "practiceInstrument": "学习乐器",
+  "@practiceInstrument": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "makeArt": "从事艺术创作",
+  "@makeArt": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "reachOutToFriend": "与好友联系",
+  "@reachOutToFriend": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "eatWithFamily": "和家人一起吃饭",
+  "@eatWithFamily": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "callMom": "给妈妈打电话",
+  "@callMom": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "callDad": "给爸爸打电话",
+  "@callDad": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "read": "阅读",
+  "@read": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "meditate": "沉思",
+  "@meditate": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "personalHobby": "个人爱好",
+  "@personalHobby": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "planTheDay": "规划当天的行程",
+  "@planTheDay": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "clean": "打扫",
+  "@clean": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "doChores": "做家务",
+  "@doChores": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "customActivity": "自定义...",
+  "@customActivity": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "moreOptions": "更多选项...",
+  "@moreOptions": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "moreOptionsLiteral": "更多选项",
+  "@moreOptionsLiteral": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "goalSummary": "目标概要:",
+  "@goalSummary": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "selectGoal": "选择目标",
+  "@selectGoal": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "whichExercise": "哪项运动?",
+  "@whichExercise": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "whichSkill": "哪项技能?",
+  "@whichSkill": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "whichActivity": "哪项活动?",
+  "@whichActivity": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "howOften": "频率",
+  "@howOften": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "forHowLong": "持续多久?",
+  "@forHowLong": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "bestTime": "最适合的时间?",
+  "@bestTime": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "onceMonth": "每月一次",
+  "@onceMonth": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "twiceMonth": "每月两次",
+  "@twiceMonth": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "onceWeek": "每周 1 次",
+  "@onceWeek": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "twiceWeek": "每周 2 次",
+  "@twiceWeek": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "threeTimesWeek": "每周 3 次",
+  "@threeTimesWeek": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "fourTimesWeek": "每周 4 次",
+  "@fourTimesWeek": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "fiveTimesWeek": "每周 5 次",
+  "@fiveTimesWeek": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "sixTimesWeek": "每周 6 次",
+  "@sixTimesWeek": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "everyday": "每天",
+  "@everyday": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "fifteenMinutes": "15 分钟",
+  "@fifteenMinutes": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "thirtyMinutes": "30 分钟",
+  "@thirtyMinutes": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "oneHour": "1 小时",
+  "@oneHour": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "twoHours": "2 小时",
+  "@twoHours": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "halfDay": "半天",
+  "@halfDay": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "wholeDay": "全天",
+  "@wholeDay": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "morning": "上午",
+  "@morning": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "afternoon": "下午",
+  "@afternoon": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "evening": "傍晚",
+  "@evening": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "anyTime": "任何时候",
+  "@anyTime": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "discardNewActivity": "确定要舍弃此活动吗?",
+  "@discardNewActivity": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "save": "保存",
+  "@save": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "cancel": "取消",
+  "@cancel": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "discard": "舍弃",
+  "@discard": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "keepEditing": "继续修改",
+  "@keepEditing": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "createdBy": "码农",
+  "@createdBy": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "time": "时间",
+  "@time": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "hike": "远足",
+  "@hike": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "bike": "骑自行车",
+  "@bike": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "swim": "游泳",
+  "@swim": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "rockClimb": "攀岩",
+  "@rockClimb": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "playTennis": "打网球",
+  "@playTennis": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "playBadminton": "打羽毛球",
+  "@playBadminton": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "playBaseball": "打棒球",
+  "@playBaseball": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "playBasketball": "打篮球",
+  "@playBasketball": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "playSoccer": "踢足球",
+  "@playSoccer": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "wiggleEars": "扭动耳朵",
+  "@wiggleEars": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "practicePhotography": "练习摄影",
+  "@practicePhotography": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "honeCarpentrySkills": "磨练木工技能",
+  "@honeCarpentrySkills": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "sing": "唱歌",
+  "@sing": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "learnKnot": "学习打结",
+  "@learnKnot": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "learnNewSoftware": "学习使用新软件",
+  "@learnNewSoftware": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "cookSomethingNew": "做些新菜",
+  "@cookSomethingNew": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "learnToDrive": "学习驾驶",
+  "@learnToDrive": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "learnToFly": "学习飞行",
+  "@learnToFly": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "planDate": "制定约会计划",
+  "@planDate": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "getDinnerWithFriends": "与朋友共进晚餐",
+  "@getDinnerWithFriends": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "visitFamily": "探亲",
+  "@visitFamily": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "haveBBQ": "吃烧烤",
+  "@haveBBQ": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "playBoardGame": "玩棋盘游戏",
+  "@playBoardGame": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "planReunion": "制定聚会计划",
+  "@planReunion": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "planFamilyVacation": "制定家庭度假计划",
+  "@planFamilyVacation": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "walkTheDog": "遛狗",
+  "@walkTheDog": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "cook": "烹饪",
+  "@cook": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "journal": "写日记",
+  "@journal": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "pray": "祈祷",
+  "@pray": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "watchMovie": "看电影",
+  "@watchMovie": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "takeSnap": "小睡一会",
+  "@takeSnap": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "getMassage": "按摩",
+  "@getMassage": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "sitInTheGrass": "坐在草地上",
+  "@sitInTheGrass": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "takeTheBoatOut": "坐船出游",
+  "@takeTheBoatOut": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "lieInHammock": "躺在吊床上",
+  "@lieInHammock": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "takeSelfie": "拍自拍照",
+  "@takeSelfie": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "makeTodoList": "制作待办事项列表",
+  "@makeTodoList": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "buyGroceries": "购买生活用品",
+  "@buyGroceries": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "study": "学习",
+  "@study": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "doLaundry": "洗衣服",
+  "@doLaundry": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "doFinances": "理财",
+  "@doFinances": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "planTheWeek": "制定周计划",
+  "@planTheWeek": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "clearEmailInbox": "清理电子邮件收件箱",
+  "@clearEmailInbox": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "cleanTheHouse": "打扫房子",
+  "@cleanTheHouse": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "totalTime": "总用时",
+  "@totalTime": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "activities": "活动",
+  "@activities": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "goals": "目标",
+  "@goals": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "statistics": "统计",
+  "@statistics": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "addActivity": "添加活动",
+  "@addActivity": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "activity": "活动",
+  "@activity": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "timer": "记时",
+  "@timer": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "addEvent": "添加记事...",
+  "@addEvent": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "enterEvent": "输入记事",
+  "@enterEvent": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "event": "记事",
+  "@event": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "pleaseEnterEventName": "请输入记事标题",
+  "@pleaseEnterEventName": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "events": "记事",
+  "@events": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "discardNewEvent": "确定要舍弃此记事吗?",
+  "@discardNewEvent": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "detail": "详情",
+  "@detail": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "sentiment": "心情",
+  "@sentiment": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "eventDetail": "记事详情",
+  "@eventDetail": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "enterEventDetail": "输入记事详情",
+  "@enterEventDetail": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "selectSentiment": "请选择你的心情",
+  "@selectSentiment": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "from": "开始",
+  "@from": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "to": "结束",
+  "@to": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "expend": "花费",
+  "@expend": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "currencySign": "¥",
+  "@currencySign": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "currencyName": "元",
+  "@currencyName": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "pleaseInputNumbers": "请输入数字",
+  "@pleaseInputNumbers": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "location": "地点",
+  "@location": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "enterLocation": "输入地点",
+  "@enterLocation": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "enterEventNameOrSelectOne": "输入或选一个记事标题",
+  "@enterEventNameOrSelectOne": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "people": "人物",
+  "@people": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "goal": "目标",
+  "@goal": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "pleaseEnterEventTitle": "请输入记事标题",
+  "@pleaseEnterEventTitle": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "enterTitle": "输入标题",
+  "@enterTitle": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "title": "标题",
+  "@title": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "enterTarget": "Enter target",
+  "@enterTarget": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "target": "Target",
+  "@target": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "enterEventTitleOrSelectOne": "Enter event title or select one",
+  "@enterEventTitleOrSelectOne": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "enterProgress": "Enter progress",
+  "@enterProgress": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "enterCurrentProgress": "Enter current progress",
+  "@enterCurrentProgress": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "progress": "Progress",
+  "@progress": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "setProgress": "Set progress",
+  "@setProgress": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "progressTarget": "Progress/Target",
+  "@progressTarget": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "toDo": "To do",
+  "@toDo": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "alreadyCompleted": "Already completed",
+  "@alreadyCompleted": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "enterAlreadyCompleted": "Enter already completed",
+  "@enterAlreadyCompleted": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "completed": "Completed",
+  "@completed": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "enterCompleted": "Enter completed",
+  "@enterCompleted": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "done": "Done",
+  "@done": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "alreadyDone": "Already done",
+  "@alreadyDone": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "enterDone": "Enter done",
+  "@enterDone": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "enterAlreadyDone": "Enter aready done",
+  "@enterAlreadyDone": {
+    "type": "text",
+    "placeholders": {}
+  },
+  "activityForGoal": "Activity for goal",
+  "@activityForGoal": {
+    "type": "text",
+    "placeholders": {}
+  }
+}
