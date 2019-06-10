@@ -1,10 +1,11 @@
-import 'package:data_life/life_db.dart';
+import 'package:data_life/db/life_db.dart';
 
 
 enum Sentiment {
   VerySatisfied, Satisfied, Neutral, Dissatisfied, VeryDissatisfied
 }
 
+/*
 
 class Event {
   Event();
@@ -23,7 +24,7 @@ class Event {
 
   Event.fromMap(Map map) {
     id = map[EventTable.columnId] as int;
-    activityId = map[EventTable.columnActivityId] as int;
+    activityId = map[EventTable.columnActionId] as int;
     location = map[EventTable.columnLocation] as String;
     people = map[EventTable.columnPeople] as String;
     sentiment = Sentiment.values[map[EventTable.columnSentiment]];
@@ -37,7 +38,7 @@ class Event {
 
   Map<String, dynamic> toMap() {
     var map = <String, dynamic>{
-      EventTable.columnActivityId: activityId,
+      EventTable.columnActionId: activityId,
       EventTable.columnLocation: location,
       EventTable.columnPeople: people,
       EventTable.columnSentiment: sentiment.index,
@@ -54,3 +55,4 @@ class Event {
     return map;
   }
 }
+*/

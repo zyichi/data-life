@@ -112,7 +112,7 @@ class ActionEditState extends State<ActionEdit> {
 
   Widget _createStartTimeWidget() {
     return DateTimePicker(
-      lableText: AppLocalizations.of(context).startTime,
+      labelText: AppLocalizations.of(context).startTime,
       selectedDate: _startDate,
       selectedTime: _startTime,
       selectDate: (value) {

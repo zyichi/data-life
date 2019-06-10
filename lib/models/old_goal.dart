@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'package:data_life/life_db.dart';
+import 'package:data_life/db/life_db.dart';
 import 'package:data_life/localizations.dart';
 import 'package:data_life/models/activity.dart';
 
@@ -359,6 +359,7 @@ class Goal {
     return null;
   }
 
+  /*
   Goal.fromMap(Map map) {
     id = map[GoalTable.columnId] as int;
     name = map[GoalTable.columnTarget] as String;
@@ -381,6 +382,7 @@ class Goal {
     }
     return map;
   }
+  */
 
 }
 
@@ -410,6 +412,7 @@ class OldGoal {
     return null;
   }
 
+  /*
   OldGoal.fromMap(Map map) {
     id = map[OldGoalTable.columnId] as int;
     type = GoalType.values[map[OldGoalTable.columnType]];
@@ -442,4 +445,5 @@ class OldGoal {
     }
     return map;
   }
+  */
 }

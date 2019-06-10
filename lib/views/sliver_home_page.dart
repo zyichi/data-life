@@ -1,18 +1,19 @@
 import 'dart:io';
+import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:data_life/localizations.dart';
 import 'package:data_life/views/test_layout.dart';
 import 'package:data_life/views/goal_edit.dart';
 import 'package:data_life/views/timer_page.dart';
-import 'package:data_life/views/event_edit.dart';
+import 'package:data_life/views/moment_edit.dart';
 import 'package:data_life/views/search_page.dart';
 import 'package:data_life/views/my_color.dart';
-import 'package:data_life/views/hero_name.dart';
 import 'package:data_life/views/people_suggestion.dart';
 import 'package:flutter/services.dart';
 import 'package:page_transition/page_transition.dart';
-import 'dart:math';
+import 'package:data_life/views/contact_page.dart';
+
 
 class XHomePage extends StatefulWidget {
   final String title;
@@ -174,6 +175,16 @@ class XHomePageState extends State<XHomePage>
                                     // fixed-height list items, hence the use of
                                     // SliverFixedExtentList. However, one could use any
                                     // sliver widget here, e.g. SliverList or SliverGrid.
+                                    /*
+                                    sliver: ListView.builder(
+                                      itemCount: 32,
+                                      itemBuilder: (context, i) {
+                                        return ListTile(
+                                          title: Text('Item $i'),
+                                        );
+                                      },
+                                    ),
+                                    */
                                     sliver: SliverFixedExtentList(
                                       // The items in this example are fixed to 48 pixels
                                       // high. This matches the Material Design spec for
@@ -265,9 +276,7 @@ class _BottomBarState extends State<_BottomBar> {
     Navigator.push(
         context,
         MaterialPageRoute(
-            builder: (BuildContext context) => EventEdit(
-                  title: AppLocalizations.of(context).event,
-                ),
+            builder: (BuildContext context) => MomentEdit(),
             fullscreenDialog: true));
   }
 
@@ -306,7 +315,15 @@ class _BottomBarState extends State<_BottomBar> {
             IconButton(
               color: MyColor.greyIcon,
               icon: Icon(Icons.people_outline),
-              onPressed: () {},
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (BuildContext context) => ContactPage(),
+                    fullscreenDialog: true,
+                  ),
+                );
+              },
             ),
             IconButton(
               color: MyColor.greyIcon,

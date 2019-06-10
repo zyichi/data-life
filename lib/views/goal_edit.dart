@@ -107,8 +107,8 @@ class GoalEditState extends State<GoalEdit> {
       }
     });
     _completedController.addListener(() {
-      _goal.alreadyDone = num.tryParse(_completedController.text);
-      if (_goal.alreadyDone != null) {
+      _goal.progress = num.tryParse(_completedController.text);
+      if (_goal.progress != null) {
         setState(() {});
       }
     });
@@ -157,7 +157,7 @@ class GoalEditState extends State<GoalEdit> {
 
   Widget _createStartTimeWidget() {
     return DateTimePicker(
-      lableText: AppLocalizations.of(context).startTime,
+      labelText: AppLocalizations.of(context).startTime,
       selectedDate: _startDate,
       selectedTime: _startTime,
       selectDate: (value) {

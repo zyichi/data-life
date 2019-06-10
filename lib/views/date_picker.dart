@@ -6,12 +6,14 @@ class DatePicker extends StatelessWidget {
   final DateTime selectedDate;
   final ValueChanged<DateTime> selectDate;
   final EdgeInsets contentPadding;
+  final bool enabled;
 
   const DatePicker(
       {Key key,
         this.selectedDate,
         this.selectDate,
         this.contentPadding,
+        this.enabled = true,
       })
       : super(key: key);
 
@@ -37,7 +39,7 @@ class DatePicker extends StatelessWidget {
           style: valueStyle,
         ),
       ),
-      onTap: () {
+      onTap: !enabled ? () {} : () {
         _selectDate(context);
       },
     );

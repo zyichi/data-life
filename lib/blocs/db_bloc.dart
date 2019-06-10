@@ -1,5 +1,6 @@
 import 'package:bloc/bloc.dart';
-import 'package:data_life/life_db.dart';
+import 'package:data_life/db/life_db.dart';
+
 
 abstract class DbEvent {}
 
@@ -23,6 +24,7 @@ class DbBloc extends Bloc<DbEvent, DbState> {
   Stream<DbState> mapEventToState(DbEvent event) async* {
     if (event is OpenDb) {
       try {
+        // await LifeDb.delete();
         await LifeDb.open();
         yield DbOpen();
       } catch (_) {

@@ -43,5 +43,14 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>DataLife 需要定位权限才可以正常使用，如果您需要使用后台定位功能请选择“始终允许”。</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>DataLife 需要定位权限才可以正常使用</string>
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsArbitraryLoads</key>
+    		<true/>
+	</dict>
 </dict>
 </plist>

@@ -1,5 +1,15 @@
 import 'package:flutter/material.dart';
 
+
+String formFieldEmptyValidator(String text) {
+  if (text.isEmpty) {
+    return 'Can not be empty';
+  } else {
+    return null;
+  }
+}
+
+
 class LabelFormField extends StatelessWidget {
   final String label;
   final EdgeInsets padding;
@@ -27,16 +37,20 @@ class TextInputFormField extends StatelessWidget {
   final String labelText;
   final String hintText;
   final TextEditingController controller;
+  final FormFieldValidator<String> validator;
   final TextInputType inputType;
   final int maxLines;
+  final bool enabled;
 
   const TextInputFormField({
     Key key,
     this.labelText,
     this.hintText,
     this.controller,
+    this.validator,
     this.inputType = TextInputType.text,
     this.maxLines = 1,
+    this.enabled = true,
   }) : super(key: key);
 
   @override
@@ -57,6 +71,8 @@ class TextInputFormField extends StatelessWidget {
           ),
           maxLines: maxLines,
           controller: controller,
+          validator: validator,
+          enabled: enabled,
         )
       ],
     );

@@ -210,6 +210,10 @@ class AppLocalizations {
   String get end { return Intl.message('End', name: 'end'); }
   String get enterSpend { return Intl.message('Enter spend', name: 'enterSpend'); }
   String get enterPeople { return Intl.message('Enter people', name: 'enterPeople'); }
+
+  String get moments { return Intl.message('Moments', name: 'moments'); }
+  String get contacts { return Intl.message('Contacts', name: 'contacts'); }
+
 }
 
 

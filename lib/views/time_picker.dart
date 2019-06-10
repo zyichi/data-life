@@ -5,12 +5,14 @@ class TimePicker extends StatelessWidget {
   final EdgeInsets contentPadding;
   final TimeOfDay selectedTime;
   final ValueChanged<TimeOfDay> selectTime;
+  final bool enabled;
 
   const TimePicker(
       {Key key,
         this.selectedTime,
         this.selectTime,
         this.contentPadding,
+        this.enabled = true,
       })
       : super(key: key);
 
@@ -34,7 +36,7 @@ class TimePicker extends StatelessWidget {
           style: valueStyle,
         ),
       ),
-      onTap: () {
+      onTap: !enabled ? () {} : () {
         _selectTime(context);
       },
     );

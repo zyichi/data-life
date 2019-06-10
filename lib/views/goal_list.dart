@@ -1,181 +1,100 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
+import 'package:data_life/paging/page_bloc.dart';
+import 'package:data_life/paging/page_list.dart';
 import 'package:data_life/models/goal.dart';
-import 'package:data_life/blocs/goal_bloc.dart';
-import 'package:data_life/utils/time_format.dart';
-import 'package:data_life/localizations.dart';
-
-abstract class _ListItem {}
-
-/*
-class _HeadingItem implements _ListItem {
-  final GoalType goalType;
-  final String goalTypeLiteral;
-
-  _HeadingItem(this.goalType, this.goalTypeLiteral);
-}
-
-class _GoalItem implements _ListItem {
-  final OldGoal goal;
-
-  _GoalItem(this.goal);
-}
-
-List<_ListItem> _createGoalItems(context) {
-  final goalsMap = Map<GoalType, List<OldGoal>>();
-  final items = <_ListItem>[];
-  for (var key in goalsMap.keys) {
-    items.add(_HeadingItem(key, getGoalTypeLiteral(context, key)));
-    var goals = goalsMap[key];
-    if (goals != null && goals.isNotEmpty)
-      goals.sort((goalA, goalB) {
-        // Reverse sort
-        return goalB.createTime.compareTo(goalA.createTime);
-      });
-    for (var goal in goalsMap[key]) {
-      items.add(_GoalItem(goal));
-    }
-  }
-  return items;
-}
-*/
 
 class GoalList extends StatefulWidget {
-  const GoalList();
+  final String name;
+
+  GoalList({@required this.name}) : assert(name != null);
 
   @override
-  _GoalListState createState() {
-    return new _GoalListState();
-  }
+  _GoalListState createState() => _GoalListState();
 }
 
-class _GoalListState extends State<GoalList> {
+class _GoalListState extends State<GoalList> with AutomaticKeepAliveClientMixin {
+  PageBloc<Goal> _goalBloc;
+
   @override
   void initState() {
+    print('GoalList.initState');
     super.initState();
+
+    _goalBloc = BlocProvider.of<PageBloc<Goal>>(context);
+    _goalBloc.dispatch(RefreshPage());
   }
 
-  String _formatTimeSpent(int seconds) {
-    final List<int> hms = secondsToHms(seconds);
-    return '${hms[0]} hours ${hms[1]} minutes';
+  @override
+  void dispose() {
+    print('GoalList.dispose');
+    super.dispose();
   }
+
+  @override
+  bool get wantKeepAlive => true;
 
   @override
   Widget build(BuildContext context) {
-    final goalBloc = GoalProvider.of(context);
-
-    return Scrollbar(
-        child: Container(
-      color: Colors.grey[200],
-      child: Padding(
-        padding: const EdgeInsets.only(top: 8.0),
-        child: StreamBuilder(
-          stream: goalBloc.goalsStream,
-          initialData: goalBloc.goalsStream.value,
-          builder: (context, snapshot) => ListView.builder(
-            key: PageStorageKey('tabGoals'),
-            itemCount: (snapshot.data as List).length,
-                itemBuilder: (context, index) {
-                  List<Goal> goals = snapshot.data;
-                  final goal = goals[index];
-                  return _createGoalWidget(goal);
-                },
-              ),
-        ),
-      ),
-    ));
-  }
-
-  Widget _createGoalWidget(Goal goal) {
-    return Card(
-      elevation: 2.0,
-      margin: const EdgeInsets.only(left: 8.0, right: 8.0),
-      shape: Border(
-        top: BorderSide(color: Colors.grey[300]),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.only(left: 16.0, top: 16.0, bottom: 16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            Text(
-              goal.name,
-              style: Theme.of(context).textTheme.body1.copyWith(fontSize: 16.0),
-            ),
-            SizedBox(
-              height: 4.0,
-            ),
-            Text(
-              goal.lastActiveTime.toString(),
-              style:
-                  Theme.of(context).textTheme.caption.copyWith(fontSize: 14.0),
-            )
-          ],
-        ),
-      ),
+    print('GoalList.build');
+    super.build(context);
+    return BlocBuilder(
+      bloc: _goalBloc,
+      builder: (context, state) {
+        if (state is PageUninitialized) {
+          return Center(
+            child: Text('No results'),
+          );
+        }
+        if (state is PageLoading) {
+          return Center(
+            child: CircularProgressIndicator(),
+          );
+        }
+        if (state is PageLoaded<Goal>) {
+          PageList pagedList = state.pageList;
+          return ListView.builder(
+            key: PageStorageKey<String>(widget.name),
+            itemCount: pagedList.total,
+            itemBuilder: (context, index) {
+              Goal goal = pagedList.itemAt(index);
+              if (goal == null) {
+                _goalBloc.getItem(index);
+                return Container(
+                  alignment: Alignment.centerLeft,
+                  height: 48.0,
+                  child: Padding(
+                    padding: const EdgeInsets.only(left: 8.0),
+                    child: Text('Loading ...'),
+                  ),
+                );
+              }
+              return Container(
+                height: 48.0,
+                alignment: Alignment.centerLeft,
+                child: Padding(
+                  padding: const EdgeInsets.only(left: 8.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment:  MainAxisAlignment.center,
+                    children: <Widget>[
+                      Text(
+                        goal.name,
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          );
+        }
+        if (state is PageError) {
+          return Center(
+            child: Text('Load goal failed'),
+          );
+        }
+      },
     );
   }
-
-  /*
-  Widget __createGoalWidget(int index, goalItem) {
-    var item;
-
-    if (item is _HeadingItem) {
-      return Card(
-        elevation: 2.0,
-        margin: EdgeInsets.only(left: 8.0, top: 8.0, right: 8.0),
-        shape: Border(
-          bottom: BorderSide.none,
-        ),
-        child: Padding(
-          padding: EdgeInsets.only(left: 16.0, top: 8.0, bottom: 8.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              Text(
-                item.goalTypeLiteral,
-                style: Theme.of(context).textTheme.title.copyWith(
-                      color: Colors.grey[600],
-                    ),
-              ),
-            ],
-          ),
-        ),
-      );
-    } else if (item is _GoalItem) {
-      return Card(
-        elevation: 2.0,
-        margin: const EdgeInsets.only(left: 8.0, right: 8.0),
-        shape: Border(
-          top: BorderSide(color: Colors.grey[300]),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.only(left: 16.0, top: 16.0, bottom: 16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              Text(
-                item.goal.activityName,
-                style:
-                    Theme.of(context).textTheme.body1.copyWith(fontSize: 16.0),
-              ),
-              SizedBox(
-                height: 4.0,
-              ),
-              Text(
-                '${AppLocalizations.of(context).totalTime}: ${_formatTimeSpent(item.goal.timeSpent)}',
-                style: Theme.of(context)
-                    .textTheme
-                    .caption
-                    .copyWith(fontSize: 14.0),
-              )
-            ],
-          ),
-        ),
-      );
-    }
-
-    return null;
-  }
-  */
 }

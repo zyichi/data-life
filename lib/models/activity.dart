@@ -1,4 +1,4 @@
-import 'package:data_life/life_db.dart';
+import 'package:data_life/db/life_db.dart';
 
 enum HowOften {
   onceMonth, twiceMonth, onceWeek, twiceWeek, threeTimesWeek, fourTimesWeek,
@@ -29,6 +29,7 @@ class Activity {
   int createTime;
   int updateTime;
 
+  /*
   Activity.fromMap(Map map) {
     id = map[ActivityTable.columnId] as int;
     goalId = map[ActivityTable.columnGoalId] as int;
@@ -67,4 +68,5 @@ class Activity {
     }
     return map;
   }
+  */
 }

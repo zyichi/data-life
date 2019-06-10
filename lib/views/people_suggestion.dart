@@ -11,6 +11,7 @@ class PeopleSuggestion extends StatefulWidget {
 class _PeopleSuggestionState extends State<PeopleSuggestion> {
   final _peopleSet = Set<String>();
   TextEditingController _peopleController;
+  TextEditingController _nameController;
   TextEditingController _testController;
   var _selectedPeople = List<String>();
   FocusNode _focusNode;
@@ -19,9 +20,12 @@ class _PeopleSuggestionState extends State<PeopleSuggestion> {
   void initState() {
     super.initState();
     _peopleController = TextEditingController();
+    _nameController = TextEditingController();
     _testController = TextEditingController();
     _focusNode = FocusNode();
     _peopleSet.addAll(_peopleList);
+
+    _nameController.text = 'I love this game!';
   }
 
   @override
@@ -64,6 +68,59 @@ class _PeopleSuggestionState extends State<PeopleSuggestion> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
+            RaisedButton(
+              child: Text('Pick Date'),
+              onPressed: () {
+                Future<DateTime> selectedDate = showDatePicker(
+                  context: context,
+                  initialDate: DateTime.now(),
+                  firstDate: DateTime(2018),
+                  lastDate: DateTime(2030),
+                  builder: (BuildContext context, Widget child) {
+                    return Theme(
+                      data: ThemeData.dark(),
+                      child: child,
+                    );
+                  },
+                );
+                print('Selected date: $selectedDate');
+              },
+            ),
+            RaisedButton(
+              child: Text('Pick Time'),
+              onPressed: () {
+                Future<TimeOfDay> selectedTime = showTimePicker(
+                  initialTime: TimeOfDay.now(),
+                  context: context,
+                );
+                print('Selected time: $selectedTime');
+              },
+            ),
+            TextField(
+              decoration: InputDecoration(
+                labelText: 'Input name',
+              ),
+            ),
+            TextField(
+              decoration: InputDecoration(
+                labelText: 'Text field is disabled',
+              ),
+              /*
+              style: Theme.of(context).textTheme.body1.copyWith(
+                fontSize: 14,
+                color: Colors.black,
+              ),
+              */
+              enabled: false,
+              controller: _nameController,
+            ),
+            TextField(
+              decoration: InputDecoration(
+                labelText: 'Text field is disabled',
+              ),
+              // enabled: false,
+              enableInteractiveSelection: false,
+            ),
             Text('Name'),
             _selectedPeople.isEmpty
                 ? Container()

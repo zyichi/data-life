@@ -7,19 +7,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:data_life/main.dart';
-import 'package:data_life/blocs/goal_bloc.dart';
-import 'package:data_life/blocs/event_bloc.dart';
-import 'package:data_life/services/goal_service.dart';
-import 'package:data_life/services/event_service.dart';
 
 void main() {
   testWidgets('Counter increments smoke test', (WidgetTester tester) async {
     // Build our app and trigger a frame.
-    final goalService = GoalService();
-    final goalBloc = GoalBloc(goalService);
-    final eventService = EventService();
-    final activityBloc = EventBloc(eventService);
 
     // await tester.pumpWidget(new MyApp(goalBloc, activityBloc));
 

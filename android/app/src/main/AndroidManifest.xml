@@ -16,6 +16,11 @@
         android:name="io.flutter.app.FlutterApplication"
         android:label="DataLife"
         android:icon="@mipmap/ic_launcher">
+
+        <meta-data
+            android:name="com.amap.api.v2.apikey"
+            android:value="bbe20a40f9231fccc4824f19f8323f69"/>
+
         <activity
             android:name=".MainActivity"
             android:launchMode="singleTop"

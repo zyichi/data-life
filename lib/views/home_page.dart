@@ -1,215 +1,228 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
-import 'package:data_life/views/event_edit.dart';
-import 'package:data_life/views/goal_list.dart';
-import 'package:data_life/views/activity_list.dart';
-import 'package:data_life/blocs/goal_bloc.dart';
 import 'package:data_life/localizations.dart';
+import 'package:data_life/views/test_layout.dart';
 import 'package:data_life/views/goal_edit.dart';
 import 'package:data_life/views/timer_page.dart';
-import 'package:data_life/views/test_layout.dart';
-import 'package:data_life/views/x_home_page.dart';
+import 'package:data_life/views/search_page.dart';
+import 'package:data_life/views/my_color.dart';
+import 'package:data_life/views/people_suggestion.dart';
+import 'package:flutter/services.dart';
+import 'package:page_transition/page_transition.dart';
+import 'package:data_life/views/contact_page.dart';
+import 'package:data_life/views/moment_list.dart';
+import 'package:data_life/views/contact_list.dart';
+import 'package:data_life/views/goal_list.dart';
+import 'package:data_life/views/moment_edit.dart';
+import 'package:data_life/views/location_list.dart';
 
-enum DismissDialogAction {
-  cancel,
-  discard,
-  save,
-}
+import 'package:data_life/models/moment.dart';
+import 'package:data_life/models/goal.dart';
+import 'package:data_life/models/contact.dart';
+import 'package:data_life/models/location.dart';
+import 'package:data_life/paging/page_bloc.dart';
+import 'package:data_life/views/repositories.dart';
 
-class MyHomePage extends StatefulWidget {
-  static const routeName = 'home';
+import 'package:data_life/repositories/moment_repository.dart';
+import 'package:data_life/repositories/moment_provider.dart';
+import 'package:data_life/repositories/goal_provider.dart';
+import 'package:data_life/repositories/goal_repository.dart';
+import 'package:data_life/repositories/contact_provider.dart';
+import 'package:data_life/repositories/contact_repository.dart';
+import 'package:data_life/repositories/location_provider.dart';
+import 'package:data_life/repositories/location_repository.dart';
 
-  MyHomePage({Key key}) : super(key: key);
+
+class HomePage extends StatefulWidget {
+  final String title;
+
+  const HomePage({Key key, this.title});
 
   @override
-  _MyHomePageState createState() => _MyHomePageState();
+  HomePageState createState() {
+    return HomePageState();
+  }
 }
 
-class _MyHomePageState extends State<MyHomePage>
-    with SingleTickerProviderStateMixin, WidgetsBindingObserver {
+class HomePageState extends State<HomePage>
+    with SingleTickerProviderStateMixin {
   TabController _tabController;
-  bool _initGoalStream = true;
+  PageBloc<Moment> _momentBloc;
+  PageBloc<Goal> _goalBloc;
+  PageBloc<Contact> _contactBloc;
+  PageBloc<Location> _locationBloc;
+  MomentRepository _momentRepository;
+  GoalRepository _goalRepository;
+  ContactRepository _contactRepository;
+  LocationRepository _locationRepository;
+
+  var _androidApp = MethodChannel("android_app");
 
   @override
   void initState() {
+    print('HomePage.initState');
+
     super.initState();
 
-    WidgetsBinding.instance.addObserver(this);
+    _momentRepository = MomentRepository(MomentProvider());
+    _goalRepository = GoalRepository(GoalProvider());
+    _contactRepository = ContactRepository(ContactProvider());
+    _locationRepository = LocationRepository(LocationProvider());
+
+    _momentBloc = PageBloc<Moment>(pageRepository: _momentRepository);
+    _goalBloc = PageBloc<Goal>(pageRepository: _goalRepository);
+    _contactBloc = PageBloc<Contact>(pageRepository: _contactRepository);
+    _locationBloc = PageBloc<Location>(pageRepository: _locationRepository);
+
     _tabController = TabController(length: 4, vsync: this);
   }
 
   @override
   void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
-    _tabController.dispose();
+    print('HomePage.dispose');
+    _momentBloc.dispose();
+
     super.dispose();
   }
 
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    switch (state) {
-      case AppLifecycleState.resumed:
-        {
-          print('HomePage resumed');
-          break;
-        }
-      case AppLifecycleState.inactive:
-        {
-          print('HomePage inactive');
-          break;
-        }
-      case AppLifecycleState.paused:
-        {
-          print('HomePage paused');
-          break;
-        }
-      case AppLifecycleState.suspending:
-        {
-          print('HomePage suspending');
-          break;
-        }
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    if (_initGoalStream) {
-      _initGoalStream = false;
-      GoalProvider.of(context).invalid.add(true);
-    }
-
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(AppLocalizations.of(context).appName),
-        bottom: TabBar(
-          indicator: _getIndicator(),
-          controller: _tabController,
-          tabs: [
-            Tab(
-              text: AppLocalizations.of(context).events,
-            ),
-            Tab(
-              text: AppLocalizations.of(context).goals,
-            ),
-            Tab(
-              text: AppLocalizations.of(context).people,
-            ),
-            Tab(
-              text: AppLocalizations.of(context).statistics,
-            ),
-          ],
+  Widget _createHomeSearchBar() {
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.all(
+          Radius.circular(4.0),
         ),
+        color: Colors.white,
       ),
-      body: TabBarView(
-        controller: _tabController,
-        children: [
-          EventList(),
-          GoalList(),
-          Icon(Icons.people),
-          Icon(Icons.insert_chart),
+      child: Row(
+        children: <Widget>[
+          IconButton(
+            color: MyColor.greyIcon,
+            icon: Icon(Icons.menu),
+            onPressed: () {},
+          ),
+          Expanded(
+            child: TapOnlyTextField(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  PageTransition(
+                    child: SearchPage(),
+                    type: PageTransitionType.fade,
+                    duration: Duration(microseconds: 300),
+                    // alignment: Alignment.topCenter,
+                  ),
+                );
+              },
+              hintText: 'Search life',
+            ),
+          ),
         ],
       ),
-      bottomNavigationBar: _BottomAppBar(),
     );
   }
 
   Decoration _getIndicator() {
     return const UnderlineTabIndicator();
   }
-}
-
-class _BottomAppBar extends StatelessWidget {
-  const _BottomAppBar();
-
-  Widget _buildActivityTextField(BuildContext context) {
-    return new TapOnlyTextField();
-  }
-
-  void _showSnackBar(BuildContext context, String action) {
-    final snackBar = SnackBar(
-      content: Text('$action clicked'),
-    );
-    Scaffold.of(context).showSnackBar(snackBar);
-  }
 
   @override
   Widget build(BuildContext context) {
-    return BottomAppBar(
-      color: Colors.white,
-      child: Row(
-        children: <Widget>[
-          _buildActivityTextField(context),
-          IconButton(
-            icon: Icon(Icons.outlined_flag),
-            onPressed: () async {
-              Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (BuildContext context) =>
-                          GoalEdit(AppLocalizations.of(context).goal),
-                      fullscreenDialog: true,
-                      settings: RouteSettings(
-                        name: GoalEdit.routeName,
-                      )));
-            },
-          ),
-          IconButton(
-            icon: Icon(Icons.people),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (BuildContext context) => XHomePage(
-                        title: AppLocalizations.of(context).people,
-                      ),
+    print('HomePage.build');
+    var _tabs = <String>[
+      AppLocalizations.of(context).moments,
+      AppLocalizations.of(context).goals,
+      AppLocalizations.of(context).contacts,
+      AppLocalizations.of(context).location,
+    ];
+
+    return WillPopScope(
+      onWillPop: () {
+        if (Platform.isAndroid) {
+          if (Navigator.of(context).canPop()) {
+            return Future.value(true);
+          } else {
+            _androidApp.invokeMethod("toBack");
+          }
+        } else {
+          return Future.value(true);
+        }
+      },
+      child: Repositories(
+        momentRepository: _momentRepository,
+        contactRepository: _contactRepository,
+        locationRepository: _locationRepository,
+        child: BlocProviderTree(
+          blocProviders: [
+            BlocProvider<PageBloc<Moment>>(bloc: _momentBloc,),
+            BlocProvider<PageBloc<Goal>>(bloc: _goalBloc,),
+            BlocProvider<PageBloc<Contact>>(bloc: _contactBloc,),
+            BlocProvider<PageBloc<Location>>(bloc: _locationBloc,),
+          ],
+          child: Material(
+            child: Scaffold(
+              appBar: AppBar(
+                title: _createHomeSearchBar(),
+                bottom: TabBar(
+                  indicator: _getIndicator(),
+                  controller: _tabController,
+                  tabs: _tabs.map((text) {
+                    return Tab(
+                      text: text,
+                    );
+                  }).toList(growable: false),
                 ),
-              );
-            },
+              ),
+              body: TabBarView(
+                controller: _tabController,
+                children: _tabs.map((text) {
+                  print('Create tab view for $text');
+                  if (text == AppLocalizations.of(context).moments) {
+                    return MomentList(
+                      name: text,
+                    );
+                  }
+                  if (text == AppLocalizations.of(context).goals) {
+                    return GoalList(
+                      name: text,
+                    );
+                  }
+                  if (text == AppLocalizations.of(context).contacts) {
+                    return ContactList(
+                      name: text,
+                    );
+                  }
+                  if (text == AppLocalizations.of(context).location) {
+                    return LocationList(
+                      name: text,
+                    );
+                  }
+                }).toList(growable: false),
+              ),
+              bottomNavigationBar: _BottomBar(),
+            ),
           ),
-          IconButton(
-            icon: Icon(Icons.timer),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (BuildContext context) => TimerPage(
-                        title: AppLocalizations.of(context).timer,
-                      ),
-                  fullscreenDialog: true,
-                ),
-              );
-            },
-          ),
-          IconButton(
-            icon: Icon(Icons.menu),
-            // onPressed: () => _showSnackBar(context, 'menu'),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => TestLayout(),
-                  fullscreenDialog: true,
-                  settings: RouteSettings(
-                    name: TestLayout.routeName,
-                  ),
-                ),
-              );
-            },
-          ),
-        ],
+        ),
       ),
     );
   }
 }
 
 class TapOnlyTextField extends StatelessWidget {
+  final VoidCallback onTap;
+  final String hintText;
+
   const TapOnlyTextField({
     Key key,
+    this.onTap,
+    this.hintText,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return Expanded(
+    return Material(
+      color: Colors.white,
       child: InkWell(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 8.0),
@@ -219,21 +232,120 @@ class TapOnlyTextField extends StatelessWidget {
               child: TextField(
                 decoration: InputDecoration(
                   border: InputBorder.none,
-                  hintText: AppLocalizations.of(context).addEvent,
+                  hintText: hintText,
                 ),
               ),
             ),
           ),
         ),
-        onTap: () {
-          Navigator.push(
-              context,
-              MaterialPageRoute(
-                  builder: (BuildContext context) => EventEdit(
-                        title: AppLocalizations.of(context).event,
-                      ),
-                  fullscreenDialog: true));
-        },
+        onTap: onTap,
+      ),
+    );
+  }
+}
+
+class _BottomBar extends StatefulWidget {
+  @override
+  _BottomBarState createState() {
+    return new _BottomBarState();
+  }
+}
+
+class _BottomBarState extends State<_BottomBar> {
+  void addMomentOnTap() async {
+    var saved = await Navigator.push(
+        context,
+        MaterialPageRoute(
+            builder: (BuildContext context) => MomentEdit(),
+            fullscreenDialog: true));
+    if (saved == true) {
+      print('Moment saved, refresh moment/contact/location list');
+      BlocProvider.of<PageBloc<Moment>>(context).dispatch(RefreshPage());
+      BlocProvider.of<PageBloc<Contact>>(context).dispatch(RefreshPage());
+      BlocProvider.of<PageBloc<Location>>(context).dispatch(RefreshPage());
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      elevation: 16.0,
+      color: Colors.white,
+      child: Padding(
+        padding:
+            const EdgeInsets.only(left: 8.0, top: 4.0, right: 8.0, bottom: 8.0),
+        child: Row(
+          children: <Widget>[
+            Expanded(
+              child: TapOnlyTextField(
+                onTap: addMomentOnTap,
+                hintText: 'Save moment',
+              ),
+            ),
+            IconButton(
+              color: MyColor.greyIcon,
+              icon: Icon(Icons.outlined_flag),
+              onPressed: () async {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (BuildContext context) =>
+                        GoalEdit(AppLocalizations.of(context).goal),
+                    fullscreenDialog: true,
+                    settings: RouteSettings(
+                      name: GoalEdit.routeName,
+                    ),
+                  ),
+                );
+              },
+            ),
+            IconButton(
+              color: MyColor.greyIcon,
+              icon: Icon(Icons.people_outline),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (BuildContext context) => ContactPage(),
+                    fullscreenDialog: true,
+                  ),
+                );
+              },
+            ),
+            IconButton(
+              color: MyColor.greyIcon,
+              icon: Icon(Icons.timer),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (BuildContext context) => TimerPage(
+                          title: AppLocalizations.of(context).timer,
+                        ),
+                    fullscreenDialog: true,
+                  ),
+                );
+              },
+            ),
+            IconButton(
+              color: MyColor.greyIcon,
+              icon: Icon(Icons.menu),
+              // onPressed: () => _showSnackBar(context, 'menu'),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => PeopleSuggestion(),
+                    fullscreenDialog: true,
+                    settings: RouteSettings(
+                      name: TestLayout.routeName,
+                    ),
+                  ),
+                );
+              },
+            ),
+          ],
+        ),
       ),
     );
   }
