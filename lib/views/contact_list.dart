@@ -7,7 +7,7 @@ import 'package:data_life/paging/page_bloc.dart';
 import 'package:data_life/paging/page_list.dart';
 import 'package:data_life/models/contact.dart';
 import 'package:data_life/views/my_color.dart';
-import 'package:data_life/utils/time_format.dart';
+import 'package:data_life/utils/time_util.dart';
 
 
 class _ContactListItem extends StatelessWidget {
@@ -54,8 +54,8 @@ class _ContactListItem extends StatelessWidget {
     if (contact.lastMeetTime == null) {
       s = '未见面';
     } else {
-      s = formatDateForDisplayMillis(contact.lastMeetTime)
-          + ' ' + formatTimeForDisplayMillis(contact.lastMeetTime, context);
+      s = TimeUtil.formatDateForDisplayMillis(contact.lastMeetTime)
+          + ' ' + TimeUtil.formatTimeForDisplayMillis(contact.lastMeetTime, context);
     }
     return Text(
       '最近见面: $s',
@@ -64,7 +64,7 @@ class _ContactListItem extends StatelessWidget {
 
   Widget _createTotalTimeTogetherWidget(BuildContext context) {
     return Text(
-      "共呆一起: ${formatMillisToDHM(contact.totalTimeTogether, context)}",
+      "共呆一起: ${TimeUtil.formatMillisToDHM(contact.totalTimeTogether, context)}",
       style: Theme.of(context).textTheme.caption,
     );
   }

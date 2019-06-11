@@ -1,7 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
+import 'package:equatable/equatable.dart';
+
 
 const List<String> _peopleList = ['丫宝', '张一驰', '张凌空', '爸爸', '妈妈', '于长旭', '芳芳'];
+
+class _Person extends Equatable {
+  final String name;
+  final String hometown;
+  // _Person({this.name, this.hometown}) : super([name]);
+  _Person({this.name, this.hometown});
+
+  @override
+  List get props => [name];
+}
 
 class PeopleSuggestion extends StatefulWidget {
   @override
@@ -57,6 +69,31 @@ class _PeopleSuggestionState extends State<PeopleSuggestion> {
     }).toList();
   }
 
+  void _testEquatable() {
+    var p1 = _Person(name: 'yabao', hometown: 'hebei');
+    var p2 = _Person(name: 'yichi', hometown: 'yunnan');
+    var p3 = _Person(name: 'fangfang', hometown: 'yunnan');
+    List<_Person> l1 = [
+      p1,
+      _Person(name: 'yichi', hometown: 'yunnan'),
+    ];
+    List<_Person> l2 = [
+      _Person(name: 'yabao', hometown: 'hebei'),
+      p3
+    ];
+    for (_Person p in l1) {
+      if (!l2.contains(p)) {
+        print('${p.name} removed from l2');
+      }
+    }
+    for (_Person p in l2) {
+      if (!l1.contains(p)) {
+        print('${p.name} add to l2');
+      }
+    }
+    print('x');
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -68,6 +105,12 @@ class _PeopleSuggestionState extends State<PeopleSuggestion> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
+            RaisedButton(
+              child: Text('Test Equatable'),
+              onPressed: () {
+                _testEquatable();
+              },
+            ),
             RaisedButton(
               child: Text('Pick Date'),
               onPressed: () {

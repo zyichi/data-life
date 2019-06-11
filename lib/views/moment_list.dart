@@ -9,7 +9,7 @@ import 'package:data_life/views/moment_edit.dart';
 import 'package:data_life/models/contact.dart';
 import 'package:data_life/models/location.dart';
 import 'package:data_life/views/my_color.dart';
-import 'package:data_life/utils/time_format.dart';
+import 'package:data_life/utils/time_util.dart';
 
 
 class _MomentListItem extends StatelessWidget {
@@ -40,10 +40,12 @@ class _MomentListItem extends StatelessWidget {
                       ),
                   fullscreenDialog: true));
           if (saved == true) {
+            /*
             print('Moment edited, refresh moment/contact/location list');
             BlocProvider.of<PageBloc<Moment>>(context).dispatch(RefreshPage());
             BlocProvider.of<PageBloc<Contact>>(context).dispatch(RefreshPage());
             BlocProvider.of<PageBloc<Location>>(context).dispatch(RefreshPage());
+            */
           }
         },
         child: Container(
@@ -82,7 +84,7 @@ class _MomentListItem extends StatelessWidget {
   }
 
   Widget _createDurationWidget(BuildContext context) {
-    List<int> l = dayHourMinuteFromSeconds(moment.durationInSeconds());
+    List<int> l = TimeUtil.dayHourMinuteFromSeconds(moment.durationInSeconds());
     int days = l[0];
     int hours = l[1];
     int minutes = l[2];
@@ -105,8 +107,8 @@ class _MomentListItem extends StatelessWidget {
   }
 
   Widget _createTimeWidget(BuildContext context) {
-    String s = formatDateForDisplayMillis(moment.beginTime)
-        + ' ' + formatTimeForDisplayMillis(moment.beginTime, context);
+    String s = TimeUtil.formatDateForDisplayMillis(moment.beginTime)
+        + ' ' + TimeUtil.formatTimeForDisplayMillis(moment.beginTime, context);
     return Text(
       '$s',
     );

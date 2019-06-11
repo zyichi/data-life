@@ -11,7 +11,7 @@ class ActionTable {
   static const columnHowOften = 'howOften';
   static const columnHowLong = 'howLong';
   static const columnBestTime = 'bestTime';
-  static const columnTotalTimeSpend = 'totalTimeSpend';
+  static const columnTotalTimeTaken = 'totalTimeTaken';
   static const columnLastActiveTime = 'lastActiveTime';
   static const columnCreateTime = 'createTime';
   static const columnUpdateTime = 'updateTime';
@@ -26,7 +26,7 @@ create table $name (
   $columnHowOften integer default null,
   $columnHowLong integer default null,
   $columnBestTime integer default null,
-  $columnTotalTimeSpend integer default 0,
+  $columnTotalTimeTaken integer default 0,
   $columnLastActiveTime integer default null,
   $columnCreateTime integer not null,
   $columnUpdateTime integer default null)
@@ -50,7 +50,7 @@ create table $name (
     var bestTimeIndex = map[ActionTable.columnBestTime];
     if (howLongIndex != null)
       action.bestTime = BestTime.values[bestTimeIndex];
-    action.totalTimeSpend = map[ActionTable.columnTotalTimeSpend] as int;
+    action.totalTimeTaken = map[ActionTable.columnTotalTimeTaken] as int;
     action.lastActiveTime = map[ActionTable.columnLastActiveTime] as int;
     action.createTime = map[ActionTable.columnCreateTime] as int;
     action.updateTime = map[ActionTable.columnUpdateTime] as int;
@@ -66,7 +66,7 @@ create table $name (
       ActionTable.columnHowOften: action.howOften?.index,
       ActionTable.columnHowLong: action.howLong?.index,
       ActionTable.columnBestTime: action.bestTime?.index,
-      ActionTable.columnTotalTimeSpend: action.totalTimeSpend,
+      ActionTable.columnTotalTimeTaken: action.totalTimeTaken,
       ActionTable.columnLastActiveTime: action.lastActiveTime,
       ActionTable.columnCreateTime: action.createTime,
       ActionTable.columnUpdateTime: action.updateTime,

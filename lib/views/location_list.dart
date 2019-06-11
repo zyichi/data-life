@@ -5,7 +5,7 @@ import 'package:data_life/paging/page_bloc.dart';
 import 'package:data_life/paging/page_list.dart';
 import 'package:data_life/models/location.dart';
 import 'package:data_life/views/my_color.dart';
-import 'package:data_life/utils/time_format.dart';
+import 'package:data_life/utils/time_util.dart';
 
 class _LocationListItem extends StatelessWidget {
   final Location location;
@@ -57,9 +57,9 @@ class _LocationListItem extends StatelessWidget {
     if (location.lastVisitTime == null) {
       s = '未去过';
     } else {
-      s = formatDateForDisplayMillis(location.lastVisitTime) +
+      s = TimeUtil.formatDateForDisplayMillis(location.lastVisitTime) +
           ' ' +
-          formatTimeForDisplayMillis(location.lastVisitTime, context);
+          TimeUtil.formatTimeForDisplayMillis(location.lastVisitTime, context);
     }
     return Text(
       '最近停留: $s',
@@ -68,7 +68,7 @@ class _LocationListItem extends StatelessWidget {
 
   Widget _createTotalTimeStayWidget(BuildContext context) {
     return Text(
-      "总共停留: ${formatMillisToDHM(location.totalTimeStay, context)}",
+      "总共停留: ${TimeUtil.formatMillisToDHM(location.totalTimeStay, context)}",
       style: Theme.of(context).textTheme.caption,
     );
   }

@@ -24,6 +24,10 @@ class MomentRepository extends PageRepository<Moment> {
     return _momentProvider.save(moment);
   }
 
+  Future<int> delete(Moment moment) async {
+    return _momentProvider.delete(moment);
+  }
+
   Future<int> saveMomentContact(MomentContact momentContact) async {
     return _momentProvider.saveMomentContact(momentContact);
   }
@@ -36,16 +40,16 @@ class MomentRepository extends PageRepository<Moment> {
     return _momentProvider.deleteMomentContact(momentId, contactId);
   }
 
-  Future<int> getLocationLastVisitTime(int locationId, int momentId) async {
-    return _momentProvider.getLocationLastVisitTime(locationId, momentId);
+  Future<int> getLocationLastVisitTime(int locationId, int excludeMomentId) async {
+    return _momentProvider.getLocationLastVisitTime(locationId, excludeMomentId);
   }
 
-  Future<int> getActionLastActiveTime(int actionId, int momentId) async {
-    return _momentProvider.getActionLastActiveTime(actionId, momentId);
+  Future<int> getActionLastActiveTime(int actionId, int excludeMomentId) async {
+    return _momentProvider.getActionLastActiveTime(actionId, excludeMomentId);
   }
 
-  Future<int> getContactLastMeetTime(int contactId, int momentId) async {
-    return _momentProvider.getContactLastMeetTime(contactId, momentId);
+  Future<int> getContactLastMeetTime(int contactId, int excludeMomentId) async {
+    return _momentProvider.getContactLastMeetTime(contactId, excludeMomentId);
   }
 
 }

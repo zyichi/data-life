@@ -1,26 +1,27 @@
 import 'package:flutter/material.dart';
-import 'package:data_life/models/moment.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:permission_handler/permission_handler.dart';
 
-import 'package:data_life/localizations.dart';
 import 'package:data_life/views/date_time_picker_form_field.dart';
 import 'package:data_life/views/common_form_field.dart';
+import 'package:data_life/views/location_text_field.dart';
+
 import 'package:data_life/models/action.dart';
 import 'package:data_life/models/contact.dart';
-import 'package:data_life/models/moment_contact.dart';
+import 'package:data_life/models/location.dart';
+import 'package:data_life/models/moment.dart';
 
 import 'package:data_life/repositories/action_repository.dart';
 import 'package:data_life/repositories/action_provider.dart';
 import 'package:data_life/repositories/contact_repository.dart';
 import 'package:data_life/repositories/contact_provider.dart';
-import 'package:data_life/repositories/moment_repository.dart';
-import 'package:data_life/repositories/moment_provider.dart';
-import 'package:data_life/repositories/location_provider.dart';
-import 'package:data_life/repositories/location_repository.dart';
-import 'package:data_life/views/location_text_field.dart';
-import 'package:data_life/models/location.dart';
+
+import 'package:data_life/utils/time_util.dart';
+import 'package:data_life/localizations.dart';
+
+import 'package:data_life/blocs/moment_edit_bloc.dart';
 
 
 class MomentEdit extends StatefulWidget {
@@ -58,15 +59,14 @@ class MomentEditState extends State<MomentEdit> {
   final _feelingsController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
   var _contacts = List<Contact>();
-  Action _selectedAction;
-  bool _isNewMoment = false;
+  Action _action;
   Location _location;
   final _addressController = TextEditingController();
 
   ActionRepository _actionRepository;
   ContactRepository _contactRepository;
-  MomentRepository _momentRepository;
-  LocationRepository _locationRepository;
+
+  MomentEditBloc _momentEditBloc;
 
   @override
   void initState() {
@@ -74,8 +74,8 @@ class MomentEditState extends State<MomentEdit> {
 
     _actionRepository = ActionRepository(ActionProvider());
     _contactRepository = ContactRepository(ContactProvider());
-    _momentRepository = MomentRepository(MomentProvider());
-    _locationRepository = LocationRepository(LocationProvider());
+
+    _momentEditBloc = BlocProvider.of<MomentEditBloc>(context);
 
     if (widget.moment != null) {
       _isReadOnly = true;
@@ -87,13 +87,13 @@ class MomentEditState extends State<MomentEdit> {
       _costController.text = widget.moment.cost.toString();
       _feelingsController.text = widget.moment.details;
       _selectedSentiment = widget.moment.sentiment;
-      _selectedAction = widget.moment.action;
+      _action = widget.moment.action;
       _location = widget.moment.location;
-      widget.moment.contacts.forEach((item) {
-        _contacts.add(Contact.copyCreate(item));
-      });
+      // We must copy contact to compare old moment and new moment different.
+      for (Contact contact in widget.moment.contacts) {
+        _contacts.add(Contact.copyCreate(contact));
+      }
     } else {
-      _isNewMoment = true;
       final now = DateTime.now();
       _beginDate = now;
       _endDate = now;
@@ -115,6 +115,8 @@ class MomentEditState extends State<MomentEdit> {
     super.dispose();
   }
 
+  bool get _isNewMoment => widget.moment == null;
+
   void requestPermissions() async {
     final permissionGroups = [
       PermissionGroup.location,
@@ -130,7 +132,7 @@ class MomentEditState extends State<MomentEdit> {
       return false;
     }
     if (_isNewMoment) {
-      var m = _currentMoment();
+      var m = _createMomentFromForm();
       if (m.action != null ||
           m.location != null ||
           m.contacts.isNotEmpty ||
@@ -140,7 +142,7 @@ class MomentEditState extends State<MomentEdit> {
         return false;
       }
     } else {
-      if (Moment.isSameMoment(_currentMoment(), widget.moment)) {
+      if (Moment.isSameMoment(_createMomentFromForm(), widget.moment)) {
         return false;
       } else {
         return true;
@@ -197,261 +199,49 @@ class MomentEditState extends State<MomentEdit> {
     return value ?? 0.0;
   }
 
-  int getTime(DateTime date, TimeOfDay time) {
-    return DateTime(date.year, date.month, date.day, time.hour, time.minute)
-        .millisecondsSinceEpoch;
-  }
-
-  // XXX NOTE: This current moment is only for exit confirm compare.
-  Moment _currentMoment() {
+  Moment _createMomentFromForm() {
     final moment = Moment();
-    if (_location == null) {
-      _location = Location();
-      _location.displayAddress = _addressController.text;
-    }
-    moment.location = _location;
     moment.sentiment = _selectedSentiment;
-    moment.beginTime = getTime(_beginDate, _beginTime);
-    moment.endTime = getTime(_endDate, _endTime);
+    moment.beginTime =
+        TimeUtil.combineTime(_beginDate, _beginTime).millisecondsSinceEpoch;
+    moment.endTime = TimeUtil.combineTime(_endDate, _endTime).millisecondsSinceEpoch;
     moment.cost = parseCost(_costController.text);
     moment.details = _feelingsController.text;
-    final action = Action();
-    action.name = _actionNameController.text;
-    moment.action = action;
-    moment.actionId = _selectedAction?.id;
-    moment.contacts = _contacts;
-    return moment;
-  }
-
-  Future<void> _saveAction(Moment moment, int now) async {
-    if (_selectedAction == null) {
-      _selectedAction = Action();
-      _selectedAction.name = _actionNameController.text;
+    if (_action == null) {
+      _action = Action();
+      _action.name = _actionNameController.text;
     }
-    if (_selectedAction.id == null) {
-      Action savedAction = await _actionRepository.getViaName(_actionNameController.text);
-      if (savedAction != null) {
-        _selectedAction.copy(savedAction);
-      }
-    }
-    if (_selectedAction.id == null) {
-      _selectedAction.createTime = now;
-      _selectedAction.lastActiveTime = moment.beginTime;
-    } else {
-      _selectedAction.updateTime = now;
-      if (_selectedAction.lastActiveTime == null) {
-        _selectedAction.lastActiveTime = moment.beginTime;
-      } else {
-        if (_selectedAction.lastActiveTime < moment.beginTime) {
-          _selectedAction.lastActiveTime = moment.beginTime;
-        }
-      }
-    }
-    if (_isNewMoment) {
-      _selectedAction.totalTimeSpend += moment.durationInMillis();
-    } else {
-      if (_selectedAction.id == widget.moment.action.id) {
-        // Action not change.
-        _selectedAction.totalTimeSpend = _selectedAction.totalTimeSpend -
-            widget.moment.durationInMillis() +
-            moment.durationInMillis();
-      } else {
-        // Action changed.
-        _selectedAction.totalTimeSpend += moment.durationInMillis();
-        Action oldAction = widget.moment.action;
-        oldAction.totalTimeSpend -= widget.moment.durationInMillis();
-        oldAction.lastActiveTime = await _momentRepository.getActionLastActiveTime(oldAction.id, widget.moment.id);
-        await _actionRepository.save(oldAction);
-      }
-    }
-    await _actionRepository.save(_selectedAction);
-    moment.actionId = _selectedAction.id;
-    moment.action = _selectedAction;
-  }
-
-  Future<void> _saveLocation(Moment moment, int now) async {
+    moment.action = _action;
     if (_location == null) {
       _location = Location();
       _location.displayAddress = _addressController.text;
     }
-    if (_location.id == null) {
-      Location savedLocation = await _locationRepository
-          .getViaDisplayAddress(_location.displayAddress);
-      if (savedLocation != null) {
-        _location.copy(savedLocation);
-      }
-    }
-    if (_location.id == null) {
-      _location.createTime = now;
-      _location.lastVisitTime = moment.beginTime;
-    } else {
-      _location.updateTime = now;
-      if (_location.lastVisitTime == null) {
-        _location.lastVisitTime = moment.beginTime;
-      } else {
-        if (_location.lastVisitTime < moment.beginTime) {
-          _location.lastVisitTime = moment.beginTime;
-        }
-      }
-    }
-    if (_isNewMoment) {
-      _location.totalTimeStay += moment.durationInMillis();
-    } else {
-      if (_location.id == widget.moment.location.id) {
-        // Location not change
-        _location.totalTimeStay = _location.totalTimeStay -
-            widget.moment.durationInMillis() +
-            moment.durationInMillis();
-      } else {
-        // Location changed
-        _location.totalTimeStay += moment.durationInMillis();
-        Location oldLocation = widget.moment.location;
-        oldLocation.totalTimeStay -=
-            widget.moment.durationInMillis();
-        oldLocation.lastVisitTime = await _momentRepository.getLocationLastVisitTime(oldLocation.id, widget.moment.id);
-        await _locationRepository.save(oldLocation);
-      }
-    }
-    await _locationRepository.save(_location);
-    moment.locationId = _location.id;
     moment.location = _location;
-  }
-
-  Future<void> _saveContact(Moment moment, int now) async {
-    // Add contact not submitted to contacts list. This happens when
-    // inputted name not end with comma.
     if (_contactController.text.isNotEmpty) {
       var contact = Contact();
       contact.name = _contactController.text;
       _addContact(contact);
     }
-    for (Contact contact in _contacts) {
-      Contact savedContact;
-      if (contact.id == null) {
-        savedContact = await _contactRepository.getViaName(contact.name);
-        if (savedContact != null) {
-          contact.copy(savedContact);
-        }
-      }
-      if (contact.id != null) {
-        // Existed contact
-        contact.updateTime = now;
-        if (contact.lastMeetTime == null) {
-          contact.lastMeetTime = moment.beginTime;
-        } else {
-          if (contact.lastMeetTime < moment.beginTime) {
-            contact.lastMeetTime = moment.beginTime;
-          }
-        }
-      } else {
-        // New contact
-        contact.createTime = now;
-        contact.lastMeetTime = moment.beginTime;
-      }
-    }
-    if (_isNewMoment) {
-      for (Contact contact in _contacts) {
-        contact.totalTimeTogether += moment.durationInMillis();
-        await _contactRepository.save(contact);
-        var momentContact = MomentContact();
-        momentContact.momentId = moment.id;
-        momentContact.contactId = contact.id;
-        momentContact.momentBeginTime = moment.beginTime;
-        momentContact.createTime = now;
-        await _momentRepository.saveMomentContact(momentContact);
-      }
-    } else {
-      List<Contact> added =
-          _calculateAddedContact(widget.moment.contacts, _contacts);
-      List<Contact> removed =
-          _calculateRemovedContact(widget.moment.contacts, _contacts);
-      for (Contact contact in _contacts) {
-        if (added.contains(contact)) {
-          contact.totalTimeTogether += moment.durationInMillis();
-          await _contactRepository.save(contact);
-          var momentContact = MomentContact();
-          momentContact.momentId = moment.id;
-          momentContact.contactId = contact.id;
-          momentContact.momentBeginTime = moment.beginTime;
-          momentContact.createTime = now;
-          await _momentRepository.saveMomentContact(momentContact);
-        } else {
-          contact.totalTimeTogether = contact.totalTimeTogether -
-              widget.moment.durationInMillis() +
-              moment.durationInMillis();
-          await _contactRepository.save(contact);
-        }
-      }
-      for (Contact contact in removed) {
-        contact.totalTimeTogether -= widget.moment.durationInMillis();
-        await _momentRepository.deleteMomentContact(moment.id, contact.id);
-        contact.lastMeetTime = await _momentRepository.getContactLastMeetTime(contact.id, moment.id);
-        await _contactRepository.save(contact);
-      }
-    }
     moment.contacts = _contacts;
+    return moment;
   }
 
-  List<Contact> _calculateRemovedContact(List<Contact> lhs, List<Contact> rhs) {
-    var removed = <Contact>[];
-    for (Contact l in lhs) {
-      bool found = false;
-      for (Contact r in rhs) {
-        if (l.id == r.id) {
-          found = true;
-          break;
-        }
-      }
-      if (!found) {
-        removed.add(l);
-      }
+  void _editMoment() {
+    Moment moment = _createMomentFromForm();
+    if (_isNewMoment) {
+      _momentEditBloc.dispatch(
+        AddMoment(moment: moment),
+      );
+    } else {
+      _momentEditBloc.dispatch(UpdateMoment(
+        oldMoment: widget.moment,
+        newMoment: moment,
+      ));
     }
-    return removed;
   }
-
-  List<Contact> _calculateAddedContact(List<Contact> lhs, List<Contact> rhs) {
-    var added = <Contact>[];
-    for (Contact r in rhs) {
-      bool found = false;
-      for (Contact l in lhs) {
-        if (r.id == l.id) {
-          found = true;
-        }
-      }
-      if (!found) {
-        added.add(r);
-      }
-    }
-    return added;
-  }
-
-  // TODO: Use transaction to resolve database fail.
-  Future<void> _saveMoment() async {
-    try {
-      final now = DateTime
-          .now()
-          .millisecondsSinceEpoch;
-      final moment = Moment();
-      moment.sentiment = _selectedSentiment;
-      moment.beginTime = getTime(_beginDate, _beginTime);
-      moment.endTime = getTime(_endDate, _endTime);
-      moment.cost = parseCost(_costController.text);
-      moment.details = _feelingsController.text;
-      if (_isNewMoment) {
-        moment.createTime = now;
-      } else {
-        moment.id = widget.moment.id;
-        moment.createTime = widget.moment.createTime;
-        moment.updateTime = now;
-      }
-      await _saveAction(moment, now);
-      await _saveLocation(moment, now);
-      // We need save moment first to get Moment.id for later contact progress.
-      await _momentRepository.save(moment);
-      await _saveContact(moment, now);
-    } catch (e) {
-      print('MomentEdit._saveMoment failed: ${e.toString()}');
-    }
+  
+  void _deleteMoment() {
+    _momentEditBloc.dispatch(DeleteMoment(moment: widget.moment));
   }
 
   Future<bool> _onWillPop() async {
@@ -798,7 +588,7 @@ class MomentEditState extends State<MomentEdit> {
         ),
         onSuggestionSelected: (Action action) {
           _actionNameController.text = action.name;
-          _selectedAction = action;
+          _action = action;
         },
         itemBuilder: (context, suggestion) {
           final action = suggestion as Action;
@@ -810,7 +600,7 @@ class MomentEditState extends State<MomentEdit> {
           );
         },
         suggestionsCallback: (pattern) {
-          _selectedAction = null;
+          _action = null;
           if (pattern.isEmpty) {
             return _actionRepository.get(startIndex: 0, count: 8);
           } else {
@@ -828,31 +618,23 @@ class MomentEditState extends State<MomentEdit> {
 
   Widget _createEditAction() {
     if (_isReadOnly) {
-      return FlatButton(
+      return IconButton(
+        icon: Icon(Icons.edit),
         onPressed: () {
           setState(() {
             _isReadOnly = false;
           });
         },
-        child: Text(
-          '修改',
-          style:
-              Theme.of(context).textTheme.button.copyWith(color: Colors.white),
-        ),
       );
     } else {
-      return FlatButton(
-        onPressed: () async {
+      return IconButton(
+        icon: Icon(Icons.save),
+        onPressed: () {
           if (_formKey.currentState.validate()) {
-            await _saveMoment();
+            _editMoment();
             Navigator.of(context).pop(true);
           }
         },
-        child: Text(
-          AppLocalizations.of(context).save,
-          style:
-              Theme.of(context).textTheme.button.copyWith(color: Colors.white),
-        ),
       );
     }
   }
@@ -864,6 +646,23 @@ class MomentEditState extends State<MomentEdit> {
         title: Text(widget.moment?.action?.name ?? 'Moment'),
         actions: <Widget>[
           _createEditAction(),
+          _isNewMoment ? Container() : PopupMenuButton<String>(
+            icon: Icon(Icons.more_vert),
+            onSelected: (value) {
+              if (value == 'delete') {
+                _deleteMoment();
+                Navigator.of(context).pop(true);
+              }
+            },
+            itemBuilder: (context) {
+              return [
+                PopupMenuItem<String>(
+                  value: 'delete',
+                  child: Text('Delete'),
+                ),
+              ];
+            },
+          ),
         ],
       ),
       body: SafeArea(
@@ -903,8 +702,8 @@ class MomentEditState extends State<MomentEdit> {
                     );
                   },
                   validator: (value) {
-                    if (getTime(_beginDate, _beginTime) >
-                        getTime(_endDate, _endTime)) {
+                    if (TimeUtil.combineTime(_beginDate, _beginTime).millisecondsSinceEpoch >
+                        TimeUtil.combineTime(_endDate, _endTime).millisecondsSinceEpoch) {
                       return '结束时间早于开始时间';
                     }
                   },

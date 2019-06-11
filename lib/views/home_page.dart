@@ -33,7 +33,10 @@ import 'package:data_life/repositories/contact_provider.dart';
 import 'package:data_life/repositories/contact_repository.dart';
 import 'package:data_life/repositories/location_provider.dart';
 import 'package:data_life/repositories/location_repository.dart';
+import 'package:data_life/repositories/action_provider.dart';
+import 'package:data_life/repositories/action_repository.dart';
 
+import 'package:data_life/blocs/moment_edit_bloc.dart';
 
 class HomePage extends StatefulWidget {
   final String title;
@@ -57,6 +60,9 @@ class HomePageState extends State<HomePage>
   GoalRepository _goalRepository;
   ContactRepository _contactRepository;
   LocationRepository _locationRepository;
+  ActionRepository _actionRepository;
+
+  MomentEditBloc _momentEditBloc;
 
   var _androidApp = MethodChannel("android_app");
 
@@ -70,11 +76,14 @@ class HomePageState extends State<HomePage>
     _goalRepository = GoalRepository(GoalProvider());
     _contactRepository = ContactRepository(ContactProvider());
     _locationRepository = LocationRepository(LocationProvider());
+    _actionRepository = ActionRepository(ActionProvider());
 
     _momentBloc = PageBloc<Moment>(pageRepository: _momentRepository);
     _goalBloc = PageBloc<Goal>(pageRepository: _goalRepository);
     _contactBloc = PageBloc<Contact>(pageRepository: _contactRepository);
     _locationBloc = PageBloc<Location>(pageRepository: _locationRepository);
+
+    _momentEditBloc = BlocProvider.of<MomentEditBloc>(context);
 
     _tabController = TabController(length: 4, vsync: this);
   }
@@ -155,52 +164,81 @@ class HomePageState extends State<HomePage>
         locationRepository: _locationRepository,
         child: BlocProviderTree(
           blocProviders: [
-            BlocProvider<PageBloc<Moment>>(bloc: _momentBloc,),
-            BlocProvider<PageBloc<Goal>>(bloc: _goalBloc,),
-            BlocProvider<PageBloc<Contact>>(bloc: _contactBloc,),
-            BlocProvider<PageBloc<Location>>(bloc: _locationBloc,),
+            BlocProvider<PageBloc<Moment>>(
+              bloc: _momentBloc,
+            ),
+            BlocProvider<PageBloc<Goal>>(
+              bloc: _goalBloc,
+            ),
+            BlocProvider<PageBloc<Contact>>(
+              bloc: _contactBloc,
+            ),
+            BlocProvider<PageBloc<Location>>(
+              bloc: _locationBloc,
+            ),
           ],
           child: Material(
-            child: Scaffold(
-              appBar: AppBar(
-                title: _createHomeSearchBar(),
-                bottom: TabBar(
-                  indicator: _getIndicator(),
+            child: BlocListener(
+              bloc: _momentEditBloc,
+              listener: (context, momentEditState) {
+                print('MomentEditBloc listener');
+                if (momentEditState is MomentAdded ||
+                    momentEditState is MomentDeleted ||
+                    momentEditState is MomentUpdated) {
+                  print(
+                      'Moment edit state received, refresh moment/contact/location list');
+                  BlocProvider.of<PageBloc<Moment>>(context)
+                      .dispatch(RefreshPage());
+                  BlocProvider.of<PageBloc<Contact>>(context)
+                      .dispatch(RefreshPage());
+                  BlocProvider.of<PageBloc<Location>>(context)
+                      .dispatch(RefreshPage());
+                }
+                if (momentEditState is MomentEditFailed) {
+                  print('${momentEditState.error}');
+                }
+              },
+              child: Scaffold(
+                appBar: AppBar(
+                  title: _createHomeSearchBar(),
+                  bottom: TabBar(
+                    indicator: _getIndicator(),
+                    controller: _tabController,
+                    tabs: _tabs.map((text) {
+                      return Tab(
+                        text: text,
+                      );
+                    }).toList(growable: false),
+                  ),
+                ),
+                body: TabBarView(
                   controller: _tabController,
-                  tabs: _tabs.map((text) {
-                    return Tab(
-                      text: text,
-                    );
+                  children: _tabs.map((text) {
+                    print('Create tab view for $text');
+                    if (text == AppLocalizations.of(context).moments) {
+                      return MomentList(
+                        name: text,
+                      );
+                    }
+                    if (text == AppLocalizations.of(context).goals) {
+                      return GoalList(
+                        name: text,
+                      );
+                    }
+                    if (text == AppLocalizations.of(context).contacts) {
+                      return ContactList(
+                        name: text,
+                      );
+                    }
+                    if (text == AppLocalizations.of(context).location) {
+                      return LocationList(
+                        name: text,
+                      );
+                    }
                   }).toList(growable: false),
                 ),
+                bottomNavigationBar: _BottomBar(),
               ),
-              body: TabBarView(
-                controller: _tabController,
-                children: _tabs.map((text) {
-                  print('Create tab view for $text');
-                  if (text == AppLocalizations.of(context).moments) {
-                    return MomentList(
-                      name: text,
-                    );
-                  }
-                  if (text == AppLocalizations.of(context).goals) {
-                    return GoalList(
-                      name: text,
-                    );
-                  }
-                  if (text == AppLocalizations.of(context).contacts) {
-                    return ContactList(
-                      name: text,
-                    );
-                  }
-                  if (text == AppLocalizations.of(context).location) {
-                    return LocationList(
-                      name: text,
-                    );
-                  }
-                }).toList(growable: false),
-              ),
-              bottomNavigationBar: _BottomBar(),
             ),
           ),
         ),
@@ -259,10 +297,12 @@ class _BottomBarState extends State<_BottomBar> {
             builder: (BuildContext context) => MomentEdit(),
             fullscreenDialog: true));
     if (saved == true) {
+      /*
       print('Moment saved, refresh moment/contact/location list');
       BlocProvider.of<PageBloc<Moment>>(context).dispatch(RefreshPage());
       BlocProvider.of<PageBloc<Contact>>(context).dispatch(RefreshPage());
       BlocProvider.of<PageBloc<Location>>(context).dispatch(RefreshPage());
+      */
     }
   }
 

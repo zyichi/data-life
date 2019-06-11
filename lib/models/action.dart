@@ -1,3 +1,6 @@
+import 'package:equatable/equatable.dart';
+
+
 enum HowOften {
   onceMonth,
   twiceMonth,
@@ -25,7 +28,7 @@ enum BestTime {
 }
 
 
-class Action {
+class Action extends Equatable {
   Action();
 
   int id;
@@ -36,13 +39,16 @@ class Action {
   HowOften howOften;
   HowLong howLong;
   BestTime bestTime;
-  int totalTimeSpend = 0;
+  int totalTimeTaken = 0;
   int lastActiveTime;
   int createTime;
   int updateTime;
 
+  @override
+  List get props => [name];
+
   static bool isSameAction(Action lhs, Action rhs) {
-    return lhs.name == rhs.name;
+    return lhs == rhs;
   }
 
   void copy(Action a) {
@@ -54,7 +60,7 @@ class Action {
     howOften = a.howOften;
     howLong = a.howLong;
     bestTime = a.bestTime;
-    totalTimeSpend = a.totalTimeSpend;
+    totalTimeTaken = a.totalTimeTaken;
     lastActiveTime = a.lastActiveTime;
     createTime = a.createTime;
     updateTime = a.updateTime;

@@ -8,6 +8,19 @@ import 'localizations.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:data_life/views/home_page.dart';
 
+import 'package:data_life/repositories/moment_repository.dart';
+import 'package:data_life/repositories/moment_provider.dart';
+import 'package:data_life/repositories/goal_provider.dart';
+import 'package:data_life/repositories/goal_repository.dart';
+import 'package:data_life/repositories/contact_provider.dart';
+import 'package:data_life/repositories/contact_repository.dart';
+import 'package:data_life/repositories/location_provider.dart';
+import 'package:data_life/repositories/location_repository.dart';
+import 'package:data_life/repositories/action_provider.dart';
+import 'package:data_life/repositories/action_repository.dart';
+
+import 'package:data_life/blocs/moment_edit_bloc.dart';
+
 
 void main() async {
   await AMap().init('1624c8484217cdfdf2fdf38ecdd365ab');
@@ -23,9 +36,31 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> {
   DbBloc _dbBloc = DbBloc();
 
+  MomentRepository _momentRepository;
+  GoalRepository _goalRepository;
+  ContactRepository _contactRepository;
+  LocationRepository _locationRepository;
+  ActionRepository _actionRepository;
+
+  MomentEditBloc _momentEditBloc;
+
   @override
   void initState() {
     super.initState();
+
+    _momentRepository = MomentRepository(MomentProvider());
+    _goalRepository = GoalRepository(GoalProvider());
+    _contactRepository = ContactRepository(ContactProvider());
+    _locationRepository = LocationRepository(LocationProvider());
+    _actionRepository = ActionRepository(ActionProvider());
+
+    _momentEditBloc = MomentEditBloc(
+      momentRepository: _momentRepository,
+      actionRepository: _actionRepository,
+      locationRepository: _locationRepository,
+      contactRepository: _contactRepository,
+    );
+
     _dbBloc.dispatch(OpenDb());
   }
 
@@ -35,6 +70,9 @@ class _MyAppState extends State<MyApp> {
       blocProviders: [
         BlocProvider<DbBloc>(
           bloc: _dbBloc,
+        ),
+        BlocProvider<MomentEditBloc>(
+          bloc: _momentEditBloc,
         ),
       ],
       child: MaterialApp(

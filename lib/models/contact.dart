@@ -1,4 +1,7 @@
-class Contact {
+import 'package:equatable/equatable.dart';
+
+
+class Contact extends Equatable {
   Contact();
 
   int id;
@@ -12,6 +15,9 @@ class Contact {
   int lastMeetTime;
   int createTime;
   int updateTime;
+
+  @override
+  List get props => [name];
 
   static Contact copyCreate(Contact contact) {
     var newContact = Contact();
