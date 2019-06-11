@@ -3,12 +3,13 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:data_life/paging/page_bloc.dart';
 import 'package:data_life/paging/page_list.dart';
-import 'package:data_life/models/moment.dart';
+
 import 'package:data_life/views/moment_edit.dart';
+import 'package:data_life/views/my_color.dart';
 
 import 'package:data_life/models/contact.dart';
-import 'package:data_life/models/location.dart';
-import 'package:data_life/views/my_color.dart';
+import 'package:data_life/models/moment.dart';
+
 import 'package:data_life/utils/time_util.dart';
 
 
@@ -30,23 +31,14 @@ class _MomentListItem extends StatelessWidget {
       );
     } else {
       return InkWell(
-        onTap: () async {
-          var saved = await Navigator.push(
+        onTap: () {
+          Navigator.push(
               context,
               MaterialPageRoute(
-                  builder: (BuildContext context) =>
-                      MomentEdit(
+                  builder: (BuildContext context) => MomentEdit(
                         moment: moment,
                       ),
                   fullscreenDialog: true));
-          if (saved == true) {
-            /*
-            print('Moment edited, refresh moment/contact/location list');
-            BlocProvider.of<PageBloc<Moment>>(context).dispatch(RefreshPage());
-            BlocProvider.of<PageBloc<Contact>>(context).dispatch(RefreshPage());
-            BlocProvider.of<PageBloc<Location>>(context).dispatch(RefreshPage());
-            */
-          }
         },
         child: Container(
           alignment: Alignment.centerLeft,
@@ -57,15 +49,22 @@ class _MomentListItem extends StatelessWidget {
               children: <Widget>[
                 Text(
                   moment.action.name,
-                  style: Theme.of(context).textTheme.subtitle.copyWith(fontSize: 18),
+                  style: Theme.of(context)
+                      .textTheme
+                      .subtitle
+                      .copyWith(fontSize: 18),
                 ),
-                SizedBox(height: 8.0,),
+                SizedBox(
+                  height: 8.0,
+                ),
                 _createTimeWidget(context),
                 Text(
                   moment.location.displayAddress,
                 ),
                 _createContactsWidget(),
-                SizedBox(height: 8.0,),
+                SizedBox(
+                  height: 8.0,
+                ),
                 _createDurationWidget(context),
               ],
             ),
@@ -99,16 +98,14 @@ class _MomentListItem extends StatelessWidget {
     }
     return Text(
       'Duration: $s',
-      style: Theme
-          .of(context)
-          .textTheme
-          .caption,
+      style: Theme.of(context).textTheme.caption,
     );
   }
 
   Widget _createTimeWidget(BuildContext context) {
-    String s = TimeUtil.formatDateForDisplayMillis(moment.beginTime)
-        + ' ' + TimeUtil.formatTimeForDisplayMillis(moment.beginTime, context);
+    String s = TimeUtil.formatDateForDisplayMillis(moment.beginTime) +
+        ' ' +
+        TimeUtil.formatTimeForDisplayMillis(moment.beginTime, context);
     return Text(
       '$s',
     );

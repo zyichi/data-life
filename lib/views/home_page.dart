@@ -33,8 +33,6 @@ import 'package:data_life/repositories/contact_provider.dart';
 import 'package:data_life/repositories/contact_repository.dart';
 import 'package:data_life/repositories/location_provider.dart';
 import 'package:data_life/repositories/location_repository.dart';
-import 'package:data_life/repositories/action_provider.dart';
-import 'package:data_life/repositories/action_repository.dart';
 
 import 'package:data_life/blocs/moment_edit_bloc.dart';
 
@@ -60,7 +58,6 @@ class HomePageState extends State<HomePage>
   GoalRepository _goalRepository;
   ContactRepository _contactRepository;
   LocationRepository _locationRepository;
-  ActionRepository _actionRepository;
 
   MomentEditBloc _momentEditBloc;
 
@@ -76,7 +73,6 @@ class HomePageState extends State<HomePage>
     _goalRepository = GoalRepository(GoalProvider());
     _contactRepository = ContactRepository(ContactProvider());
     _locationRepository = LocationRepository(LocationProvider());
-    _actionRepository = ActionRepository(ActionProvider());
 
     _momentBloc = PageBloc<Moment>(pageRepository: _momentRepository);
     _goalBloc = PageBloc<Goal>(pageRepository: _goalRepository);
@@ -290,20 +286,12 @@ class _BottomBar extends StatefulWidget {
 }
 
 class _BottomBarState extends State<_BottomBar> {
-  void addMomentOnTap() async {
-    var saved = await Navigator.push(
+  void addMomentOnTap() {
+    Navigator.push(
         context,
         MaterialPageRoute(
             builder: (BuildContext context) => MomentEdit(),
             fullscreenDialog: true));
-    if (saved == true) {
-      /*
-      print('Moment saved, refresh moment/contact/location list');
-      BlocProvider.of<PageBloc<Moment>>(context).dispatch(RefreshPage());
-      BlocProvider.of<PageBloc<Contact>>(context).dispatch(RefreshPage());
-      BlocProvider.of<PageBloc<Location>>(context).dispatch(RefreshPage());
-      */
-    }
   }
 
   @override
