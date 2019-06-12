@@ -1,0 +1,2 @@
+* Use temporarily Moment object reduce MomentEditState class field
+* Improve EventEditBloc: Skip action/location/contact update when moment begin/end time not changed.

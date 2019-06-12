@@ -40,34 +40,31 @@ class _MomentListItem extends StatelessWidget {
                       ),
                   fullscreenDialog: true));
         },
-        child: Container(
-          alignment: Alignment.centerLeft,
-          child: Padding(
-            padding: const EdgeInsets.only(left: 0.0, top: 8.0, bottom: 8.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                Text(
-                  moment.action.name,
-                  style: Theme.of(context)
-                      .textTheme
-                      .subtitle
-                      .copyWith(fontSize: 18),
-                ),
-                SizedBox(
-                  height: 8.0,
-                ),
-                _createTimeWidget(context),
-                Text(
-                  moment.location.displayAddress,
-                ),
-                _createContactsWidget(),
-                SizedBox(
-                  height: 8.0,
-                ),
-                _createDurationWidget(context),
-              ],
-            ),
+        child: Padding(
+          padding: const EdgeInsets.only(left: 0.0, top: 8.0, bottom: 8.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Text(
+                moment.action.name,
+                style: Theme.of(context)
+                    .textTheme
+                    .subtitle
+                    .copyWith(fontSize: 18),
+              ),
+              SizedBox(
+                height: 8.0,
+              ),
+              _createTimeWidget(context),
+              Text(
+                moment.location.displayAddress,
+              ),
+              _createContactsWidget(),
+              SizedBox(
+                height: 8.0,
+              ),
+              _createDurationWidget(context),
+            ],
           ),
         ),
       );
@@ -105,7 +102,7 @@ class _MomentListItem extends StatelessWidget {
   Widget _createTimeWidget(BuildContext context) {
     String s = TimeUtil.formatDateForDisplayMillis(moment.beginTime) +
         ' ' +
-        TimeUtil.formatTimeForDisplayMillis(moment.beginTime, context);
+        TimeUtil.formatDateTimeForDisplayMillis(moment.beginTime, context);
     return Text(
       '$s',
     );

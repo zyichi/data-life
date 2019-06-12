@@ -23,7 +23,7 @@ create table $name (
   $columnBeginTime integer not null,
   $columnEndTime integer nonull,
   $columnCost real default 0.0,
-  $columnDetails String default null,
+  $columnDetails text default null,
   $columnCreateTime integer not null,
   $columnUpdateTime integer default null)
 ''';

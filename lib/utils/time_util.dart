@@ -17,24 +17,24 @@ class TimeUtil {
   }
 
 
-  static String formatDateForDisplay(DateTime t) {
+  static String formatDateTimeForDisplay(DateTime t) {
     return DateFormat.yMMMEd().format(t);
   }
 
   static String formatDateForDisplayMillis(int milliseconds) {
     DateTime t = DateTime.fromMillisecondsSinceEpoch(milliseconds);
-    return formatDateForDisplay(t);
+    return formatDateTimeForDisplay(t);
   }
 
 
-  static String formatTimeForDisplay(DateTime t, BuildContext context) {
+  static String formatTimeOfDayForDisplay(DateTime t, BuildContext context) {
     TimeOfDay beginTime = TimeOfDay(hour: t.hour, minute: t.minute);
     return beginTime.format(context);
   }
 
-  static String formatTimeForDisplayMillis(int milliseconds, BuildContext context) {
+  static String formatDateTimeForDisplayMillis(int milliseconds, BuildContext context) {
     DateTime t = DateTime.fromMillisecondsSinceEpoch(milliseconds);
-    return formatTimeForDisplay(t, context);
+    return formatTimeOfDayForDisplay(t, context);
   }
 
   static List<int> dayHourMinuteFromMillis(int milliseconds) {
@@ -50,7 +50,6 @@ class TimeUtil {
   static List<int> dayHourMinuteFromSeconds(int seconds) {
     return dayHourMinuteFromMillis(seconds * 1000);
   }
-
 
   static String formatMillisToDHM(int millis, BuildContext context) {
     var l = dayHourMinuteFromMillis(millis);

@@ -301,6 +301,10 @@ class MomentEditBloc extends Bloc<MomentEditEvent, MomentEditState> {
         // New contact
         contact.createTime = now;
         contact.lastMeetTime = moment.beginTime;
+        contact.firstMeetTime = moment.beginTime;
+        contact.firstKnowTime = moment.beginTime;
+        // TODO: Change firstMeetLocation type from String to Location.
+        contact.firstMeetLocation = moment.location.address;
       }
     }
   }

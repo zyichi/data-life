@@ -7,7 +7,7 @@ import 'package:data_life/views/title_form_field.dart';
 import 'package:data_life/views/target_progress_form_field.dart';
 import 'package:data_life/views/date_time_picker_form_field.dart';
 import 'package:data_life/views/item_picker_form_field.dart';
-import 'package:data_life/views/common_form_field.dart';
+import 'package:data_life/views/labeled_text_form_field.dart';
 
 class _ToDoItem extends StatelessWidget {
   final String name;
@@ -76,8 +76,7 @@ class GoalEditState extends State<GoalEdit> {
   final _completedController = TextEditingController();
   final _goal = Goal();
   String _title;
-  DateTime _startDate;
-  TimeOfDay _startTime;
+  DateTime _startDateTime;
 
   @override
   void initState() {
@@ -85,8 +84,7 @@ class GoalEditState extends State<GoalEdit> {
 
     _title = widget.title;
     final now = DateTime.now();
-    _startDate = now;
-    _startTime = TimeOfDay(hour: now.hour, minute: now.minute);
+    _startDateTime = now;
 
     _nameController.addListener(() {
       _goal.name = _nameController.text;
@@ -158,16 +156,10 @@ class GoalEditState extends State<GoalEdit> {
   Widget _createStartTimeWidget() {
     return DateTimePicker(
       labelText: AppLocalizations.of(context).startTime,
-      selectedDate: _startDate,
-      selectedTime: _startTime,
-      selectDate: (value) {
+      initialDateTime: _startDateTime,
+      selectDateTime: (value) {
         setState(() {
-          _startDate = value;
-        });
-      },
-      selectTime: (value) {
-        setState(() {
-          _startTime = value;
+          _startDateTime = value;
         });
       },
     );

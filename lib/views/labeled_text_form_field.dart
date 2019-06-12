@@ -17,7 +17,7 @@ class LabelFormField extends StatelessWidget {
   const LabelFormField(
       {Key key,
       this.label,
-      this.padding = const EdgeInsets.only(left: 16.0, top: 16.0)})
+      this.padding = EdgeInsets.zero})
       : super(key: key);
 
   @override
@@ -33,7 +33,7 @@ class LabelFormField extends StatelessWidget {
   }
 }
 
-class TextInputFormField extends StatelessWidget {
+class LabeledTextFormField extends StatelessWidget {
   final String labelText;
   final String hintText;
   final TextEditingController controller;
@@ -42,7 +42,7 @@ class TextInputFormField extends StatelessWidget {
   final int maxLines;
   final bool enabled;
 
-  const TextInputFormField({
+  LabeledTextFormField({
     Key key,
     this.labelText,
     this.hintText,

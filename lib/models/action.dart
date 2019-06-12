@@ -65,4 +65,26 @@ class Action extends Equatable {
     createTime = a.createTime;
     updateTime = a.updateTime;
   }
+  
+  bool isSameWith(Action a) {
+    if (id != a.id) return false;
+    if (goalId != a.goalId) return false;
+    if (!isContentSameWith(a)) return false;
+    return true;
+  }
+  
+  bool isContentSameWith(Action a) {
+    if (goalId != a.goalId) return false;
+    if (name != a.name) return false;
+    if (target != a.target) return false;
+    if (progress != a.progress) return false;
+    if (howOften != a.howOften) return false;
+    if (howLong != a.howLong) return false;
+    if (bestTime != a.bestTime) return false;
+    if (totalTimeTaken != a.totalTimeTaken) return false;
+    if (lastActiveTime != a.lastActiveTime) return false;
+    if (createTime != a.createTime) return false;
+    if (updateTime != a.updateTime) return false;
+    return true;
+  }
 }

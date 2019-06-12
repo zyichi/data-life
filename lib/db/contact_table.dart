@@ -12,20 +12,26 @@ class ContactTable {
   static const columnFirstMeetLocation = 'firstMeetLocation';
   static const columnTotalTimeTogether = 'totalTimeTogether';
   static const columnLastMeetTime = 'lastMeetTime';
+  static const columnWeChatId = 'weChatId';
+  static const columnPhoneNumber = 'phoneNumber';
+  static const columnQqId = 'qqId';
   static const columnCreateTime = 'createTime';
   static const columnUpdateTime = 'updateTime';
 
   static const createSql = '''
 create table $name (
   $columnId integer primary key autoincrement,
-  $columnName String not null,
-  $columnNickname String default null,
-  $columnKnowVia String default null,
+  $columnName text not null,
+  $columnNickname text default null,
+  $columnKnowVia text default null,
   $columnFirstKnowTime integer default null,
   $columnFirstMeetTime integer default null,
-  $columnFirstMeetLocation String default null,
+  $columnFirstMeetLocation text default null,
   $columnTotalTimeTogether integer default 0,
   $columnLastMeetTime integer default null,
+  $columnWeChatId text default null,
+  $columnPhoneNumber text default null,
+  $columnQqId text default null,
   $columnCreateTime integer not null,
   $columnUpdateTime integer default null)
 ''';
@@ -43,6 +49,9 @@ create table $name (
     contact.firstMeetLocation = map[ContactTable.columnFirstMeetLocation] as String;
     contact.totalTimeTogether = map[ContactTable.columnTotalTimeTogether] as int;
     contact.lastMeetTime = map[ContactTable.columnLastMeetTime] as int;
+    contact.weChatId = map[ContactTable.columnWeChatId] as String;
+    contact.phoneNumber = map[ContactTable.columnPhoneNumber] as String;
+    contact.qqId = map[ContactTable.columnQqId] as String;
     contact.createTime = map[ContactTable.columnCreateTime] as int;
     contact.updateTime = map[ContactTable.columnUpdateTime] as int;
     return contact;
@@ -58,6 +67,9 @@ create table $name (
       ContactTable.columnFirstMeetLocation: contact.firstMeetLocation,
       ContactTable.columnTotalTimeTogether: contact.totalTimeTogether,
       ContactTable.columnLastMeetTime: contact.lastMeetTime,
+      ContactTable.columnWeChatId: contact.weChatId,
+      ContactTable.columnPhoneNumber: contact.phoneNumber,
+      ContactTable.columnQqId: contact.qqId,
       ContactTable.columnCreateTime: contact.createTime,
       ContactTable.columnUpdateTime: contact.updateTime,
     };

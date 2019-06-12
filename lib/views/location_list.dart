@@ -26,26 +26,24 @@ class _LocationListItem extends StatelessWidget {
     } else {
       return InkWell(
         onTap: () async {},
-        child: Container(
-          child: Padding(
-            padding: const EdgeInsets.only(left: 0.0, top: 8.0, bottom: 8.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[
-                Text(
-                  location.displayAddress,
-                  style: Theme.of(context)
-                      .textTheme
-                      .subtitle
-                      .copyWith(fontSize: 18),
-                ),
-                SizedBox(height: 4,),
-                _createLastActiveTimeWidget(context),
-                SizedBox(height: 8,),
-                _createTotalTimeStayWidget(context),
-              ],
-            ),
+        child: Padding(
+          padding: const EdgeInsets.only(left: 0.0, top: 8.0, bottom: 8.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              Text(
+                location.displayAddress,
+                style: Theme.of(context)
+                    .textTheme
+                    .subtitle
+                    .copyWith(fontSize: 18),
+              ),
+              SizedBox(height: 4,),
+              _createLastActiveTimeWidget(context),
+              SizedBox(height: 8,),
+              _createTotalTimeStayWidget(context),
+            ],
           ),
         ),
       );
@@ -59,7 +57,7 @@ class _LocationListItem extends StatelessWidget {
     } else {
       s = TimeUtil.formatDateForDisplayMillis(location.lastVisitTime) +
           ' ' +
-          TimeUtil.formatTimeForDisplayMillis(location.lastVisitTime, context);
+          TimeUtil.formatDateTimeForDisplayMillis(location.lastVisitTime, context);
     }
     return Text(
       '最近停留: $s',

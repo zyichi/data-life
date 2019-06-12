@@ -15,16 +15,6 @@ class Location {
   int createTime;
   int updateTime;
 
-  static bool isSameLocation(Location lhs, Location rhs) {
-    if (lhs == null || rhs == null) {
-      return false;
-    }
-    if (lhs.displayAddress == rhs.displayAddress || lhs.id == rhs.id) {
-      return true;
-    }
-    return false;
-  }
-
   void copy(Location l) {
     id = l.id;
     displayAddress = l.displayAddress;
@@ -41,6 +31,29 @@ class Location {
     lastVisitTime = l.lastVisitTime;
     createTime = l.createTime;
     updateTime = l.updateTime;
+  }
+
+  bool isSameWith(Location location) {
+    if (id == location.id && isContentSameWith(location)) return true;
+    return false;
+  }
+
+  bool isContentSameWith(Location location) {
+    if (displayAddress != location.displayAddress) return false;
+    if (latitude != location.latitude) return false;
+    if (longitude != location.longitude) return false;
+    if (address != location.address) return false;
+    if (formattedAddress != location.formattedAddress) return false;
+    if (township != location.township) return false;
+    if (district != location.district) return false;
+    if (city != location.city) return false;
+    if (province != location.province) return false;
+    if (country != location.country) return false;
+    if (totalTimeStay != location.totalTimeStay) return false;
+    if (lastVisitTime != location.lastVisitTime) return false;
+    if (createTime != location.createTime) return false;
+    if (updateTime != location.updateTime) return false;
+    return true;
   }
 
 }

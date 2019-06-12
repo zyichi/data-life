@@ -5,8 +5,9 @@ import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 import 'package:data_life/views/date_time_picker_form_field.dart';
-import 'package:data_life/views/common_form_field.dart';
+import 'package:data_life/views/labeled_text_form_field.dart';
 import 'package:data_life/views/location_text_field.dart';
+import 'package:data_life/views/common_dialog.dart';
 
 import 'package:data_life/models/action.dart';
 import 'package:data_life/models/contact.dart';
@@ -18,7 +19,6 @@ import 'package:data_life/repositories/action_provider.dart';
 import 'package:data_life/repositories/contact_repository.dart';
 import 'package:data_life/repositories/contact_provider.dart';
 
-import 'package:data_life/utils/time_util.dart';
 import 'package:data_life/localizations.dart';
 
 import 'package:data_life/blocs/moment_edit_bloc.dart';
@@ -32,8 +32,8 @@ class MomentEdit extends StatefulWidget {
   });
 
   @override
-  MomentEditState createState() {
-    return new MomentEditState();
+  _MomentEditState createState() {
+    return new _MomentEditState();
   }
 }
 
@@ -44,12 +44,10 @@ class _SentimentSource {
   final Sentiment sentiment;
 }
 
-class MomentEditState extends State<MomentEdit> {
+class _MomentEditState extends State<MomentEdit> {
   bool _isReadOnly = false;
-  DateTime _beginDate;
-  TimeOfDay _beginTime;
-  DateTime _endDate;
-  TimeOfDay _endTime;
+  DateTime _beginDateTime;
+  DateTime _endDateTime;
   double _sentimentIconSize = 48.0;
   final _actionNameController = TextEditingController();
   final _contactController = TextEditingController();
@@ -80,10 +78,8 @@ class MomentEditState extends State<MomentEdit> {
     if (widget.moment != null) {
       _isReadOnly = true;
       _actionNameController.text = widget.moment.action.name;
-      _beginDate = DateTime.fromMillisecondsSinceEpoch(widget.moment.beginTime);
-      _endDate = DateTime.fromMillisecondsSinceEpoch(widget.moment.endTime);
-      _beginTime = TimeOfDay(hour: _beginDate.hour, minute: _beginDate.minute);
-      _endTime = TimeOfDay(hour: _endDate.hour, minute: _endDate.minute);
+      _beginDateTime = DateTime.fromMillisecondsSinceEpoch(widget.moment.beginTime);
+      _endDateTime = DateTime.fromMillisecondsSinceEpoch(widget.moment.endTime);
       _costController.text = widget.moment.cost.toString();
       _feelingsController.text = widget.moment.details;
       _selectedSentiment = widget.moment.sentiment;
@@ -95,10 +91,8 @@ class MomentEditState extends State<MomentEdit> {
       }
     } else {
       final now = DateTime.now();
-      _beginDate = now;
-      _endDate = now;
-      _beginTime = TimeOfDay(hour: now.hour, minute: now.minute);
-      _endTime = TimeOfDay(hour: now.hour, minute: now.minute);
+      _beginDateTime = now;
+      _endDateTime = now.add(Duration(minutes: 30));
       _selectedSentiment = null;
     }
     _contactController.addListener(_contactControllerListener);
@@ -131,10 +125,11 @@ class MomentEditState extends State<MomentEdit> {
     if (_isReadOnly) {
       return false;
     }
+    var m = _createMomentFromForm();
     if (_isNewMoment) {
-      var m = _createMomentFromForm();
       if (m.action != null ||
           m.location != null ||
+          m.sentiment != null ||
           m.contacts.isNotEmpty ||
           m.details.isNotEmpty) {
         return true;
@@ -142,7 +137,7 @@ class MomentEditState extends State<MomentEdit> {
         return false;
       }
     } else {
-      if (Moment.isSameMoment(_createMomentFromForm(), widget.moment)) {
+      if (m.isContentSameWith(widget.moment)) {
         return false;
       } else {
         return true;
@@ -202,9 +197,8 @@ class MomentEditState extends State<MomentEdit> {
   Moment _createMomentFromForm() {
     final moment = Moment();
     moment.sentiment = _selectedSentiment;
-    moment.beginTime =
-        TimeUtil.combineTime(_beginDate, _beginTime).millisecondsSinceEpoch;
-    moment.endTime = TimeUtil.combineTime(_endDate, _endTime).millisecondsSinceEpoch;
+    moment.beginTime = _beginDateTime.millisecondsSinceEpoch;
+    moment.endTime = _endDateTime.millisecondsSinceEpoch;
     moment.cost = parseCost(_costController.text);
     moment.details = _feelingsController.text;
     if (_action == null) {
@@ -249,40 +243,13 @@ class MomentEditState extends State<MomentEdit> {
       return true;
     }
 
-    final ThemeData theme = Theme.of(context);
-    final TextStyle dialogTextStyle =
-        theme.textTheme.subhead.copyWith(color: theme.textTheme.caption.color);
-    return await showDialog<bool>(
-          context: context,
-          builder: (BuildContext context) {
-            return AlertDialog(
-              content: Text(
-                'Are you sure you want to discard this moment?',
-                style: dialogTextStyle,
-              ),
-              actions: <Widget>[
-                FlatButton(
-                  child: Text(AppLocalizations.of(context).keepEditing),
-                  onPressed: () {
-                    Navigator.of(context).pop(false);
-                  },
-                ),
-                FlatButton(
-                  child: Text(AppLocalizations.of(context).discard),
-                  onPressed: () {
-                    Navigator.of(context).pop(true);
-                  },
-                )
-              ],
-            );
-          },
-        ) ??
-        false;
+    return await CommonDialog.showEditExitConfirmDialog(context,
+        'Are you sure you want to discard your changes to the moment?');
   }
 
   Widget _createLocationField() {
     return Padding(
-      padding: EdgeInsets.only(left: 16.0, top: 16, right: 16.0, bottom: 8.0),
+      padding: EdgeInsets.only(top: 16, bottom: 8.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
@@ -379,7 +346,7 @@ class MomentEditState extends State<MomentEdit> {
   Widget _createPeopleFormField() {
     return Padding(
       padding:
-          const EdgeInsets.only(left: 16.0, top: 8.0, right: 16.0, bottom: 8.0),
+          const EdgeInsets.only(top: 8.0, bottom: 8.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
@@ -463,16 +430,10 @@ class MomentEditState extends State<MomentEdit> {
   Widget _createBeginTimeField() {
     return DateTimePicker(
       labelText: AppLocalizations.of(context).begin,
-      selectedDate: _beginDate,
-      selectedTime: _beginTime,
-      selectDate: (value) {
+      initialDateTime: _beginDateTime,
+      selectDateTime: (value) {
         setState(() {
-          _beginDate = value;
-        });
-      },
-      selectTime: (value) {
-        setState(() {
-          _beginTime = value;
+          _beginDateTime = value;
         });
       },
       enabled: !_isReadOnly,
@@ -482,16 +443,10 @@ class MomentEditState extends State<MomentEdit> {
   Widget _createEndTimeField() {
     return DateTimePicker(
       labelText: AppLocalizations.of(context).end,
-      selectedDate: _endDate,
-      selectedTime: _endTime,
-      selectDate: (value) {
+      initialDateTime: _endDateTime,
+      selectDateTime: (value) {
         setState(() {
-          _endDate = value;
-        });
-      },
-      selectTime: (value) {
-        setState(() {
-          _endTime = value;
+          _endDateTime = value;
         });
       },
       enabled: !_isReadOnly,
@@ -501,8 +456,8 @@ class MomentEditState extends State<MomentEdit> {
   Widget _createExpendFormField() {
     return Padding(
       padding:
-          EdgeInsets.only(left: 16.0, top: 16.0, right: 16.0, bottom: 16.0),
-      child: TextInputFormField(
+          EdgeInsets.only(top: 16.0, bottom: 16.0),
+      child: LabeledTextFormField(
         labelText: 'Cost (unit: ${AppLocalizations.of(context).currencyName})',
         hintText: '0.0',
         controller: _costController,
@@ -519,46 +474,42 @@ class MomentEditState extends State<MomentEdit> {
   }
 
   Widget _createSentimentFormField() {
-    return Padding(
-      padding: const EdgeInsets.only(left: 16, top: 0, right: 16),
-      child: FormField(
-        builder: (state) {
-          return InputDecorator(
-            decoration: InputDecoration(
-              labelText: AppLocalizations.of(context).sentiment,
-              border: InputBorder.none,
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: _createSentimentIcons(),
-                ),
-                state.hasError
-                    ? Text(
-                        state.errorText,
-                        style: TextStyle(color: Colors.red),
-                      )
-                    : Container(),
-              ],
-            ),
-          );
-        },
-        validator: (value) {
-          if (_selectedSentiment == null) {
-            return AppLocalizations.of(context).selectSentiment;
-          }
-        },
-      ),
+    return FormField(
+      builder: (state) {
+        return InputDecorator(
+          decoration: InputDecoration(
+            labelText: AppLocalizations.of(context).sentiment,
+            border: InputBorder.none,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: _createSentimentIcons(),
+              ),
+              state.hasError
+                  ? Text(
+                      state.errorText,
+                      style: TextStyle(color: Colors.red),
+                    )
+                  : Container(),
+            ],
+          ),
+        );
+      },
+      validator: (value) {
+        if (_selectedSentiment == null) {
+          return AppLocalizations.of(context).selectSentiment;
+        }
+      },
     );
   }
 
   Widget _createFeelingsFormField() {
     return Padding(
-      padding: const EdgeInsets.only(
-          left: 16.0, top: 16.0, right: 16.0, bottom: 16.0),
-      child: TextInputFormField(
+      padding: const EdgeInsets.only(top: 16.0, bottom: 16.0),
+      child: LabeledTextFormField(
         labelText: AppLocalizations.of(context).detail,
         hintText: 'Say something ...',
         maxLines: 4,
@@ -569,50 +520,46 @@ class MomentEditState extends State<MomentEdit> {
   }
 
   Widget _createActionNameFormField() {
-    return Padding(
-      padding:
-          const EdgeInsets.only(left: 16.0, top: 0.0, right: 16.0, bottom: 0.0),
-      child: TypeAheadFormField(
-        hideOnEmpty: true,
-        hideOnLoading: true,
-        getImmediateSuggestions: true,
-        textFieldConfiguration: TextFieldConfiguration(
-          decoration: InputDecoration(
-            hintText: 'Enter action',
-            border: InputBorder.none,
-          ),
-          controller: _actionNameController,
-          style: Theme.of(context).textTheme.subhead.copyWith(fontSize: 24),
-          autofocus: !_isReadOnly,
-          enabled: !_isReadOnly,
+    return TypeAheadFormField(
+      hideOnEmpty: true,
+      hideOnLoading: true,
+      getImmediateSuggestions: true,
+      textFieldConfiguration: TextFieldConfiguration(
+        decoration: InputDecoration(
+          hintText: 'Enter action',
+          border: InputBorder.none,
         ),
-        onSuggestionSelected: (Action action) {
-          _actionNameController.text = action.name;
-          _action = action;
-        },
-        itemBuilder: (context, suggestion) {
-          final action = suggestion as Action;
-          return Padding(
-            padding: const EdgeInsets.only(left: 8.0, top: 8.0, bottom: 8.0),
-            child: Text(
-              action.name,
-            ),
-          );
-        },
-        suggestionsCallback: (pattern) {
-          _action = null;
-          if (pattern.isEmpty) {
-            return _actionRepository.get(startIndex: 0, count: 8);
-          } else {
-            return _actionRepository.search(pattern);
-          }
-        },
-        validator: (value) {
-          if (value.isEmpty) {
-            return 'Please enter action';
-          }
-        },
+        controller: _actionNameController,
+        style: Theme.of(context).textTheme.subhead.copyWith(fontSize: 24),
+        autofocus: !_isReadOnly,
+        enabled: !_isReadOnly,
       ),
+      onSuggestionSelected: (Action action) {
+        _actionNameController.text = action.name;
+        _action = action;
+      },
+      itemBuilder: (context, suggestion) {
+        final action = suggestion as Action;
+        return Padding(
+          padding: const EdgeInsets.only(left: 8.0, top: 8.0, bottom: 8.0),
+          child: Text(
+            action.name,
+          ),
+        );
+      },
+      suggestionsCallback: (pattern) {
+        _action = null;
+        if (pattern.isEmpty) {
+          return _actionRepository.get(startIndex: 0, count: 8);
+        } else {
+          return _actionRepository.search(pattern);
+        }
+      },
+      validator: (value) {
+        if (value.isEmpty) {
+          return 'Please enter action';
+        }
+      },
     );
   }
 
@@ -628,7 +575,7 @@ class MomentEditState extends State<MomentEdit> {
       );
     } else {
       return IconButton(
-        icon: Icon(Icons.save),
+        icon: Icon(Icons.check),
         onPressed: () {
           if (_formKey.currentState.validate()) {
             _editMoment();
@@ -643,6 +590,7 @@ class MomentEditState extends State<MomentEdit> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        centerTitle: true,
         title: Text(widget.moment?.action?.name ?? 'Moment'),
         actions: <Widget>[
           _createEditAction(),
@@ -672,7 +620,7 @@ class MomentEditState extends State<MomentEdit> {
           key: _formKey,
           onWillPop: _onWillPop,
           child: ListView(
-            padding: const EdgeInsets.symmetric(vertical: 16.0),
+            padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 16),
             children: <Widget>[
               _createActionNameFormField(),
               Divider(),
@@ -681,8 +629,7 @@ class MomentEditState extends State<MomentEdit> {
               _createPeopleFormField(),
               Divider(),
               Padding(
-                padding: EdgeInsets.only(
-                    left: 16.0, top: 16, right: 16, bottom: 16.0),
+                padding: EdgeInsets.only(top: 16, bottom: 16.0),
                 child: FormField(
                   builder: (fieldState) {
                     return Column(
@@ -702,9 +649,8 @@ class MomentEditState extends State<MomentEdit> {
                     );
                   },
                   validator: (value) {
-                    if (TimeUtil.combineTime(_beginDate, _beginTime).millisecondsSinceEpoch >
-                        TimeUtil.combineTime(_endDate, _endTime).millisecondsSinceEpoch) {
-                      return '结束时间早于开始时间';
+                    if (_beginDateTime.isAfter(_endDateTime)) {
+                      return '开始时间必须早于结束时间';
                     }
                   },
                 ),

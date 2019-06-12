@@ -15,7 +15,7 @@ class GoalTable {
   static const createSql = '''
 create table $name (
   $columnId integer primary key autoincrement,
-  $columnName String not null,
+  $columnName text not null,
   $columnTarget real default null,
   $columnProgress real default null,
   $columnStartTime integer default null,

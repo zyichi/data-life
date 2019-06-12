@@ -28,30 +28,47 @@ class Moment {
   Action action;
   Location location;
 
-  static bool _isSameContacts(List<Contact> lhs, List<Contact> rhs) {
-    if (lhs.length != rhs.length) {
-      return false;
-    }
-    for (int i = 0; i < lhs.length; ++i) {
-      if (lhs[i].id != rhs[i].id) {
-        return false;
+  bool _isContentSameContactList(List<Contact> lhs, List<Contact> rhs) {
+    if (lhs.length != rhs.length) return false;
+    for (Contact l in lhs) {
+      for (Contact r in rhs) {
+        if (!l.isContentSameWith(r)) return false;
       }
     }
     return true;
   }
-
-  static bool isSameMoment(Moment lhs, Moment rhs) {
-    if (Action.isSameAction(lhs.action, rhs.action) &&
-        Location.isSameLocation(lhs.location, rhs.location) &&
-        lhs.sentiment == rhs.sentiment &&
-        lhs.beginTime == rhs.beginTime &&
-        lhs.endTime == rhs.endTime &&
-        lhs.cost == rhs.cost &&
-        lhs.details == rhs.details &&
-        _isSameContacts(lhs.contacts, rhs.contacts)) {
-      return true;
+  
+  bool _isSameContactList(List<Contact> lhs, List<Contact> rhs) {
+    if (lhs.length != rhs.length) return false;
+    for (Contact l in lhs) {
+      for (Contact r in rhs) {
+        if (!l.isSameWith(r)) return false;
+      }
     }
-    return false;
+    return true;
+  }
+  
+  bool isSameWith(Moment moment) {
+    if (id != moment.id) return false;
+    if (actionId != moment.actionId) return false;
+    if (locationId != moment.locationId) return false;
+    if (!isContentSameWith(moment)) return false;
+    if (!_isSameContactList(contacts, moment.contacts)) return false;
+    return true;
+  }
+
+  bool isContentSameWith(Moment moment) {
+    if (sentiment != moment.sentiment) return false;
+    if (beginTime != moment.beginTime) return false;
+    if (endTime != moment.endTime) return false;
+    if (cost != moment.cost) return false;
+    if (details != moment.details) return false;
+    if (createTime != moment.createTime) return false;
+    if (updateTime != moment.updateTime) return false;
+    if (!action.isContentSameWith(moment.action)) return false;
+    if (!location.isContentSameWith(moment.location)) return false;
+    if (!_isContentSameContactList(contacts, moment.contacts)) return false;
+    return true;
   }
 
   int durationInHours() {

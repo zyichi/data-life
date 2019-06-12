@@ -35,6 +35,8 @@ import 'package:data_life/repositories/location_provider.dart';
 import 'package:data_life/repositories/location_repository.dart';
 
 import 'package:data_life/blocs/moment_edit_bloc.dart';
+import 'package:data_life/blocs/contact_edit_bloc.dart';
+
 
 class HomePage extends StatefulWidget {
   final String title;
@@ -60,6 +62,7 @@ class HomePageState extends State<HomePage>
   LocationRepository _locationRepository;
 
   MomentEditBloc _momentEditBloc;
+  ContactEditBloc _contactEditBloc;
 
   var _androidApp = MethodChannel("android_app");
 
@@ -80,6 +83,7 @@ class HomePageState extends State<HomePage>
     _locationBloc = PageBloc<Location>(pageRepository: _locationRepository);
 
     _momentEditBloc = BlocProvider.of<MomentEditBloc>(context);
+    _contactEditBloc = BlocProvider.of<ContactEditBloc>(context);
 
     _tabController = TabController(length: 4, vsync: this);
   }
@@ -132,6 +136,34 @@ class HomePageState extends State<HomePage>
     return const UnderlineTabIndicator();
   }
 
+  void _momentEditBlocListener(BuildContext context, MomentEditState state) {
+    print('MomentEditBloc listener');
+    if (state is MomentAdded ||
+        state is MomentDeleted ||
+        state is MomentUpdated) {
+      print('Moment edit state received, refresh moment/contact/location list');
+      BlocProvider.of<PageBloc<Moment>>(context).dispatch(RefreshPage());
+      BlocProvider.of<PageBloc<Contact>>(context).dispatch(RefreshPage());
+      BlocProvider.of<PageBloc<Location>>(context).dispatch(RefreshPage());
+    }
+    if (state is MomentEditFailed) {
+      print('${state.error}');
+    }
+  }
+
+  void _contactEditBlocListener(BuildContext context, ContactEditState state) {
+    print('ContactEditBloc listener');
+    if (state is ContactUpdated) {
+      print('Contact edit state received, refresh moment/contact/location list');
+      BlocProvider.of<PageBloc<Moment>>(context).dispatch(RefreshPage());
+      BlocProvider.of<PageBloc<Contact>>(context).dispatch(RefreshPage());
+      BlocProvider.of<PageBloc<Location>>(context).dispatch(RefreshPage());
+    }
+    if (state is ContactEditFailed) {
+      print('${state.error}');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     print('HomePage.build');
@@ -160,40 +192,23 @@ class HomePageState extends State<HomePage>
         locationRepository: _locationRepository,
         child: BlocProviderTree(
           blocProviders: [
-            BlocProvider<PageBloc<Moment>>(
-              bloc: _momentBloc,
-            ),
-            BlocProvider<PageBloc<Goal>>(
-              bloc: _goalBloc,
-            ),
-            BlocProvider<PageBloc<Contact>>(
-              bloc: _contactBloc,
-            ),
-            BlocProvider<PageBloc<Location>>(
-              bloc: _locationBloc,
-            ),
+            BlocProvider<PageBloc<Moment>>(bloc: _momentBloc),
+            BlocProvider<PageBloc<Goal>>(bloc: _goalBloc),
+            BlocProvider<PageBloc<Contact>>(bloc: _contactBloc),
+            BlocProvider<PageBloc<Location>>(bloc: _locationBloc),
           ],
           child: Material(
-            child: BlocListener(
-              bloc: _momentEditBloc,
-              listener: (context, momentEditState) {
-                print('MomentEditBloc listener');
-                if (momentEditState is MomentAdded ||
-                    momentEditState is MomentDeleted ||
-                    momentEditState is MomentUpdated) {
-                  print(
-                      'Moment edit state received, refresh moment/contact/location list');
-                  BlocProvider.of<PageBloc<Moment>>(context)
-                      .dispatch(RefreshPage());
-                  BlocProvider.of<PageBloc<Contact>>(context)
-                      .dispatch(RefreshPage());
-                  BlocProvider.of<PageBloc<Location>>(context)
-                      .dispatch(RefreshPage());
-                }
-                if (momentEditState is MomentEditFailed) {
-                  print('${momentEditState.error}');
-                }
-              },
+            child: BlocListenerTree(
+              blocListeners: [
+                BlocListener<MomentEditEvent, MomentEditState>(
+                  bloc: _momentEditBloc,
+                  listener: _momentEditBlocListener,
+                ),
+                BlocListener<ContactEditEvent, ContactEditState>(
+                  bloc: _contactEditBloc,
+                  listener: _contactEditBlocListener,
+                ),
+              ],
               child: Scaffold(
                 appBar: AppBar(
                   title: _createHomeSearchBar(),
@@ -201,9 +216,7 @@ class HomePageState extends State<HomePage>
                     indicator: _getIndicator(),
                     controller: _tabController,
                     tabs: _tabs.map((text) {
-                      return Tab(
-                        text: text,
-                      );
+                      return Tab(text: text);
                     }).toList(growable: false),
                   ),
                 ),
@@ -212,24 +225,16 @@ class HomePageState extends State<HomePage>
                   children: _tabs.map((text) {
                     print('Create tab view for $text');
                     if (text == AppLocalizations.of(context).moments) {
-                      return MomentList(
-                        name: text,
-                      );
+                      return MomentList(name: text);
                     }
                     if (text == AppLocalizations.of(context).goals) {
-                      return GoalList(
-                        name: text,
-                      );
+                      return GoalList(name: text);
                     }
                     if (text == AppLocalizations.of(context).contacts) {
-                      return ContactList(
-                        name: text,
-                      );
+                      return ContactList(name: text);
                     }
                     if (text == AppLocalizations.of(context).location) {
-                      return LocationList(
-                        name: text,
-                      );
+                      return LocationList(name: text);
                     }
                   }).toList(growable: false),
                 ),
@@ -290,8 +295,9 @@ class _BottomBarState extends State<_BottomBar> {
     Navigator.push(
         context,
         MaterialPageRoute(
-            builder: (BuildContext context) => MomentEdit(),
-            fullscreenDialog: true));
+          builder: (BuildContext context) => MomentEdit(),
+          fullscreenDialog: true,
+        ));
   }
 
   @override
@@ -320,9 +326,7 @@ class _BottomBarState extends State<_BottomBar> {
                     builder: (BuildContext context) =>
                         GoalEdit(AppLocalizations.of(context).goal),
                     fullscreenDialog: true,
-                    settings: RouteSettings(
-                      name: GoalEdit.routeName,
-                    ),
+                    settings: RouteSettings(name: GoalEdit.routeName),
                   ),
                 );
               },
@@ -365,9 +369,7 @@ class _BottomBarState extends State<_BottomBar> {
                   MaterialPageRoute(
                     builder: (context) => PeopleSuggestion(),
                     fullscreenDialog: true,
-                    settings: RouteSettings(
-                      name: TestLayout.routeName,
-                    ),
+                    settings: RouteSettings(name: TestLayout.routeName),
                   ),
                 );
               },

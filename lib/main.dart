@@ -20,7 +20,7 @@ import 'package:data_life/repositories/action_provider.dart';
 import 'package:data_life/repositories/action_repository.dart';
 
 import 'package:data_life/blocs/moment_edit_bloc.dart';
-
+import 'package:data_life/blocs/contact_edit_bloc.dart';
 
 void main() async {
   await AMap().init('1624c8484217cdfdf2fdf38ecdd365ab');
@@ -43,6 +43,7 @@ class _MyAppState extends State<MyApp> {
   ActionRepository _actionRepository;
 
   MomentEditBloc _momentEditBloc;
+  ContactEditBloc _contactEditBloc;
 
   @override
   void initState() {
@@ -61,6 +62,11 @@ class _MyAppState extends State<MyApp> {
       contactRepository: _contactRepository,
     );
 
+    _contactEditBloc = ContactEditBloc(
+      locationRepository: _locationRepository,
+      contactRepository: _contactRepository,
+    );
+
     _dbBloc.dispatch(OpenDb());
   }
 
@@ -68,12 +74,9 @@ class _MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     return BlocProviderTree(
       blocProviders: [
-        BlocProvider<DbBloc>(
-          bloc: _dbBloc,
-        ),
-        BlocProvider<MomentEditBloc>(
-          bloc: _momentEditBloc,
-        ),
+        BlocProvider<DbBloc>(bloc: _dbBloc),
+        BlocProvider<MomentEditBloc>(bloc: _momentEditBloc),
+        BlocProvider<ContactEditBloc>(bloc: _contactEditBloc),
       ],
       child: MaterialApp(
         localizationsDelegates: [

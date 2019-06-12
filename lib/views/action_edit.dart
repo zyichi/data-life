@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 
 import 'package:data_life/localizations.dart';
+
 import 'package:data_life/views/title_form_field.dart';
 import 'package:data_life/views/target_progress_form_field.dart';
-import 'package:data_life/views/simple_list_dialog.dart';
 import 'package:data_life/views/date_time_picker_form_field.dart';
 import 'package:data_life/views/item_picker_form_field.dart';
+
 import 'package:data_life/models/activity.dart';
 
 
@@ -76,9 +77,7 @@ class ActionEdit extends StatefulWidget {
 class ActionEditState extends State<ActionEdit> {
   final _formKey = GlobalKey<FormState>();
   String _title;
-  DateTime _startDate;
-  TimeOfDay _startTime;
-  final _repeatItems = ['Does not repeat', '1 time a week', '2 time a week'];
+  DateTime _startDateTime;
 
   Future<bool> _onWillPop() async {
     return true;
@@ -90,8 +89,7 @@ class ActionEditState extends State<ActionEdit> {
 
     _title = widget.title;
     final now = DateTime.now();
-    _startDate = now;
-    _startTime = TimeOfDay(hour: now.hour, minute: now.minute);
+    _startDateTime = now;
   }
 
   void _titleChanged(String text) {
@@ -113,16 +111,10 @@ class ActionEditState extends State<ActionEdit> {
   Widget _createStartTimeWidget() {
     return DateTimePicker(
       labelText: AppLocalizations.of(context).startTime,
-      selectedDate: _startDate,
-      selectedTime: _startTime,
-      selectDate: (value) {
+      initialDateTime: _startDateTime,
+      selectDateTime: (value) {
         setState(() {
-          _startDate = value;
-        });
-      },
-      selectTime: (value) {
-        setState(() {
-          _startTime = value;
+          _startDateTime = value;
         });
       },
     );

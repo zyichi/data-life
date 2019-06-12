@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'package:data_life/views/common_form_field.dart';
+import 'package:data_life/views/labeled_text_form_field.dart';
 import 'package:data_life/views/simple_list_dialog.dart';
 
 typedef OnItemPicked(String value, int index);

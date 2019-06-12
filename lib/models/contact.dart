@@ -13,6 +13,9 @@ class Contact extends Equatable {
   String firstMeetLocation;
   int totalTimeTogether = 0;
   int lastMeetTime;
+  String weChatId;
+  String phoneNumber;
+  String qqId;
   int createTime;
   int updateTime;
 
@@ -30,6 +33,9 @@ class Contact extends Equatable {
     newContact.firstMeetLocation = contact.firstMeetLocation;
     newContact.totalTimeTogether = contact.totalTimeTogether;
     newContact.lastMeetTime = contact.lastMeetTime;
+    newContact.weChatId = contact.weChatId;
+    newContact.phoneNumber = contact.phoneNumber;
+    newContact.qqId = contact.qqId;
     newContact.createTime = contact.createTime;
     newContact.updateTime = contact.updateTime;
     return newContact;
@@ -45,7 +51,31 @@ class Contact extends Equatable {
     firstMeetLocation = contact.firstMeetLocation;
     totalTimeTogether = contact.totalTimeTogether;
     lastMeetTime = contact.lastMeetTime;
+    weChatId = contact.weChatId;
+    phoneNumber = contact.phoneNumber;
+    qqId = contact.qqId;
     createTime = contact.createTime;
     updateTime = contact.updateTime;
+  }
+
+  bool isSameWith(Contact contact) {
+    if (id == contact.id && isContentSameWith(contact)) return true;
+    return false;
+  }
+  bool isContentSameWith(Contact contact) {
+    if (name != contact.name) return false;
+    if (nickname != contact.nickname) return false;
+    if (knowVia != contact.knowVia) return false;
+    if (firstKnowTime != contact.firstKnowTime) return false;
+    if (firstMeetTime != contact.firstMeetTime) return false;
+    if (firstMeetLocation != contact.firstMeetLocation) return false;
+    if (totalTimeTogether != contact.totalTimeTogether) return false;
+    if (lastMeetTime != contact.lastMeetTime) return false;
+    if (weChatId != contact.weChatId) return false;
+    if (phoneNumber != contact.phoneNumber) return false;
+    if (qqId != contact.qqId) return false;
+    if (createTime != contact.createTime) return false;
+    if (updateTime != contact.updateTime) return false;
+    return true;
   }
 }

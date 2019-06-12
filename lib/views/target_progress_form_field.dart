@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:data_life/localizations.dart';
-import 'common_form_field.dart';
+import 'labeled_text_form_field.dart';
 
 
 class TargetProgress extends StatefulWidget {
@@ -51,7 +51,7 @@ class TargetProgressState extends State<TargetProgress> {
 
   Widget _createTextInput(
       String hint, String label, TextEditingController controller) {
-    return TextInputFormField(
+    return LabeledTextFormField(
       labelText: label,
       hintText: hint,
       controller: controller,

@@ -20,7 +20,7 @@ class ActionTable {
 create table $name (
   $columnId integer primary key autoincrement,
   $columnGoalId integer default null,
-  $columnName String not null,
+  $columnName text not null,
   $columnTarget real default null,
   $columnProgress real default null,
   $columnHowOften integer default null,
