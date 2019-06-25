@@ -4,13 +4,7 @@ import 'package:data_life/models/action.dart';
 class ActionTable {
   static const name = 'action';
   static const columnId = '_id';
-  static const columnGoalId = 'goalId';
   static const columnName = 'name';
-  static const columnTarget = 'target';
-  static const columnProgress = 'progress';
-  static const columnHowOften = 'howOften';
-  static const columnHowLong = 'howLong';
-  static const columnBestTime = 'bestTime';
   static const columnTotalTimeTaken = 'totalTimeTaken';
   static const columnLastActiveTime = 'lastActiveTime';
   static const columnCreateTime = 'createTime';
@@ -19,37 +13,24 @@ class ActionTable {
   static const createSql = '''
 create table $name (
   $columnId integer primary key autoincrement,
-  $columnGoalId integer default null,
   $columnName text not null,
-  $columnTarget real default null,
-  $columnProgress real default null,
-  $columnHowOften integer default null,
-  $columnHowLong integer default null,
-  $columnBestTime integer default null,
   $columnTotalTimeTaken integer default 0,
   $columnLastActiveTime integer default null,
   $columnCreateTime integer not null,
   $columnUpdateTime integer default null)
 ''';
 
-  static List<String> get initSqlList => [createSql];
+  static const createIndexSql = '''
+create unique index name_idx on $name(
+  $columnName);
+''';
+
+  static List<String> get initSqlList => [createSql, createIndexSql];
 
   static Action fromMap(Map map) {
     final action = Action();
     action.id = map[ActionTable.columnId] as int;
-    action.goalId = map[ActionTable.columnGoalId] as int;
     action.name = map[ActionTable.columnName] as String;
-    action.target = map[ActionTable.columnTarget] as num;
-    action.progress = map[ActionTable.columnProgress] as num;
-    var howOftenIndex = map[ActionTable.columnHowOften];
-    if (howOftenIndex != null)
-      action.howOften = HowOften.values[howOftenIndex];
-    var howLongIndex = map[ActionTable.columnHowLong];
-    if (howLongIndex != null)
-      action.howLong = HowLong.values[howLongIndex];
-    var bestTimeIndex = map[ActionTable.columnBestTime];
-    if (howLongIndex != null)
-      action.bestTime = BestTime.values[bestTimeIndex];
     action.totalTimeTaken = map[ActionTable.columnTotalTimeTaken] as int;
     action.lastActiveTime = map[ActionTable.columnLastActiveTime] as int;
     action.createTime = map[ActionTable.columnCreateTime] as int;
@@ -59,13 +40,7 @@ create table $name (
 
   static Map<String, dynamic> toMap(Action action) {
     var map = <String, dynamic>{
-      ActionTable.columnGoalId: action.goalId,
       ActionTable.columnName: action.name,
-      ActionTable.columnTarget: action.target,
-      ActionTable.columnProgress: action.progress,
-      ActionTable.columnHowOften: action.howOften?.index,
-      ActionTable.columnHowLong: action.howLong?.index,
-      ActionTable.columnBestTime: action.bestTime?.index,
       ActionTable.columnTotalTimeTaken: action.totalTimeTaken,
       ActionTable.columnLastActiveTime: action.lastActiveTime,
       ActionTable.columnCreateTime: action.createTime,

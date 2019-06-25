@@ -36,6 +36,7 @@ class LabelFormField extends StatelessWidget {
 class LabeledTextFormField extends StatelessWidget {
   final String labelText;
   final String hintText;
+  final String initialValue;
   final TextEditingController controller;
   final FormFieldValidator<String> validator;
   final TextInputType inputType;
@@ -46,12 +47,17 @@ class LabeledTextFormField extends StatelessWidget {
     Key key,
     this.labelText,
     this.hintText,
+    this.initialValue,
     this.controller,
     this.validator,
     this.inputType = TextInputType.text,
     this.maxLines = 1,
     this.enabled = true,
-  }) : super(key: key);
+  }) : super(key: key) {
+    if (initialValue != null && controller != null) {
+      controller.text = initialValue;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {

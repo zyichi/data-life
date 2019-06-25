@@ -50,7 +50,7 @@ class _LocationTextFieldState extends State<LocationTextField> {
     _addressController = widget.addressController ?? TextEditingController();
     if (widget.location != null) {
       _selectedLocation = widget.location;
-      _addressController.text = _selectedLocation.displayAddress;
+      _addressController.text = _selectedLocation.name;
     }
   }
 
@@ -87,7 +87,7 @@ class _LocationTextFieldState extends State<LocationTextField> {
       );
       for (AMapInputTip tip in inputTips) {
         Location location = Location();
-        location.displayAddress = tip.name;
+        location.name = tip.name;
         location.address = tip.address;
         location.latitude = tip.latitude;
         location.longitude = tip.longitude;
@@ -106,7 +106,7 @@ class _LocationTextFieldState extends State<LocationTextField> {
       );
       for (AMapInputTip tip in inputTips) {
         Location location = Location();
-        location.displayAddress = tip.name;
+        location.name = tip.name;
         location.address = tip.address;
         location.latitude = tip.latitude;
         location.longitude = tip.longitude;
@@ -121,7 +121,7 @@ class _LocationTextFieldState extends State<LocationTextField> {
     List<Location> locationList = <Location>[];
     for (AMapPoi poi in reGeocodeAddress.poiList) {
       Location location = Location();
-      location.displayAddress = poi.name;
+      location.name = poi.name;
       location.address = poi.address;
       location.latitude = poi.latitude;
       location.longitude = poi.longitude;
@@ -157,7 +157,7 @@ class _LocationTextFieldState extends State<LocationTextField> {
     var location = Location();
     location.address = reGeocodeAddress.formattedAddress;
     location.formattedAddress = reGeocodeAddress.formattedAddress;
-    location.displayAddress = _getDisplayAddress(reGeocodeAddress);
+    location.name = _getDisplayAddress(reGeocodeAddress);
     location.latitude = reGeocodeAddress.latitude;
     location.longitude = reGeocodeAddress.longitude;
     location.township = reGeocodeAddress.township;
@@ -234,7 +234,7 @@ class _LocationTextFieldState extends State<LocationTextField> {
       onSuggestionSelected: (_SuggestionItem suggest) {
         Location location = suggest.location;
         setState(() {
-          _addressController.text = location.displayAddress;
+          _addressController.text = location.name;
         });
         _selectedLocation = location;
         widget.locationChanged(location);
@@ -257,7 +257,7 @@ class _LocationTextFieldState extends State<LocationTextField> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: <Widget>[
                       Text(
-                        location.displayAddress,
+                        location.name,
                         overflow: TextOverflow.ellipsis,
                         softWrap: false,
                       ),
@@ -279,8 +279,6 @@ class _LocationTextFieldState extends State<LocationTextField> {
         );
       },
       suggestionsCallback: (String pattern) {
-        _selectedLocation = null;
-        widget.locationChanged(null);
         return _getSuggestion(pattern);
       },
     );

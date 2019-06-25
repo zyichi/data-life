@@ -1,2 +1,7 @@
-* Use temporarily Moment object reduce MomentEditState class field
-* Improve EventEditBloc: Skip action/location/contact update when moment begin/end time not changed.
+* Location edit implement
+* Show hint or focus field when in moment/contact/location edit mode
+* Check if there is a city complete cloud API
+* Implement search like QQ search
+
+
+* LATER Improve EventEditBloc: Skip action/location/contact update when moment begin/end time not changed.

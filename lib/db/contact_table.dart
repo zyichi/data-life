@@ -36,7 +36,12 @@ create table $name (
   $columnUpdateTime integer default null)
 ''';
 
-  static List<String> get initSqlList => [createSql];
+  static const createIndexSql = '''
+create unique index name_idx on $name(
+  $columnName);
+''';
+
+  static List<String> get initSqlList => [createSql, createIndexSql];
 
   static Contact fromMap(Map map) {
     final contact = Contact();

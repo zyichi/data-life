@@ -3,7 +3,55 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:data_life/paging/page_bloc.dart';
 import 'package:data_life/paging/page_list.dart';
+
 import 'package:data_life/models/goal.dart';
+
+import 'package:data_life/views/my_color.dart';
+import 'package:data_life/views/goal_edit.dart';
+
+class _GoalListItem extends StatelessWidget {
+  final Goal goal;
+
+  _GoalListItem({this.goal});
+
+  @override
+  Widget build(BuildContext context) {
+    if (goal == null) {
+      return Container(
+        alignment: Alignment.centerLeft,
+        height: 48.0,
+        child: Padding(
+          padding: const EdgeInsets.only(left: 0.0, top: 8.0, bottom: 8.0),
+          child: Text('Loading ...'),
+        ),
+      );
+    } else {
+      return InkWell(
+        onTap: () {
+          Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (BuildContext context) => GoalEdit(goal: goal),
+                  fullscreenDialog: true));
+        },
+        child: Padding(
+          padding: const EdgeInsets.only(left: 0.0, top: 8.0, bottom: 8.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              Text(
+                goal.name,
+                style:
+                    Theme.of(context).textTheme.subtitle.copyWith(fontSize: 18),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+  }
+}
 
 class GoalList extends StatefulWidget {
   final String name;
@@ -14,16 +62,17 @@ class GoalList extends StatefulWidget {
   _GoalListState createState() => _GoalListState();
 }
 
-class _GoalListState extends State<GoalList> with AutomaticKeepAliveClientMixin {
-  PageBloc<Goal> _goalBloc;
+class _GoalListState extends State<GoalList>
+    with AutomaticKeepAliveClientMixin {
+  PageBloc<Goal> _goalListBloc;
 
   @override
   void initState() {
     print('GoalList.initState');
     super.initState();
 
-    _goalBloc = BlocProvider.of<PageBloc<Goal>>(context);
-    _goalBloc.dispatch(RefreshPage());
+    _goalListBloc = BlocProvider.of<PageBloc<Goal>>(context);
+    _goalListBloc.dispatch(RefreshPage());
   }
 
   @override
@@ -40,7 +89,7 @@ class _GoalListState extends State<GoalList> with AutomaticKeepAliveClientMixin 
     print('GoalList.build');
     super.build(context);
     return BlocBuilder(
-      bloc: _goalBloc,
+      bloc: _goalListBloc,
       builder: (context, state) {
         if (state is PageUninitialized) {
           return Center(
@@ -54,37 +103,21 @@ class _GoalListState extends State<GoalList> with AutomaticKeepAliveClientMixin 
         }
         if (state is PageLoaded<Goal>) {
           PageList pagedList = state.pageList;
-          return ListView.builder(
+          return ListView.separated(
             key: PageStorageKey<String>(widget.name),
+            separatorBuilder: (context, index) {
+              return Divider(
+                color: MyColor.greyDivider,
+              );
+            },
             itemCount: pagedList.total,
             itemBuilder: (context, index) {
               Goal goal = pagedList.itemAt(index);
               if (goal == null) {
-                _goalBloc.getItem(index);
-                return Container(
-                  alignment: Alignment.centerLeft,
-                  height: 48.0,
-                  child: Padding(
-                    padding: const EdgeInsets.only(left: 8.0),
-                    child: Text('Loading ...'),
-                  ),
-                );
+                _goalListBloc.getItem(index);
               }
-              return Container(
-                height: 48.0,
-                alignment: Alignment.centerLeft,
-                child: Padding(
-                  padding: const EdgeInsets.only(left: 8.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment:  MainAxisAlignment.center,
-                    children: <Widget>[
-                      Text(
-                        goal.name,
-                      ),
-                    ],
-                  ),
-                ),
+              return _GoalListItem(
+                goal: goal,
               );
             },
           );

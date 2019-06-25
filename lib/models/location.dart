@@ -1,6 +1,6 @@
 class Location {
   int id;
-  String displayAddress;
+  String name;
   double latitude;
   double longitude;
   String address;
@@ -17,7 +17,7 @@ class Location {
 
   void copy(Location l) {
     id = l.id;
-    displayAddress = l.displayAddress;
+    name = l.name;
     latitude = l.latitude;
     longitude = l.longitude;
     address = l.address;
@@ -33,22 +33,28 @@ class Location {
     updateTime = l.updateTime;
   }
 
+  static Location copyCreate(Location l) {
+    Location location = Location();
+    location.copy(l);
+    return location;
+  }
+
   bool isSameWith(Location location) {
     if (id == location.id && isContentSameWith(location)) return true;
     return false;
   }
 
   bool isContentSameWith(Location location) {
-    if (displayAddress != location.displayAddress) return false;
+    if ((name ?? '') != (location.name ?? '')) return false;
     if (latitude != location.latitude) return false;
     if (longitude != location.longitude) return false;
-    if (address != location.address) return false;
-    if (formattedAddress != location.formattedAddress) return false;
-    if (township != location.township) return false;
-    if (district != location.district) return false;
-    if (city != location.city) return false;
-    if (province != location.province) return false;
-    if (country != location.country) return false;
+    if ((address ?? '') != (location.address ?? '')) return false;
+    if ((formattedAddress ?? '') != (location.formattedAddress ?? '')) return false;
+    if ((township ?? '') != (location.township ?? '')) return false;
+    if ((district ?? '') != (location.district ?? '')) return false;
+    if ((city ?? '') != (location.city ?? '')) return false;
+    if ((province ?? '') != (location.province ?? '')) return false;
+    if ((country ?? '') != (location.country ?? '')) return false;
     if (totalTimeStay != location.totalTimeStay) return false;
     if (lastVisitTime != location.lastVisitTime) return false;
     if (createTime != location.createTime) return false;

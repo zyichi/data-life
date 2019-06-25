@@ -3,9 +3,14 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:data_life/paging/page_bloc.dart';
 import 'package:data_life/paging/page_list.dart';
+
 import 'package:data_life/models/location.dart';
+
+import 'package:data_life/views/location_edit.dart';
 import 'package:data_life/views/my_color.dart';
+
 import 'package:data_life/utils/time_util.dart';
+
 
 class _LocationListItem extends StatelessWidget {
   final Location location;
@@ -25,7 +30,15 @@ class _LocationListItem extends StatelessWidget {
       );
     } else {
       return InkWell(
-        onTap: () async {},
+        onTap: () {
+          Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (BuildContext context) => LocationEdit(
+                    location: location,
+                  ),
+                  fullscreenDialog: true));
+        },
         child: Padding(
           padding: const EdgeInsets.only(left: 0.0, top: 8.0, bottom: 8.0),
           child: Column(
@@ -33,7 +46,7 @@ class _LocationListItem extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
               Text(
-                location.displayAddress,
+                location.name,
                 style: Theme.of(context)
                     .textTheme
                     .subtitle
@@ -55,9 +68,9 @@ class _LocationListItem extends StatelessWidget {
     if (location.lastVisitTime == null) {
       s = '未去过';
     } else {
-      s = TimeUtil.formatDateForDisplayMillis(location.lastVisitTime) +
+      s = TimeUtil.dateStringFromMillis(location.lastVisitTime) +
           ' ' +
-          TimeUtil.formatDateTimeForDisplayMillis(location.lastVisitTime, context);
+          TimeUtil.timeStringFromMillis(location.lastVisitTime, context);
     }
     return Text(
       '最近停留: $s',
@@ -83,15 +96,15 @@ class LocationList extends StatefulWidget {
 
 class _LocationListState extends State<LocationList>
     with AutomaticKeepAliveClientMixin {
-  PageBloc<Location> _locationBloc;
+  PageBloc<Location> _locationListBloc;
 
   @override
   void initState() {
     print('LocationList.initState');
     super.initState();
 
-    _locationBloc = BlocProvider.of<PageBloc<Location>>(context);
-    _locationBloc.dispatch(RefreshPage());
+    _locationListBloc = BlocProvider.of<PageBloc<Location>>(context);
+    _locationListBloc.dispatch(RefreshPage());
   }
 
   @override
@@ -111,7 +124,7 @@ class _LocationListState extends State<LocationList>
     return Padding(
       padding: const EdgeInsets.only(left: 16, top: 8, right: 16, bottom: 8),
       child: BlocBuilder(
-        bloc: _locationBloc,
+        bloc: _locationListBloc,
         builder: (context, state) {
           if (state is PageUninitialized) {
             return Center(
@@ -136,7 +149,7 @@ class _LocationListState extends State<LocationList>
               itemBuilder: (context, index) {
                 Location location = pagedList.itemAt(index);
                 if (location == null) {
-                  _locationBloc.getItem(index);
+                  _locationListBloc.getItem(index);
                 }
                 return _LocationListItem(
                   location: location,

@@ -3,12 +3,6 @@ import 'package:flutter/material.dart';
 
 
 class TimeUtil {
-  static List<int> secondsToHms(int totalSeconds) {
-    int hours = totalSeconds ~/ 3600;
-    int minutes = totalSeconds % 3600 ~/ 60;
-    int seconds = totalSeconds % 3600 % 60;
-    return [hours, minutes, seconds];
-  }
 
   static String formatTime(int milliseconds) {
     return DateFormat.yMMMMd()
@@ -17,33 +11,27 @@ class TimeUtil {
   }
 
 
-  static String formatDateTimeForDisplay(DateTime t) {
+  static String dateStringFromDateTime(DateTime t) {
     return DateFormat.yMMMEd().format(t);
   }
 
-  static String formatDateForDisplayMillis(int milliseconds) {
-    DateTime t = DateTime.fromMillisecondsSinceEpoch(milliseconds);
-    return formatDateTimeForDisplay(t);
+  static String dateStringFromMillis(int millis) {
+    return dateStringFromDateTime(DateTime.fromMillisecondsSinceEpoch(millis));
   }
 
-
-  static String formatTimeOfDayForDisplay(DateTime t, BuildContext context) {
-    TimeOfDay beginTime = TimeOfDay(hour: t.hour, minute: t.minute);
-    return beginTime.format(context);
+  static String timeStringFromMillis(int millis, BuildContext context) {
+    return timeStringFromDateTime(DateTime.fromMillisecondsSinceEpoch(millis), context);
   }
 
-  static String formatDateTimeForDisplayMillis(int milliseconds, BuildContext context) {
-    DateTime t = DateTime.fromMillisecondsSinceEpoch(milliseconds);
-    return formatTimeOfDayForDisplay(t, context);
+  static String timeStringFromDateTime(DateTime t, BuildContext context) {
+    TimeOfDay timeOfDay = TimeOfDay.fromDateTime(t);
+    return timeOfDay.format(context);
   }
 
   static List<int> dayHourMinuteFromMillis(int milliseconds) {
-    int minuteInMillis = 60 * 1000;
-    int hourInMillis = 60 * minuteInMillis;
-    int dayInMillis = 24 * hourInMillis;
-    int days = milliseconds ~/ dayInMillis;
-    int hours = (milliseconds % dayInMillis) ~/ hourInMillis;
-    int minutes = (milliseconds % hourInMillis) ~/ minuteInMillis;
+    int days = milliseconds ~/ Duration.millisecondsPerDay;
+    int hours = (milliseconds % Duration.millisecondsPerDay) ~/ Duration.millisecondsPerHour;
+    int minutes = (milliseconds % Duration.millisecondsPerHour) ~/ Duration.millisecondsPerMinute;
     return [days, hours, minutes];
   }
 
@@ -66,11 +54,6 @@ class TimeUtil {
       s = "$dayStr${dayStr.isEmpty ? '' : ' '}$hourStr${hourStr.isEmpty ? '' : ' '}$minuteStr${minuteStr.isEmpty ? '' : ' '}";
     }
     return s;
-  }
-
-
-  static DateTime combineTime(DateTime date, TimeOfDay time) {
-    return DateTime(date.year, date.month, date.day, time.hour, time.minute);
   }
 
 }

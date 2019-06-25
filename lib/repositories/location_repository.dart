@@ -23,8 +23,8 @@ class LocationRepository extends PageRepository<Location> {
     return _locationProvider.getViaId(id);
   }
 
-  Future<Location> getViaDisplayAddress(String displayAddress) async {
-    return _locationProvider.getViaDisplayAddress(displayAddress);
+  Future<Location> getViaName(String displayAddress) async {
+    return _locationProvider.getViaName(displayAddress);
   }
 
   Future<List<Location>> search(String pattern, int limit) async {

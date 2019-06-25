@@ -20,9 +20,25 @@ class UpdateContact extends ContactEditEvent {
         assert(newContact != null);
 }
 
+class ContactNameUniqueCheck extends ContactEditEvent {
+  final String name;
+
+  ContactNameUniqueCheck({this.name})
+      : assert(name != null);
+}
+
 class ContactUninitialized extends ContactEditState {}
 
 class ContactUpdated extends ContactEditState {}
+
+class ContactNameUniqueCheckResult extends ContactEditState {
+  final bool isUnique;
+  final String text;
+
+  ContactNameUniqueCheckResult({this.isUnique, this.text})
+      : assert(isUnique != null),
+        assert(text != null);
+}
 
 class ContactEditFailed extends ContactEditState {
   final String error;
@@ -35,8 +51,7 @@ class ContactEditBloc extends Bloc<ContactEditEvent, ContactEditState> {
   final ContactRepository contactRepository;
 
   ContactEditBloc(
-      {@required this.locationRepository,
-        @required this.contactRepository})
+      {@required this.locationRepository, @required this.contactRepository})
       : assert(contactRepository != null),
         assert(locationRepository != null);
 
@@ -55,10 +70,17 @@ class ContactEditBloc extends Bloc<ContactEditEvent, ContactEditState> {
         yield ContactUpdated();
       } catch (e) {
         yield ContactEditFailed(
-            error:
-            'Update contact ${oldContact.name} failed: ${e.toString()}');
+            error: 'Update contact ${oldContact.name} failed: ${e.toString()}');
+      }
+    }
+    if (event is ContactNameUniqueCheck) {
+      try {
+        Contact contact = await contactRepository.getViaName(event.name);
+        yield ContactNameUniqueCheckResult(isUnique: contact == null, text: event.name);
+      } catch (e) {
+        yield ContactEditFailed(
+            error: 'Check if contact name unique failed: ${e.toString()}');
       }
     }
   }
-
 }

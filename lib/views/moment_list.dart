@@ -22,7 +22,7 @@ class _MomentListItem extends StatelessWidget {
   Widget build(BuildContext context) {
     if (moment == null) {
       return Container(
-        alignment: Alignment.centerLeft,
+        alignment: Alignment.center,
         height: 48.0,
         child: Padding(
           padding: const EdgeInsets.only(left: 0, top: 8.0, bottom: 8.0),
@@ -41,7 +41,7 @@ class _MomentListItem extends StatelessWidget {
                   fullscreenDialog: true));
         },
         child: Padding(
-          padding: const EdgeInsets.only(left: 0.0, top: 8.0, bottom: 8.0),
+          padding: const EdgeInsets.only(left: 16.0, top: 8.0, bottom: 8.0, right: 16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
@@ -57,7 +57,7 @@ class _MomentListItem extends StatelessWidget {
               ),
               _createTimeWidget(context),
               Text(
-                moment.location.displayAddress,
+                moment.location.name,
               ),
               _createContactsWidget(),
               SizedBox(
@@ -100,9 +100,9 @@ class _MomentListItem extends StatelessWidget {
   }
 
   Widget _createTimeWidget(BuildContext context) {
-    String s = TimeUtil.formatDateForDisplayMillis(moment.beginTime) +
+    String s = TimeUtil.dateStringFromMillis(moment.beginTime) +
         ' ' +
-        TimeUtil.formatDateTimeForDisplayMillis(moment.beginTime, context);
+        TimeUtil.timeStringFromMillis(moment.beginTime, context);
     return Text(
       '$s',
     );
@@ -120,15 +120,15 @@ class MomentList extends StatefulWidget {
 
 class _MomentListState extends State<MomentList>
     with AutomaticKeepAliveClientMixin {
-  PageBloc<Moment> _momentBloc;
+  PageBloc<Moment> _momentListBloc;
 
   @override
   void initState() {
     print('MomentList.initState');
     super.initState();
 
-    _momentBloc = BlocProvider.of<PageBloc<Moment>>(context);
-    _momentBloc.dispatch(RefreshPage());
+    _momentListBloc = BlocProvider.of<PageBloc<Moment>>(context);
+    _momentListBloc.dispatch(RefreshPage());
   }
 
   @override
@@ -145,9 +145,9 @@ class _MomentListState extends State<MomentList>
     print('MomentList.build');
     super.build(context);
     return Padding(
-      padding: const EdgeInsets.only(left: 16, top: 8, right: 16, bottom: 8),
+      padding: const EdgeInsets.only(left: 0, top: 8, right: 0, bottom: 8),
       child: BlocBuilder(
-        bloc: _momentBloc,
+        bloc: _momentListBloc,
         builder: (context, state) {
           if (state is PageUninitialized) {
             return Center(
@@ -172,7 +172,7 @@ class _MomentListState extends State<MomentList>
               itemBuilder: (context, index) {
                 Moment moment = pagedList.itemAt(index);
                 if (moment == null) {
-                  _momentBloc.getItem(index);
+                  _momentListBloc.getItem(index);
                 }
                 return _MomentListItem(
                   moment: moment,

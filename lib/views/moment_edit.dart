@@ -46,20 +46,18 @@ class _SentimentSource {
 
 class _MomentEditState extends State<MomentEdit> {
   bool _isReadOnly = false;
-  DateTime _beginDateTime;
-  DateTime _endDateTime;
+  final _formKey = GlobalKey<FormState>();
+  final Moment _moment = Moment();
+
   double _sentimentIconSize = 48.0;
+
   final _actionNameController = TextEditingController();
+  final _actionNameFocusNode = FocusNode();
+  final _locationNameController = TextEditingController();
   final _contactController = TextEditingController();
   final _contactFocusNode = FocusNode();
   final _costController = TextEditingController();
-  Sentiment _selectedSentiment;
   final _feelingsController = TextEditingController();
-  final _formKey = GlobalKey<FormState>();
-  var _contacts = List<Contact>();
-  Action _action;
-  Location _location;
-  final _addressController = TextEditingController();
 
   ActionRepository _actionRepository;
   ContactRepository _contactRepository;
@@ -77,24 +75,25 @@ class _MomentEditState extends State<MomentEdit> {
 
     if (widget.moment != null) {
       _isReadOnly = true;
+
       _actionNameController.text = widget.moment.action.name;
-      _beginDateTime = DateTime.fromMillisecondsSinceEpoch(widget.moment.beginTime);
-      _endDateTime = DateTime.fromMillisecondsSinceEpoch(widget.moment.endTime);
+      _locationNameController.text = widget.moment.location.name;
       _costController.text = widget.moment.cost.toString();
       _feelingsController.text = widget.moment.details;
-      _selectedSentiment = widget.moment.sentiment;
-      _action = widget.moment.action;
-      _location = widget.moment.location;
-      // We must copy contact to compare old moment and new moment different.
+
+      _moment.copy(widget.moment);
+      // We must create new contact list and copy contact to compare
+      // old moment and new moment different.
+      _moment.contacts = <Contact>[];
       for (Contact contact in widget.moment.contacts) {
-        _contacts.add(Contact.copyCreate(contact));
+        _moment.contacts.add(Contact.copyCreate(contact));
       }
     } else {
       final now = DateTime.now();
-      _beginDateTime = now;
-      _endDateTime = now.add(Duration(minutes: 30));
-      _selectedSentiment = null;
+      _moment.beginTime = now.millisecondsSinceEpoch;
+      _moment.endTime = now.add(Duration(minutes: 30)).millisecondsSinceEpoch;
     }
+
     _contactController.addListener(_contactControllerListener);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -125,19 +124,19 @@ class _MomentEditState extends State<MomentEdit> {
     if (_isReadOnly) {
       return false;
     }
-    var m = _createMomentFromForm();
+    _updateMomentFromForm();
     if (_isNewMoment) {
-      if (m.action != null ||
-          m.location != null ||
-          m.sentiment != null ||
-          m.contacts.isNotEmpty ||
-          m.details.isNotEmpty) {
+      if (_moment.action != null ||
+          _moment.location != null ||
+          _moment.sentiment != null ||
+          _moment.contacts.isNotEmpty ||
+          _moment.details.isNotEmpty) {
         return true;
       } else {
         return false;
       }
     } else {
-      if (m.isContentSameWith(widget.moment)) {
+      if (_moment.isContentSameWith(widget.moment)) {
         return false;
       } else {
         return true;
@@ -177,10 +176,10 @@ class _MomentEditState extends State<MomentEdit> {
             ? () {}
             : () {
                 setState(() {
-                  _selectedSentiment = source.sentiment;
+                  _moment.sentiment = source.sentiment;
                 });
               },
-        color: _selectedSentiment == source.sentiment
+        color: _moment.sentiment == source.sentiment
             ? Theme.of(context).accentColor
             : Theme.of(context).disabledColor,
       );
@@ -194,42 +193,36 @@ class _MomentEditState extends State<MomentEdit> {
     return value ?? 0.0;
   }
 
-  Moment _createMomentFromForm() {
-    final moment = Moment();
-    moment.sentiment = _selectedSentiment;
-    moment.beginTime = _beginDateTime.millisecondsSinceEpoch;
-    moment.endTime = _endDateTime.millisecondsSinceEpoch;
-    moment.cost = parseCost(_costController.text);
-    moment.details = _feelingsController.text;
-    if (_action == null) {
-      _action = Action();
-      _action.name = _actionNameController.text;
+  void _updateMomentFromForm() {
+    _moment.cost = parseCost(_costController.text);
+    _moment.details = _feelingsController.text;
+    if (_moment.action == null || _actionNameController.text != _moment.action.name) {
+      var a = Action();
+      a.name = _actionNameController.text;
+      _moment.action = a;
     }
-    moment.action = _action;
-    if (_location == null) {
-      _location = Location();
-      _location.displayAddress = _addressController.text;
+    if (_moment.location == null || _locationNameController.text != _moment.location.name) {
+      var l = Location();
+      l.name = _locationNameController.text;
+      _moment.location = l;
     }
-    moment.location = _location;
     if (_contactController.text.isNotEmpty) {
       var contact = Contact();
       contact.name = _contactController.text;
       _addContact(contact);
     }
-    moment.contacts = _contacts;
-    return moment;
   }
 
   void _editMoment() {
-    Moment moment = _createMomentFromForm();
+    _updateMomentFromForm();
     if (_isNewMoment) {
       _momentEditBloc.dispatch(
-        AddMoment(moment: moment),
+        AddMoment(moment: _moment),
       );
     } else {
       _momentEditBloc.dispatch(UpdateMoment(
         oldMoment: widget.moment,
-        newMoment: moment,
+        newMoment: _moment,
       ));
     }
   }
@@ -259,10 +252,10 @@ class _MomentEditState extends State<MomentEdit> {
           ),
           LocationTextField(
             locationChanged: (Location location) {
-              _location = location;
+              _moment.location = location;
             },
-            location: _location,
-            addressController: _addressController,
+            location: _moment.location,
+            addressController: _locationNameController,
             enabled: !_isReadOnly,
           ),
         ],
@@ -304,7 +297,7 @@ class _MomentEditState extends State<MomentEdit> {
   }
 
   List<Widget> _selectedContactWidget() {
-    List<Widget> widgets = _contacts.map((contact) {
+    List<Widget> widgets = _moment.contacts.map((contact) {
       return InputChip(
         padding: EdgeInsets.only(left: 4.0, right: 4.0),
         backgroundColor: Colors.grey[200],
@@ -318,7 +311,7 @@ class _MomentEditState extends State<MomentEdit> {
             ? () {}
             : () {
                 setState(() {
-                  _contacts.remove(contact);
+                  _moment.contacts.remove(contact);
                 });
                 FocusScope.of(context).requestFocus(_contactFocusNode);
               },
@@ -326,7 +319,7 @@ class _MomentEditState extends State<MomentEdit> {
             ? () {}
             : () {
                 setState(() {
-                  _contacts.remove(contact);
+                  _moment.contacts.remove(contact);
                   if (_contactController.text.isNotEmpty) {
                     var contact = Contact();
                     contact.name = _contactController.text;
@@ -405,35 +398,20 @@ class _MomentEditState extends State<MomentEdit> {
     );
   }
 
-  bool _contactExist(Contact contact, List<Contact> contacts) {
-    for (int i = 0; i < contacts.length; i++) {
-      if (contact.id != null) {
-        if (contact.id == contacts[i].id) {
-          return true;
-        }
-      } else {
-        if (contact.name == contacts[i].name) {
-          return true;
-        }
-      }
-    }
-    return false;
-  }
-
   void _addContact(Contact contact) {
-    if (_contactExist(contact, _contacts)) {
+    if (_moment.contacts.contains(contact)) {
       return;
     }
-    _contacts.add(contact);
+    _moment.contacts.add(contact);
   }
 
   Widget _createBeginTimeField() {
     return DateTimePicker(
       labelText: AppLocalizations.of(context).begin,
-      initialDateTime: _beginDateTime,
+      initialDateTime: DateTime.fromMillisecondsSinceEpoch(_moment.beginTime),
       selectDateTime: (value) {
         setState(() {
-          _beginDateTime = value;
+          _moment.beginTime = value.millisecondsSinceEpoch;
         });
       },
       enabled: !_isReadOnly,
@@ -443,10 +421,10 @@ class _MomentEditState extends State<MomentEdit> {
   Widget _createEndTimeField() {
     return DateTimePicker(
       labelText: AppLocalizations.of(context).end,
-      initialDateTime: _endDateTime,
+      initialDateTime: DateTime.fromMillisecondsSinceEpoch(_moment.endTime),
       selectDateTime: (value) {
         setState(() {
-          _endDateTime = value;
+          _moment.endTime = value.millisecondsSinceEpoch;
         });
       },
       enabled: !_isReadOnly,
@@ -499,7 +477,7 @@ class _MomentEditState extends State<MomentEdit> {
         );
       },
       validator: (value) {
-        if (_selectedSentiment == null) {
+        if (_moment.sentiment == null) {
           return AppLocalizations.of(context).selectSentiment;
         }
       },
@@ -530,13 +508,14 @@ class _MomentEditState extends State<MomentEdit> {
           border: InputBorder.none,
         ),
         controller: _actionNameController,
+        focusNode: _actionNameFocusNode,
         style: Theme.of(context).textTheme.subhead.copyWith(fontSize: 24),
         autofocus: !_isReadOnly,
         enabled: !_isReadOnly,
       ),
       onSuggestionSelected: (Action action) {
         _actionNameController.text = action.name;
-        _action = action;
+        _moment.action = action;
       },
       itemBuilder: (context, suggestion) {
         final action = suggestion as Action;
@@ -548,7 +527,6 @@ class _MomentEditState extends State<MomentEdit> {
         );
       },
       suggestionsCallback: (pattern) {
-        _action = null;
         if (pattern.isEmpty) {
           return _actionRepository.get(startIndex: 0, count: 8);
         } else {
@@ -571,6 +549,7 @@ class _MomentEditState extends State<MomentEdit> {
           setState(() {
             _isReadOnly = false;
           });
+          FocusScope.of(context).requestFocus(_actionNameFocusNode);
         },
       );
     } else {
@@ -649,7 +628,7 @@ class _MomentEditState extends State<MomentEdit> {
                     );
                   },
                   validator: (value) {
-                    if (_beginDateTime.isAfter(_endDateTime)) {
+                    if (_moment.beginTime > _moment.endTime) {
                       return '开始时间必须早于结束时间';
                     }
                   },

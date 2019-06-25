@@ -24,20 +24,7 @@ class Contact extends Equatable {
 
   static Contact copyCreate(Contact contact) {
     var newContact = Contact();
-    newContact.id = contact.id;
-    newContact.name = contact.name;
-    newContact.nickname = contact.nickname;
-    newContact.knowVia = contact.knowVia;
-    newContact.firstKnowTime = contact.firstKnowTime;
-    newContact.firstMeetTime = contact.firstMeetTime;
-    newContact.firstMeetLocation = contact.firstMeetLocation;
-    newContact.totalTimeTogether = contact.totalTimeTogether;
-    newContact.lastMeetTime = contact.lastMeetTime;
-    newContact.weChatId = contact.weChatId;
-    newContact.phoneNumber = contact.phoneNumber;
-    newContact.qqId = contact.qqId;
-    newContact.createTime = contact.createTime;
-    newContact.updateTime = contact.updateTime;
+    newContact.copy(contact);
     return newContact;
   }
 
@@ -63,17 +50,17 @@ class Contact extends Equatable {
     return false;
   }
   bool isContentSameWith(Contact contact) {
-    if (name != contact.name) return false;
-    if (nickname != contact.nickname) return false;
-    if (knowVia != contact.knowVia) return false;
+    if ((name ?? '') != (contact.name ?? '')) return false;
+    if ((nickname ?? '') != (contact.nickname ?? '')) return false;
+    if ((knowVia ?? '') != (contact.knowVia ?? '')) return false;
     if (firstKnowTime != contact.firstKnowTime) return false;
     if (firstMeetTime != contact.firstMeetTime) return false;
-    if (firstMeetLocation != contact.firstMeetLocation) return false;
+    if ((firstMeetLocation ?? '') != (contact.firstMeetLocation ?? '')) return false;
     if (totalTimeTogether != contact.totalTimeTogether) return false;
     if (lastMeetTime != contact.lastMeetTime) return false;
-    if (weChatId != contact.weChatId) return false;
-    if (phoneNumber != contact.phoneNumber) return false;
-    if (qqId != contact.qqId) return false;
+    if ((weChatId ?? '') != (contact.weChatId ?? '')) return false;
+    if ((phoneNumber ?? '') != (contact.phoneNumber ?? '')) return false;
+    if ((qqId ?? '') != (contact.qqId ?? '')) return false;
     if (createTime != contact.createTime) return false;
     if (updateTime != contact.updateTime) return false;
     return true;

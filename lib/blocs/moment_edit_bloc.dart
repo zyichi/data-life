@@ -258,7 +258,7 @@ class MomentEditBloc extends Bloc<MomentEditEvent, MomentEditState> {
     Location location = moment.location;
     if (location.id == null) {
       Location savedLocation = await locationRepository
-          .getViaDisplayAddress(location.displayAddress);
+          .getViaName(location.name);
       if (savedLocation != null) {
         location.copy(savedLocation);
       }

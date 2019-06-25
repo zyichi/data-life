@@ -19,4 +19,12 @@ class GoalRepository extends PageRepository<Goal> {
     return _goalProvider.get(startIndex: startIndex, count: count);
   }
 
+  Future<int> save(Goal goal) async {
+    return _goalProvider.save(goal);
+  }
+
+  Future<Goal> getViaName(String name) async {
+    return _goalProvider.getViaName(name);
+  }
+
 }

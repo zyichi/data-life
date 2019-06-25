@@ -55,7 +55,7 @@ class DateTimePickerState extends State<DateTimePicker> {
                 setState(() {
                   _selectedDate = value;
                 });
-                widget.selectDateTime(value);
+                widget.selectDateTime(_combineTime(_selectedDate, _selectedTime));
               },
               enabled: widget.enabled,
             ),
@@ -68,10 +68,7 @@ class DateTimePickerState extends State<DateTimePicker> {
                   setState(() {
                     _selectedTime = value;
                   });
-                  widget.selectDateTime(DateTime(
-                    _selectedDate.year, _selectedDate.month, _selectedDate.day,
-                    _selectedTime.hour, _selectedTime.minute
-                  ));
+                  widget.selectDateTime(_combineTime(_selectedDate, _selectedTime));
                 },
                 enabled: widget.enabled,
               ),
@@ -79,6 +76,13 @@ class DateTimePickerState extends State<DateTimePicker> {
           ],
         ),
       ],
+    );
+  }
+
+  DateTime _combineTime(DateTime d, TimeOfDay t) {
+    return DateTime(
+        _selectedDate.year, _selectedDate.month, _selectedDate.day,
+        _selectedTime.hour, _selectedTime.minute
     );
   }
 }

@@ -66,8 +66,8 @@ class _ContactListItem extends StatelessWidget {
     if (contact.lastMeetTime == null) {
       s = '未见面';
     } else {
-      s = TimeUtil.formatDateForDisplayMillis(contact.lastMeetTime)
-          + ' ' + TimeUtil.formatDateTimeForDisplayMillis(contact.lastMeetTime, context);
+      s = TimeUtil.dateStringFromMillis(contact.lastMeetTime)
+          + ' ' + TimeUtil.timeStringFromMillis(contact.lastMeetTime, context);
     }
     return Text(
       '最近见面: $s',
@@ -94,7 +94,7 @@ class ContactList extends StatefulWidget {
 }
 
 class _ContactListState extends State<ContactList> with AutomaticKeepAliveClientMixin {
-  PageBloc<Contact> _contactBloc;
+  PageBloc<Contact> _contactListBloc;
   Completer<void> _refreshCompleter;
 
   @override
@@ -102,8 +102,8 @@ class _ContactListState extends State<ContactList> with AutomaticKeepAliveClient
     print('ContactList.initState');
     super.initState();
 
-    _contactBloc = BlocProvider.of<PageBloc<Contact>>(context);
-    _contactBloc.dispatch(RefreshPage());
+    _contactListBloc = BlocProvider.of<PageBloc<Contact>>(context);
+    _contactListBloc.dispatch(RefreshPage());
   }
 
   @override
@@ -120,7 +120,7 @@ class _ContactListState extends State<ContactList> with AutomaticKeepAliveClient
     print('ContactList.build');
     super.build(context);
     return BlocListener(
-      bloc: _contactBloc,
+      bloc: _contactListBloc,
       listener: (context, state) {
         print('ContactList ContactBloc listener');
         if (state is PageLoaded || state is PageError) {
@@ -134,11 +134,11 @@ class _ContactListState extends State<ContactList> with AutomaticKeepAliveClient
           onRefresh: () {
             print('ContactList RefreshIndicator onRefresh');
             _refreshCompleter = Completer<void>();
-            _contactBloc.dispatch(RefreshPage());
+            _contactListBloc.dispatch(RefreshPage());
             return _refreshCompleter.future;
           },
           child: BlocBuilder(
-            bloc: _contactBloc,
+            bloc: _contactListBloc,
             builder: (context, state) {
               if (state is PageUninitialized) {
                 return Center(
@@ -163,7 +163,7 @@ class _ContactListState extends State<ContactList> with AutomaticKeepAliveClient
                   itemBuilder: (context, index) {
                     Contact contact = pagedList.itemAt(index);
                     if (contact == null) {
-                      _contactBloc.getItem(index);
+                      _contactListBloc.getItem(index);
                     }
                     return _ContactListItem(contact: contact,);
                   },

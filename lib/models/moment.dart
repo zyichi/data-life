@@ -24,16 +24,32 @@ class Moment {
   int createTime;
   int updateTime;
 
+  Action _action;
+  Location _location;
   List<Contact> contacts = <Contact>[];
-  Action action;
-  Location location;
+
+  Action get action => _action;
+  set action(Action a) {
+    _action = a;
+    actionId = a?.id;
+  }
+  Location get location => _location;
+  set location(Location l) {
+    _location = l;
+    locationId = l?.id;
+  }
 
   bool _isContentSameContactList(List<Contact> lhs, List<Contact> rhs) {
     if (lhs.length != rhs.length) return false;
     for (Contact l in lhs) {
+      bool founded = false;
       for (Contact r in rhs) {
-        if (!l.isContentSameWith(r)) return false;
+        if (l.isContentSameWith(r)) {
+          founded = true;
+          break;
+        }
       }
+      if (!founded) return false;
     }
     return true;
   }
@@ -41,9 +57,14 @@ class Moment {
   bool _isSameContactList(List<Contact> lhs, List<Contact> rhs) {
     if (lhs.length != rhs.length) return false;
     for (Contact l in lhs) {
+      bool founded = false;
       for (Contact r in rhs) {
-        if (!l.isSameWith(r)) return false;
+        if (l.isSameWith(r)) {
+          founded = true;
+          break;
+        }
       }
+      if (!founded) return false;
     }
     return true;
   }
@@ -62,7 +83,7 @@ class Moment {
     if (beginTime != moment.beginTime) return false;
     if (endTime != moment.endTime) return false;
     if (cost != moment.cost) return false;
-    if (details != moment.details) return false;
+    if ((details ?? '') != (moment.details ?? '')) return false;
     if (createTime != moment.createTime) return false;
     if (updateTime != moment.updateTime) return false;
     if (!action.isContentSameWith(moment.action)) return false;
@@ -72,19 +93,34 @@ class Moment {
   }
 
   int durationInHours() {
-    return (endTime - beginTime) ~/ 3600000;
+    return Duration(milliseconds: (endTime - beginTime)).inHours;
   }
 
   int durationInMinutes() {
-    return (endTime - beginTime) ~/ 60000;
+    return Duration(milliseconds: (endTime - beginTime)).inMinutes;
   }
 
   int durationInSeconds() {
-    return (endTime - beginTime) ~/ 1000;
+    return Duration(milliseconds: (endTime - beginTime)).inSeconds;
   }
 
   int durationInMillis() {
     return endTime - beginTime;
   }
 
+  void copy(Moment moment) {
+    id = moment.id;
+    actionId = moment.actionId;
+    locationId = moment.locationId;
+    sentiment = moment.sentiment;
+    beginTime = moment.beginTime;
+    endTime = moment.endTime;
+    cost = moment.cost;
+    details = moment.details;
+    createTime = moment.createTime;
+    updateTime = moment.updateTime;
+    action = moment.action;
+    location = moment.location;
+    contacts = moment.contacts;
+  }
 }

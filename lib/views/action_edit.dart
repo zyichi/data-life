@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:data_life/localizations.dart';
 
 import 'package:data_life/views/title_form_field.dart';
-import 'package:data_life/views/target_progress_form_field.dart';
+import 'package:data_life/views/progress_target_form_field.dart';
 import 'package:data_life/views/date_time_picker_form_field.dart';
 import 'package:data_life/views/item_picker_form_field.dart';
 
@@ -106,7 +106,7 @@ class ActionEditState extends State<ActionEdit> {
 
   void _targetChanged(num value) {}
 
-  void _alreadyDoneChanged(num value) {}
+  void _progressChanged(num value) {}
 
   Widget _createStartTimeWidget() {
     return DateTimePicker(
@@ -217,7 +217,11 @@ class ActionEditState extends State<ActionEdit> {
             children: <Widget>[
               TitleFormField(_titleChanged),
               Divider(),
-              TargetProgress(_targetChanged, _alreadyDoneChanged),
+              ProgressTarget(
+                padding: EdgeInsets.symmetric(vertical: 16),
+                progressChanged: _progressChanged,
+                targetChanged: _targetChanged,
+              ),
               Divider(),
               _createStartTimeWidget(),
               _createDurationWidget(),

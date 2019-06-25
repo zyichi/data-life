@@ -4,10 +4,10 @@ import 'package:data_life/models/location.dart';
 class LocationTable {
   static const name = 'location';
   static const columnId = '_id';
+  static const columnName = 'name';
   static const columnLatitude = 'latitude';
   static const columnLongitude = 'longitude';
   static const columnAddress = 'address';
-  static const columnDisplayAddress = 'displayAddress';
   static const columnFormattedAddress = 'formattedAddress';
   static const columnTownship = 'township';
   static const columnDistrict = 'district';
@@ -22,7 +22,7 @@ class LocationTable {
   static const createSql = '''
 create table $name (
   $columnId integer primary key autoincrement,
-  $columnDisplayAddress text not null,
+  $columnName text not null,
   $columnLatitude real default null,
   $columnLongitude real default null,
   $columnAddress text default null,
@@ -39,8 +39,8 @@ create table $name (
 ''';
 
   static const createIndexSql = '''
-create unique index display_address_idx on $name(
-  $columnDisplayAddress);
+create unique index name_idx on $name(
+  $columnName);
 ''';
 
   static List<String> get initSqlList => [createSql, createIndexSql];
@@ -48,7 +48,7 @@ create unique index display_address_idx on $name(
   static Location fromMap(Map map) {
     final location = Location();
     location.id = map[LocationTable.columnId] as int;
-    location.displayAddress = map[LocationTable.columnDisplayAddress] as String;
+    location.name = map[LocationTable.columnName] as String;
     location.latitude = map[LocationTable.columnLatitude] as num;
     location.longitude = map[LocationTable.columnLongitude] as num;
     location.address = map[LocationTable.columnAddress] as String;
@@ -67,7 +67,7 @@ create unique index display_address_idx on $name(
 
   static Map<String, dynamic> toMap(Location location) {
     var map = <String, dynamic>{
-      LocationTable.columnDisplayAddress: location.displayAddress,
+      LocationTable.columnName: location.name,
       LocationTable.columnLatitude: location.latitude,
       LocationTable.columnLongitude: location.longitude,
       LocationTable.columnAddress: location.address,

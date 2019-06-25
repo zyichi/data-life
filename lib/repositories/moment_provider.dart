@@ -30,16 +30,15 @@ class MomentProvider {
     var moments = maps.map((map) {
       return MomentTable.fromMap(map);
     }).toList();
-    for (int i = 0; i < moments.length; i++) {
-      var moment = moments[i];
+    for (Moment moment in moments) {
       moment.action = await _actionProvider.getViaId(moment.actionId);
       moment.actionId = moment.action?.id;
       moment.location = await _locationProvider.getViaId(moment.locationId);
       moment.locationId = moment.location?.id;
       List<MomentContact> momentContacts = await getMomentContact(moment.id);
-      for (int j = 0; j < momentContacts.length; j++) {
+      for (MomentContact momentContact in momentContacts) {
         var contact =
-            await _contactProvider.getViaId(momentContacts[j].contactId);
+            await _contactProvider.getViaId(momentContact.contactId);
         if (contact != null) {
           moment.contacts.add(contact);
         }

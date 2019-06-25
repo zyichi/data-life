@@ -37,11 +37,11 @@ class LocationProvider {
     return null;
   }
 
-  Future<Location> getViaDisplayAddress(String displayAddress) async {
+  Future<Location> getViaName(String name) async {
     List<Map> maps = await LifeDb.db.query(LocationTable.name,
       columns: [],
-      where: '${LocationTable.columnDisplayAddress} = ?',
-      whereArgs: [displayAddress],
+      where: '${LocationTable.columnName} = ?',
+      whereArgs: [name],
     );
     if (maps.length > 0) {
       return LocationTable.fromMap(maps.first);
@@ -52,7 +52,7 @@ class LocationProvider {
   Future<List<Location>> search(String pattern, int limit) async {
     List<Map> maps = await LifeDb.db.query(LocationTable.name,
       columns: [],
-      where: "${LocationTable.columnDisplayAddress} like '%$pattern%'",
+      where: "${LocationTable.columnName} like '%$pattern%'",
       whereArgs: [],
       orderBy: '${LocationTable.columnLastVisitTime} desc',
       limit: limit,

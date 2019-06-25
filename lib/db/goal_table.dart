@@ -1,4 +1,5 @@
 import 'package:data_life/models/goal.dart';
+import 'package:data_life/models/time_types.dart';
 
 
 class GoalTable {
@@ -8,9 +9,11 @@ class GoalTable {
   static const columnTarget = 'target';
   static const columnProgress = 'progress';
   static const columnStartTime = 'startTime';
-  static const columnDuration = 'duration';
-  static const columnCreateTime = 'createTime';
+  static const columnStopTime = 'stopTime';
+  static const columnDurationType = 'durationType';
   static const columnLastActiveTime = 'lastActiveTime';
+  static const columnCreateTime = 'createTime';
+  static const columnUpdateTime = 'updateTime';
 
   static const createSql = '''
 create table $name (
@@ -19,12 +22,19 @@ create table $name (
   $columnTarget real default null,
   $columnProgress real default null,
   $columnStartTime integer default null,
-  $columnDuration integer default null,
+  $columnStopTime integer default null,
+  $columnDurationType integer default null,
   $columnLastActiveTime integer default null,
-  $columnCreateTime integer not null)
+  $columnCreateTime integer not null,
+  $columnUpdateTime integer default null)
 ''';
 
-  static List<String> get initSqlList => [createSql];
+  static const createIndexSql = '''
+create unique index name_idx on $name(
+  $columnName);
+''';
+
+  static List<String> get initSqlList => [createSql, createIndexSql];
 
   static Goal fromMap(Map map) {
     final Goal goal = Goal();
@@ -32,10 +42,14 @@ create table $name (
     goal.name = map[GoalTable.columnName] as String;
     goal.target = map[GoalTable.columnTarget] as num;
     goal.progress = map[GoalTable.columnProgress] as num;
-    goal.lastActiveTime = map[GoalTable.columnLastActiveTime] as int;
     goal.startTime = map[GoalTable.columnStartTime] as int;
-    goal.duration = map[GoalTable.columnDuration] as int;
+    goal.stopTime = map[GoalTable.columnStopTime] as int;
+    var durationTypeIndex = map[GoalTable.columnDurationType];
+    if (durationTypeIndex != null)
+      goal.durationType = DurationType.values[durationTypeIndex];
+    goal.lastActiveTime = map[GoalTable.columnLastActiveTime] as int;
     goal.createTime = map[GoalTable.columnCreateTime] as int;
+    goal.updateTime = map[GoalTable.columnUpdateTime] as int;
     return goal;
   }
 
@@ -45,9 +59,11 @@ create table $name (
       GoalTable.columnTarget: goal.target,
       GoalTable.columnProgress: goal.progress,
       GoalTable.columnStartTime: goal.startTime,
-      GoalTable.columnDuration: goal.duration,
+      GoalTable.columnStopTime: goal.stopTime,
+      GoalTable.columnDurationType: goal.durationType?.index,
       GoalTable.columnLastActiveTime: goal.lastActiveTime,
       GoalTable.columnCreateTime: goal.createTime,
+      GoalTable.columnUpdateTime: goal.updateTime,
     };
     if (goal.id != null) {
       map[GoalTable.columnId] = goal.id;

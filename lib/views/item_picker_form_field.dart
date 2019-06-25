@@ -3,29 +3,33 @@ import 'package:flutter/material.dart';
 import 'package:data_life/views/labeled_text_form_field.dart';
 import 'package:data_life/views/simple_list_dialog.dart';
 
-typedef OnItemPicked(String value, int index);
+typedef OnItemPicked<T>(T picked, int index);
 
-class ItemPicker extends StatefulWidget {
+class ItemPicker<T> extends StatefulWidget {
   final String labelText;
-  final List<String> items;
+  final List<T> items;
   final int defaultPicked;
   final OnItemPicked onItemPicked;
+  final EdgeInsets padding;
+  final bool enabled;
 
-  const ItemPicker(
-      {Key key,
-      this.labelText,
-      this.items,
-      this.defaultPicked,
-      this.onItemPicked})
-      : super(key: key);
+  const ItemPicker({
+    Key key,
+    this.labelText,
+    this.items,
+    this.defaultPicked,
+    this.onItemPicked,
+    this.padding = EdgeInsets.zero,
+    this.enabled,
+  }) : super(key: key);
 
   @override
-  ItemPickerState createState() {
-    return new ItemPickerState();
+  ItemPickerState<T> createState() {
+    return new ItemPickerState<T>();
   }
 }
 
-class ItemPickerState extends State<ItemPicker> {
+class ItemPickerState<T> extends State<ItemPicker> {
   int _selectedIndex;
 
   @override
@@ -35,30 +39,32 @@ class ItemPickerState extends State<ItemPicker> {
     _selectedIndex = widget.defaultPicked;
   }
 
+  void _onItemSelected<T>(T value, int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
+    widget.onItemPicked(value, index);
+  }
+
   Widget _createSelectedItemField() {
     final textStyle = Theme.of(context).textTheme.subhead;
     return InkWell(
-      onTap: () {
+      onTap: widget.enabled ? () {
         showDialog(
           context: context,
           builder: (context) {
-            return SimpleListDialog(
+            return SimpleListDialog<T>(
               items: widget.items,
-              onItemSelected: (value, index) {
-                setState(() {
-                  _selectedIndex = index;
-                });
-                widget.onItemPicked(value, index);
-              },
+              onItemSelected: _onItemSelected,
               selectedIndex: _selectedIndex,
             );
           },
         );
-      },
+      } : () {},
       child: Padding(
-        padding: const EdgeInsets.only(
-            left: 16.0, top: 8.0, right: 16.0, bottom: 8.0),
-        child: Text(widget.items[_selectedIndex],
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        child: Text(
+          widget.items[_selectedIndex].toString(),
           style: textStyle,
         ),
       ),
@@ -67,18 +73,21 @@ class ItemPickerState extends State<ItemPicker> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: <Widget>[
-        LabelFormField(label: widget.labelText),
-        Row(
-          children: <Widget>[
-            Expanded(
-              child: _createSelectedItemField(),
-            ),
-          ],
-        ),
-      ],
+    return Padding(
+      padding: widget.padding,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          LabelFormField(label: widget.labelText),
+          Row(
+            children: <Widget>[
+              Expanded(
+                child: _createSelectedItemField(),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 }
