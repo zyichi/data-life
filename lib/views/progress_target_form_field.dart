@@ -6,6 +6,8 @@ import 'labeled_text_form_field.dart';
 class ProgressTarget extends StatefulWidget {
   final ValueChanged<num> targetChanged;
   final ValueChanged<num> progressChanged;
+  final FocusNode progressFocusNode;
+  final FocusNode targetFocusNode;
   final num initialProgress;
   final num initialTarget;
   final EdgeInsets padding;
@@ -14,6 +16,8 @@ class ProgressTarget extends StatefulWidget {
   const ProgressTarget({
     this.targetChanged,
     this.progressChanged,
+    this.progressFocusNode,
+    this.targetFocusNode,
     this.initialProgress,
     this.initialTarget,
     this.padding = EdgeInsets.zero,
@@ -46,14 +50,12 @@ class ProgressTargetState extends State<ProgressTarget> {
     _targetController.addListener(() {
       _target = num.tryParse(_targetController.text) ?? 0.0;
       widget.targetChanged(_target);
-      setState(() {});
     });
 
     _progressController.text = _progress.toString();
     _progressController.addListener(() {
       _progress = num.tryParse(_progressController.text) ?? 0.0;
       widget.progressChanged(_progress);
-      setState(() {});
     });
   }
 
@@ -66,14 +68,14 @@ class ProgressTargetState extends State<ProgressTarget> {
   }
 
   Widget _createTextInput(String hint, String label,
-      TextEditingController controller, initialValue) {
+      TextEditingController controller, FocusNode focusNode) {
     return LabeledTextFormField(
-      initialValue: initialValue,
       labelText: label,
       hintText: hint,
       controller: controller,
       inputType: TextInputType.number,
       enabled: widget.enabled,
+      focusNode: focusNode,
     );
   }
 
@@ -83,7 +85,7 @@ class ProgressTargetState extends State<ProgressTarget> {
         Expanded(
           flex: 5,
           child: _createTextInput('Enter progress', 'Current progress',
-              _progressController, widget.initialProgress.toString()),
+              _progressController, widget.progressFocusNode),
         ),
         SizedBox(width: 16),
         Expanded(
@@ -91,8 +93,7 @@ class ProgressTargetState extends State<ProgressTarget> {
           child: _createTextInput(
               AppLocalizations.of(context).enterTarget,
               AppLocalizations.of(context).target,
-              _targetController,
-              widget.initialTarget.toString()),
+              _targetController, widget.targetFocusNode),
         ),
       ],
     );
@@ -102,7 +103,11 @@ class ProgressTargetState extends State<ProgressTarget> {
     if (_target == null || _progress == null) {
       _progressRatio = 0.0;
     } else {
-      _progressRatio = _progress / _target;
+      if (_target == 0) {
+        _progressRatio = 1.0;
+      } else {
+        _progressRatio = _progress / _target;
+      }
     }
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -142,7 +147,7 @@ class ProgressTargetState extends State<ProgressTarget> {
         },
         validator: (value) {
           if (_progress > _target) {
-            return 'Progress must smaller than target';
+            return 'Progress must not bigger than target';
           }
           return null;
         },

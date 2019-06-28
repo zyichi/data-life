@@ -3,12 +3,15 @@ import 'package:data_life/models/time_types.dart';
 
 
 class GoalActionTable {
-  static const name = 'action';
+  static const name = 'goal_action';
+  static const deletedName = 'deleted_goal_action';
+
   static const columnId = '_id';
   static const columnGoalId = 'goalId';
   static const columnActionId = 'actionId';
-  static const columnDurationValue = 'durationValue';
-  static const columnDurationUnit = 'durationUnit';
+  static const columnStartTime = 'startTime';
+  static const columnStopTime = 'stopTime';
+  static const columnDurationType = 'durationType';
   static const columnTarget = 'target';
   static const columnProgress = 'progress';
   static const columnHowOften = 'howOften';
@@ -19,13 +22,20 @@ class GoalActionTable {
   static const columnCreateTime = 'createTime';
   static const columnUpdateTime = 'updateTime';
 
-  static const createSql = '''
-create table $name (
+  static const createIndexSql = '''
+create unique index goal_action_idx on $name(
+  $columnGoalId, $columnActionId);
+''';
+
+  static String getCreateTableSql(String tableName) {
+    return '''
+create table $tableName (
   $columnId integer primary key autoincrement,
   $columnGoalId integer not null,
   $columnActionId integer not null,
-  $columnDurationValue integer default null,
-  $columnDurationUnit integer default null,
+  $columnStartTime integer default null,
+  $columnStopTime integer default null,
+  $columnDurationType integer default null,
   $columnTarget real default null,
   $columnProgress real default null,
   $columnHowOften integer default null,
@@ -36,18 +46,24 @@ create table $name (
   $columnCreateTime integer not null,
   $columnUpdateTime integer default null)
 ''';
+  }
 
-  static List<String> get initSqlList => [createSql];
+  static List<String> get initSqlList => [
+    getCreateTableSql(GoalActionTable.name),
+    getCreateTableSql(GoalActionTable.deletedName),
+    createIndexSql,
+  ];
 
   static GoalAction fromMap(Map map) {
     final goalAction = GoalAction();
     goalAction.id = map[GoalActionTable.columnId] as int;
     goalAction.goalId = map[GoalActionTable.columnGoalId] as int;
     goalAction.actionId = map[GoalActionTable.columnActionId] as int;
-    goalAction.durationValue = map[GoalActionTable.columnDurationValue] as int;
-    var durationUnitIndex = map[GoalActionTable.columnDurationUnit];
-    if (durationUnitIndex != null)
-      goalAction.durationUnit = DurationUnit.values[durationUnitIndex];
+    goalAction.startTime = map[GoalActionTable.columnStartTime] as int;
+    goalAction.stopTime = map[GoalActionTable.columnStopTime] as int;
+    var durationType = map[GoalActionTable.columnDurationType];
+    if (durationType != null)
+      goalAction.durationType = DurationType.values[durationType];
     goalAction.target = map[GoalActionTable.columnTarget] as num;
     goalAction.progress = map[GoalActionTable.columnProgress] as num;
     var howOftenIndex = map[GoalActionTable.columnHowOften];
@@ -70,8 +86,9 @@ create table $name (
     var map = <String, dynamic>{
       GoalActionTable.columnGoalId: goalAction.goalId,
       GoalActionTable.columnActionId: goalAction.actionId,
-      GoalActionTable.columnDurationValue: goalAction.durationValue,
-      GoalActionTable.columnDurationUnit: goalAction.durationUnit?.index,
+      GoalActionTable.columnStartTime: goalAction.startTime,
+      GoalActionTable.columnStopTime: goalAction.stopTime,
+      GoalActionTable.columnDurationType: goalAction.durationType?.index,
       GoalActionTable.columnTarget: goalAction.target,
       GoalActionTable.columnProgress: goalAction.progress,
       GoalActionTable.columnHowOften: goalAction.howOften?.index,

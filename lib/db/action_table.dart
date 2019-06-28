@@ -21,7 +21,7 @@ create table $name (
 ''';
 
   static const createIndexSql = '''
-create unique index name_idx on $name(
+create unique index action_name_idx on $name(
   $columnName);
 ''';
 

@@ -88,7 +88,10 @@ class _MyAppState extends State<MyApp> {
     );
     _locationEditBloc =
         LocationEditBloc(locationRepository: _locationRepository);
-    _goalEditBloc = GoalEditBloc(goalRepository: _goalRepository);
+    _goalEditBloc = GoalEditBloc(
+      goalRepository: _goalRepository,
+      actionRepository: _actionRepository,
+    );
 
     _dbBloc.dispatch(OpenDb());
   }

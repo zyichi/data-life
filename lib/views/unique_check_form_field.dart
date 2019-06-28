@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'dart:async';
 
 
-typedef UniqueValidator<String, bool> = String Function(String text, bool isUnique, bool isEdited);
+typedef UniqueValidator<String, bool> = String Function(String text, bool isUnique);
 typedef UniqueCheckCallback<bool> = FutureOr<bool> Function(String text);
 
 
@@ -16,6 +16,7 @@ class UniqueCheckFormField extends StatefulWidget {
   final UniqueValidator<String, bool> validator;
   final UniqueCheckCallback<bool> uniqueCheckCallback;
   final bool enabled;
+  final bool autofocus;
 
   UniqueCheckFormField({
     this.hintText,
@@ -27,6 +28,7 @@ class UniqueCheckFormField extends StatefulWidget {
     this.validator,
     this.uniqueCheckCallback,
     this.enabled,
+    this.autofocus = false,
   })  : assert(textChanged != null),
         assert(uniqueCheckCallback != null),
         assert(validator != null);
@@ -49,13 +51,15 @@ class _UniqueCheckFormFieldState extends State<UniqueCheckFormField> {
 
     _controller.addListener(() async {
       String text = _controller.text;
+      if (!_isEdited && text.isNotEmpty) {
+        setState(() {
+          _isEdited = true;
+        });
+      }
       if (widget.textChanged != null) {
         widget.textChanged(text);
       }
       if (text.isNotEmpty) {
-        if (!_isEdited) {
-          _isEdited = true;
-        }
         bool result = await widget.uniqueCheckCallback(text);
         if (!mounted) return;
         if (text == _controller.text) {
@@ -74,7 +78,7 @@ class _UniqueCheckFormFieldState extends State<UniqueCheckFormField> {
       controller: _controller,
       focusNode: widget.focusNode,
       validator: (value) {
-        return widget.validator(value, _isUnique, _isEdited);
+        return widget.validator(value, _isUnique);
       },
       decoration: InputDecoration(
         border: InputBorder.none,
@@ -82,8 +86,8 @@ class _UniqueCheckFormFieldState extends State<UniqueCheckFormField> {
         isDense: true,
       ),
       enabled: widget.enabled,
-      autovalidate: true,
-      autofocus: true,
+      autovalidate: _isEdited,
+      autofocus: widget.autofocus,
     );
   }
 }

@@ -217,11 +217,11 @@ class MomentEditBloc extends Bloc<MomentEditEvent, MomentEditState> {
           contact.lastMeetTime = await momentRepository.getContactLastMeetTime(
               contact.id, moment.id);
           contact.totalTimeTogether -= moment.durationInMillis();
-          momentRepository.deleteMomentContactViaMomentId(moment.id);
-          contactRepository.save(contact);
+          await momentRepository.deleteMomentContactViaMomentId(moment.id);
+          await contactRepository.save(contact);
         }
         // Finally delete moment.
-        momentRepository.delete(moment);
+        await momentRepository.delete(moment);
         yield MomentDeleted(moment: moment);
       } catch (e) {
         yield MomentEditFailed(
@@ -308,4 +308,21 @@ class MomentEditBloc extends Bloc<MomentEditEvent, MomentEditState> {
       }
     }
   }
+
+  Future<List<Contact>> getContactSuggestions(String pattern) async {
+    if (pattern.isEmpty) {
+      return contactRepository.get(startIndex: 0, count: 8);
+    } else {
+      return contactRepository.search(pattern, 8);
+    }
+  }
+  Future<List<Action>> getActionSuggestions(String pattern) async {
+    if (pattern.isEmpty) {
+      return actionRepository.get(startIndex: 0, count: 8);
+    } else {
+      return actionRepository.search(pattern);
+    }
+  }
+
+
 }

@@ -24,6 +24,7 @@ import 'package:data_life/models/contact.dart';
 import 'package:data_life/models/location.dart';
 
 import 'package:data_life/blocs/moment_edit_bloc.dart';
+import 'package:data_life/blocs/goal_edit_bloc.dart';
 import 'package:data_life/blocs/contact_edit_bloc.dart';
 import 'package:data_life/blocs/location_edit_bloc.dart';
 
@@ -47,6 +48,7 @@ class HomePageState extends State<HomePage>
   TabController _tabController;
 
   MomentEditBloc _momentEditBloc;
+  GoalEditBloc _goalEditBloc;
   ContactEditBloc _contactEditBloc;
   LocationEditBloc _locationEditBloc;
 
@@ -61,6 +63,7 @@ class HomePageState extends State<HomePage>
     _momentEditBloc = BlocProvider.of<MomentEditBloc>(context);
     _contactEditBloc = BlocProvider.of<ContactEditBloc>(context);
     _locationEditBloc = BlocProvider.of<LocationEditBloc>(context);
+    _goalEditBloc = BlocProvider.of<GoalEditBloc>(context);
 
     _tabController = TabController(length: 5, vsync: this);
   }
@@ -122,7 +125,7 @@ class HomePageState extends State<HomePage>
     }
     if (state is MomentDeleted) {
       Scaffold.of(context).showSnackBar(SnackBar(
-        content: Text('Your moment has been deleted'),
+        content: Text('Your moment ${state.moment.action.name} has been deleted'),
         duration: Duration(seconds: 10),
         action: SnackBarAction(
           label: 'UNDO',
@@ -136,6 +139,32 @@ class HomePageState extends State<HomePage>
       ));
     }
     if (state is MomentEditFailed) {
+      print('${state.error}');
+    }
+  }
+
+  void _goalEditBlocListener(BuildContext context, GoalEditState state) {
+    if (state is GoalAdded ||
+        state is GoalDeleted ||
+        state is GoalUpdated) {
+      BlocProvider.of<PageBloc<Goal>>(context).dispatch(RefreshPage());
+    }
+    if (state is GoalDeleted) {
+      Scaffold.of(context).showSnackBar(SnackBar(
+        content: Text('Your goal ${state.goal.name} has been deleted'),
+        duration: Duration(seconds: 10),
+        action: SnackBarAction(
+          label: 'UNDO',
+          onPressed: () {
+            // We add back the deleted goal as new goal, so goal.id must
+            // set to null.
+            state.goal.id = null;
+            _goalEditBloc.dispatch(AddGoal(goal: state.goal));
+          },
+        ),
+      ));
+    }
+    if (state is GoalEditFailed) {
       print('${state.error}');
     }
   }
@@ -203,6 +232,10 @@ class HomePageState extends State<HomePage>
               BlocListener<MomentEditEvent, MomentEditState>(
                 bloc: _momentEditBloc,
                 listener: _momentEditBlocListener,
+              ),
+              BlocListener<GoalEditEvent, GoalEditState>(
+                bloc: _goalEditBloc,
+                listener: _goalEditBlocListener,
               ),
               BlocListener<ContactEditEvent, ContactEditState>(
                 bloc: _contactEditBloc,

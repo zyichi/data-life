@@ -21,7 +21,7 @@ create table $name (
   $columnLocationId integer defalut null,
   $columnSentiment integer not null,
   $columnBeginTime integer not null,
-  $columnEndTime integer nonull,
+  $columnEndTime integer not null,
   $columnCost real default 0.0,
   $columnDetails text default null,
   $columnCreateTime integer not null,

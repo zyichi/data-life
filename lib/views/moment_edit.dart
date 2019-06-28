@@ -14,11 +14,6 @@ import 'package:data_life/models/contact.dart';
 import 'package:data_life/models/location.dart';
 import 'package:data_life/models/moment.dart';
 
-import 'package:data_life/repositories/action_repository.dart';
-import 'package:data_life/repositories/action_provider.dart';
-import 'package:data_life/repositories/contact_repository.dart';
-import 'package:data_life/repositories/contact_provider.dart';
-
 import 'package:data_life/localizations.dart';
 
 import 'package:data_life/blocs/moment_edit_bloc.dart';
@@ -59,17 +54,11 @@ class _MomentEditState extends State<MomentEdit> {
   final _costController = TextEditingController();
   final _feelingsController = TextEditingController();
 
-  ActionRepository _actionRepository;
-  ContactRepository _contactRepository;
-
   MomentEditBloc _momentEditBloc;
 
   @override
   void initState() {
     super.initState();
-
-    _actionRepository = ActionRepository(ActionProvider());
-    _contactRepository = ContactRepository(ContactProvider());
 
     _momentEditBloc = BlocProvider.of<MomentEditBloc>(context);
 
@@ -308,7 +297,7 @@ class _MomentEditState extends State<MomentEdit> {
           size: 20.0,
         ),
         onDeleted: _isReadOnly
-            ? () {}
+            ? null
             : () {
                 setState(() {
                   _moment.contacts.remove(contact);
@@ -352,7 +341,7 @@ class _MomentEditState extends State<MomentEdit> {
             spacing: 8.0,
             children: _selectedContactWidget(),
           ),
-          TypeAheadField(
+          _isReadOnly ? Container() : TypeAheadField(
             textFieldConfiguration: TextFieldConfiguration(
               autocorrect: false,
               controller: _contactController,
@@ -366,11 +355,7 @@ class _MomentEditState extends State<MomentEdit> {
             ),
             suggestionsBoxDecoration: SuggestionsBoxDecoration(),
             suggestionsCallback: (pattern) {
-              if (pattern.isEmpty) {
-                return _contactRepository.get(startIndex: 0, count: 8);
-              } else {
-                return _contactRepository.search(pattern, 8);
-              }
+              return _momentEditBloc.getContactSuggestions(pattern);
             },
             itemBuilder: (context, suggestion) {
               final Contact contact = suggestion as Contact;
@@ -527,11 +512,7 @@ class _MomentEditState extends State<MomentEdit> {
         );
       },
       suggestionsCallback: (pattern) {
-        if (pattern.isEmpty) {
-          return _actionRepository.get(startIndex: 0, count: 8);
-        } else {
-          return _actionRepository.search(pattern);
-        }
+        return _momentEditBloc.getActionSuggestions(pattern);
       },
       validator: (value) {
         if (value.isEmpty) {
@@ -570,7 +551,7 @@ class _MomentEditState extends State<MomentEdit> {
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
-        title: Text(widget.moment?.action?.name ?? 'Moment'),
+        title: Text(_moment?.action?.name ?? 'Moment'),
         actions: <Widget>[
           _createEditAction(),
           _isNewMoment ? Container() : PopupMenuButton<String>(

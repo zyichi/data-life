@@ -3,6 +3,7 @@ import 'package:path/path.dart';
 
 import 'package:data_life/db/moment_table.dart';
 import 'package:data_life/db/goal_table.dart';
+import 'package:data_life/db/goal_action_table.dart';
 import 'package:data_life/db/contact_table.dart';
 import 'package:data_life/db/location_table.dart';
 import 'package:data_life/db/action_table.dart';
@@ -33,6 +34,7 @@ class LifeDb {
   static void create(Database db, int version) async {
     var initSqlList = MomentTable.initSqlList +
         GoalTable.initSqlList +
+        GoalActionTable.initSqlList +
         ContactTable.initSqlList +
         LocationTable.initSqlList +
         ActionTable.initSqlList +

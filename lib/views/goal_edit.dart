@@ -2,35 +2,40 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:data_life/localizations.dart';
-import 'package:data_life/constants.dart';
+
 import 'package:data_life/models/goal.dart';
 import 'package:data_life/models/goal_action.dart';
-import 'package:data_life/models/time_types.dart';
 
-import 'package:data_life/views/action_edit.dart';
+import 'package:data_life/views/goal_action_edit.dart';
 import 'package:data_life/views/progress_target_form_field.dart';
 import 'package:data_life/views/date_time_picker_form_field.dart';
-import 'package:data_life/views/item_picker_form_field.dart';
 import 'package:data_life/views/labeled_text_form_field.dart';
 import 'package:data_life/views/unique_check_form_field.dart';
-import 'package:data_life/views/type_to_str.dart';
 
 import 'package:data_life/blocs/goal_edit_bloc.dart';
 
-class _DurationPickItem {
-  final DurationType durationType;
-  final String caption;
-  _DurationPickItem({this.durationType, this.caption});
 
-  @override
-  String toString() {
-    return caption;
-  }
+void _showGoalActionEditPage(
+    BuildContext context, Goal goal, GoalAction goalAction) {
+  Navigator.push(
+      context,
+      MaterialPageRoute(
+          builder: (BuildContext context) => GoalActionEdit(
+                goal: goal,
+                goalAction: goalAction,
+              ),
+          fullscreenDialog: true,
+          settings: RouteSettings(
+            name: GoalActionEdit.routeName,
+          )));
 }
 
-class _ToDoItem extends StatelessWidget {
-  final String name;
-  const _ToDoItem(this.name);
+class _GoalActionItem extends StatelessWidget {
+  final Goal goal;
+  final GoalAction goalAction;
+  const _GoalActionItem({this.goal, this.goalAction})
+      : assert(goal != null),
+        assert(goalAction != null);
 
   @override
   Widget build(BuildContext context) {
@@ -47,7 +52,7 @@ class _ToDoItem extends StatelessWidget {
               flex: 3,
               child: Row(
                 children: <Widget>[
-                  Text(name, style: textStyle),
+                  Text(goalAction.action.name, style: textStyle),
                 ],
               ),
             ),
@@ -58,7 +63,9 @@ class _ToDoItem extends StatelessWidget {
           ],
         ),
       ),
-      onTap: () {},
+      onTap: () {
+        _showGoalActionEditPage(context, goal, goalAction);
+      },
     );
   }
 }
@@ -71,12 +78,12 @@ class GoalEdit extends StatefulWidget {
   const GoalEdit({this.goal});
 
   @override
-  GoalEditState createState() {
-    return new GoalEditState();
+  _GoalEditState createState() {
+    return new _GoalEditState();
   }
 }
 
-class GoalEditState extends State<GoalEdit> {
+class _GoalEditState extends State<GoalEdit> {
   bool _isReadOnly = false;
   final Goal _goal = Goal();
   GoalEditBloc _goalEditBloc;
@@ -137,19 +144,7 @@ class GoalEditState extends State<GoalEdit> {
   void _progressChanged(num value) {
     _goal.progress = value;
   }
-
-  void _addToDo() {
-    Navigator.push(
-        context,
-        MaterialPageRoute(
-            builder: (BuildContext context) =>
-                ActionEdit(AppLocalizations.of(context).action),
-            fullscreenDialog: true,
-            settings: RouteSettings(
-              name: ActionEdit.routeName,
-            )));
-  }
-
+  
   Widget _createStartTimeWidget() {
     return DateTimePicker(
       labelText: AppLocalizations.of(context).startTime,
@@ -168,31 +163,6 @@ class GoalEditState extends State<GoalEdit> {
           _goal.stopTime ?? _goal.startTime + Duration(days: 1).inMilliseconds),
       selectDateTime: (value) {
         _goal.stopTime = value.millisecondsSinceEpoch;
-      },
-      enabled: !_isReadOnly,
-    );
-  }
-
-  Widget _createDurationWidget() {
-    final itemList = defaultDurationList.map((t) {
-      _DurationPickItem item = _DurationPickItem(
-        caption: TypeToStr.myDurationStr(t, context),
-        durationType: t,
-      );
-      return item;
-    }).toList();
-    int defaultPicked = 0;
-    itemList.indexWhere((item) => item.durationType == _goal.durationType);
-    return ItemPicker<_DurationPickItem>(
-      labelText: 'Duration',
-      items: itemList,
-      defaultPicked: defaultPicked,
-      onItemPicked: (value, index) {
-        DurationType t = defaultDurationList[index];
-        _goal.durationType = t;
-        if (_goal.durationType == DurationType.userSelectTime) {
-          // Show stop time picker.
-        }
       },
       enabled: !_isReadOnly,
     );
@@ -217,15 +187,15 @@ class GoalEditState extends State<GoalEdit> {
       onTap: _isReadOnly
           ? () {}
           : () {
-              _addToDo();
+              _showGoalActionEditPage(context, _goal, null);
             },
     );
   }
 
-  Widget _createToDoWidget() {
+  Widget _createGoalActionWidget() {
     final toDoItems = <Widget>[];
     for (GoalAction goalAction in _goal.goalActions) {
-      toDoItems.add(_ToDoItem(goalAction.action.name));
+      toDoItems.add(_GoalActionItem(goal: _goal, goalAction: goalAction));
     }
     toDoItems.add(_createAddToDoButton());
     return Column(
@@ -272,56 +242,65 @@ class GoalEditState extends State<GoalEdit> {
       body: SafeArea(
         top: false,
         bottom: false,
-        child: Form(
-          key: _formKey,
-          onWillPop: _onWillPop,
-          child: Padding(
-            padding:
-                const EdgeInsets.only(left: 16, top: 16, bottom: 16, right: 16),
-            child: ListView(
-              children: <Widget>[
-                UniqueCheckFormField(
-                  initialValue: _goal.name,
-                  focusNode: _nameFocusNode,
-                  textStyle: Theme.of(context)
-                      .textTheme
-                      .subhead
-                      .copyWith(fontSize: 24),
-                  validator: (String text, bool isUnique, bool isEdited) {
-                    if (isEdited && text.isEmpty) {
-                      return 'Goal name can not empty';
-                    }
-                    if (!isUnique) {
-                      return 'Goal name already exist';
-                    }
-                    return null;
-                  },
-                  textChanged: _titleChanged,
-                  hintText: 'Enter goal name',
-                  uniqueCheckCallback: (String text) {
-                    return _goalEditBloc.goalNameUniqueCheck(text);
-                  },
-                  enabled: !_isReadOnly,
-                ),
-                Divider(),
-                ProgressTarget(
-                  padding: EdgeInsets.symmetric(vertical: 8),
-                  progressChanged: _progressChanged,
-                  targetChanged: _targetChanged,
-                  initialProgress: _goal.progress,
-                  initialTarget: _goal.target,
-                  enabled: !_isReadOnly,
-                ),
-                Divider(),
-                SizedBox(height: 8),
-                _createStartTimeWidget(),
-                _createStopTimeWidget(),
-                // _createDurationWidget(),
-                SizedBox(height: 8),
-                Divider(),
-                SizedBox(height: 8),
-                _createToDoWidget(),
-              ],
+        child: BlocListener<GoalEditEvent, GoalEditState>(
+          bloc: _goalEditBloc,
+          listener: (context, state) {
+            if (state is GoalActionAdded || state is GoalActionDeleted || state is GoalActionUpdated) {
+              print('Goal action added/deleted/updated');
+              setState(() {});
+            }
+          },
+          child: Form(
+            key: _formKey,
+            onWillPop: _onWillPop,
+            child: Padding(
+              padding:
+                  const EdgeInsets.only(left: 16, top: 16, bottom: 16, right: 16),
+              child: ListView(
+                children: <Widget>[
+                  UniqueCheckFormField(
+                    initialValue: _goal.name,
+                    focusNode: _nameFocusNode,
+                    textStyle: Theme.of(context)
+                        .textTheme
+                        .subhead
+                        .copyWith(fontSize: 24),
+                    validator: (String text, bool isUnique) {
+                      if (text.isEmpty) {
+                        return 'Goal name can not empty';
+                      }
+                      if (!isUnique && text != widget.goal.name) {
+                        return 'Goal name already exist';
+                      }
+                      return null;
+                    },
+                    textChanged: _titleChanged,
+                    hintText: 'Enter goal name',
+                    uniqueCheckCallback: (String text) {
+                      return _goalEditBloc.goalNameUniqueCheck(text);
+                    },
+                    enabled: !_isReadOnly,
+                    autofocus: _isNewGoal,
+                  ),
+                  Divider(),
+                  ProgressTarget(
+                    padding: EdgeInsets.symmetric(vertical: 8),
+                    progressChanged: _progressChanged,
+                    targetChanged: _targetChanged,
+                    initialProgress: _goal.progress,
+                    initialTarget: _goal.target,
+                    enabled: !_isReadOnly,
+                  ),
+                  Divider(),
+                  SizedBox(height: 8),
+                  _createStartTimeWidget(),
+                  _createStopTimeWidget(),
+                  SizedBox(height: 8),
+                  Divider(),
+                  SizedBox(height: 8),
+                  _createGoalActionWidget(),
+                ],
+              ),
             ),
           ),
         ),
@@ -333,6 +312,7 @@ class GoalEditState extends State<GoalEdit> {
 
   void _editGoal() {
     _updateGoalFromForm();
+    print('${_goal.name}');
     if (_isNewGoal) {
       _goalEditBloc.dispatch(
         AddGoal(goal: _goal),

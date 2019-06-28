@@ -1,9 +1,10 @@
 import 'package:data_life/models/goal.dart';
 import 'package:data_life/models/time_types.dart';
 
-
 class GoalTable {
   static const name = 'goal';
+  static const deletedName = 'deleted_goal';
+
   static const columnId = '_id';
   static const columnName = 'name';
   static const columnTarget = 'target';
@@ -30,11 +31,31 @@ create table $name (
 ''';
 
   static const createIndexSql = '''
-create unique index name_idx on $name(
+create unique index goal_name_idx on $name(
   $columnName);
 ''';
 
-  static List<String> get initSqlList => [createSql, createIndexSql];
+  static String getCreateTableSql(String tableName) {
+    return '''
+create table $tableName (
+  $columnId integer primary key autoincrement,
+  $columnName text not null,
+  $columnTarget real default null,
+  $columnProgress real default null,
+  $columnStartTime integer default null,
+  $columnStopTime integer default null,
+  $columnDurationType integer default null,
+  $columnLastActiveTime integer default null,
+  $columnCreateTime integer not null,
+  $columnUpdateTime integer default null)
+''';
+  }
+
+  static List<String> get initSqlList => [
+        getCreateTableSql(GoalTable.name),
+        getCreateTableSql(GoalTable.deletedName),
+        createIndexSql
+      ];
 
   static Goal fromMap(Map map) {
     final Goal goal = Goal();
@@ -55,7 +76,7 @@ create unique index name_idx on $name(
 
   static Map<String, dynamic> toMap(Goal goal) {
     var map = <String, dynamic>{
-      GoalTable.columnName: name,
+      GoalTable.columnName: goal.name,
       GoalTable.columnTarget: goal.target,
       GoalTable.columnProgress: goal.progress,
       GoalTable.columnStartTime: goal.startTime,
@@ -70,5 +91,4 @@ create unique index name_idx on $name(
     }
     return map;
   }
-
 }

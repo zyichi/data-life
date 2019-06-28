@@ -13,14 +13,17 @@ class Goal {
   int stopTime;
   DurationType durationType;
   int lastActiveTime;
+  int totalTimeTaken = 0;
   int createTime;
   int updateTime;
 
   List<GoalAction> goalActions = <GoalAction>[];
 
-  int get totalTimeTaken => goalActions.map((goalAction) {
-        return goalAction.totalTimeTaken;
-      }).reduce((a, b) => a + b);
+  int calculateTotalTimeTakenFromGoalAction() {
+    return goalActions.map((goalAction) {
+      return goalAction.totalTimeTaken;
+    }).reduce((a, b) => a + b);
+  }
 
   static Goal copyCreate(Goal goal) {
     Goal newGoal = Goal();
@@ -37,6 +40,7 @@ class Goal {
     stopTime = g.stopTime;
     durationType = g.durationType;
     lastActiveTime = g.lastActiveTime;
+    totalTimeTaken = g.totalTimeTaken;
     createTime = g.createTime;
     updateTime = g.updateTime;
     goalActions = g.goalActions;

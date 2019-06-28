@@ -1,4 +1,5 @@
 enum HowOften {
+  notRepeat,
   onceMonth,
   twiceMonth,
   onceWeek,
@@ -12,7 +13,9 @@ enum HowOften {
 enum HowLong {
   fifteenMinutes,
   thirtyMinutes,
+  fortyFiveMinutes,
   oneHour,
+  oneHourThirtyMinutes,
   twoHours,
   halfDay,
   wholeDay

@@ -11,9 +11,7 @@ import 'package:data_life/db/life_db.dart';
 
 import 'package:data_life/repositories/action_provider.dart';
 
-
 class GoalProvider {
-  
   final ActionProvider _actionProvider = ActionProvider();
 
   Future<int> count() async {
@@ -39,7 +37,8 @@ class GoalProvider {
   }
 
   Future<Goal> getViaName(String name) async {
-    List<Map> maps = await LifeDb.db.query(GoalTable.name,
+    List<Map> maps = await LifeDb.db.query(
+      GoalTable.name,
       columns: [],
       where: '${GoalTable.columnName} = ?',
       whereArgs: [name],
@@ -52,6 +51,28 @@ class GoalProvider {
 
   Future<int> insert(Goal goal) async {
     return LifeDb.db.insert(GoalTable.name, GoalTable.toMap(goal));
+  }
+
+  Future<int> insertDeleted(Goal goal) async {
+    var m = GoalTable.toMap(goal)..['id'] = null;
+    return LifeDb.db.insert(GoalTable.deletedName, m);
+  }
+
+  Future<int> saveDeleted(Goal goal) async {
+    return insertDeleted(goal);
+  }
+
+  Future<int> deleteGoalAction(GoalAction goalAction) async {
+    return LifeDb.db.delete(
+      GoalActionTable.name,
+      where: "${GoalActionTable.columnGoalId} = ? and ${GoalActionTable.columnActionId} = ?",
+      whereArgs: [goalAction.goalId, goalAction.actionId],
+    );
+  }
+
+  Future<int> saveDeletedGoalAction(GoalAction goalAction) async {
+    var m = GoalActionTable.toMap(goalAction)..['id'] = null;
+    return LifeDb.db.insert(GoalActionTable.deletedName, m);
   }
 
   Future<int> update(Goal goal) async {
@@ -96,4 +117,26 @@ class GoalProvider {
     return goalActions;
   }
 
+  Future<int> insertGoalAction(GoalAction goalAction) async {
+    return LifeDb.db
+        .insert(GoalActionTable.name, GoalActionTable.toMap(goalAction));
+  }
+
+  Future<int> updateGoalAction(GoalAction goalAction) async {
+    assert(goalAction.id != null);
+    return LifeDb.db.update(
+        GoalActionTable.name, GoalActionTable.toMap(goalAction),
+        where: "${GoalActionTable.columnId} = ?", whereArgs: [goalAction.id]);
+  }
+
+  Future<int> saveGoalAction(GoalAction goalAction) async {
+    int affected = 0;
+    if (goalAction.id == null) {
+      goalAction.id = await insertGoalAction(goalAction);
+      affected = 1;
+    } else {
+      affected = await updateGoalAction(goalAction);
+    }
+    return affected;
+  }
 }

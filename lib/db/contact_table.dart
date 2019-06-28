@@ -37,7 +37,7 @@ create table $name (
 ''';
 
   static const createIndexSql = '''
-create unique index name_idx on $name(
+create unique index contact_name_idx on $name(
   $columnName);
 ''';
 

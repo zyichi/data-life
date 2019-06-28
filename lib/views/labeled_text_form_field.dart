@@ -38,6 +38,7 @@ class LabeledTextFormField extends StatelessWidget {
   final String hintText;
   final String initialValue;
   final TextEditingController controller;
+  final FocusNode focusNode;
   final FormFieldValidator<String> validator;
   final TextInputType inputType;
   final int maxLines;
@@ -53,11 +54,8 @@ class LabeledTextFormField extends StatelessWidget {
     this.inputType = TextInputType.text,
     this.maxLines = 1,
     this.enabled = true,
-  }) : super(key: key) {
-    if (initialValue != null && controller != null) {
-      controller.text = initialValue;
-    }
-  }
+    this.focusNode,
+  }) : assert(controller == null || initialValue == null), super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -77,8 +75,10 @@ class LabeledTextFormField extends StatelessWidget {
           ),
           maxLines: maxLines,
           controller: controller,
+          initialValue: initialValue,
           validator: validator,
           enabled: enabled,
+          focusNode: focusNode,
         )
       ],
     );
