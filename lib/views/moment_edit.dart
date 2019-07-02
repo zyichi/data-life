@@ -18,7 +18,6 @@ import 'package:data_life/localizations.dart';
 
 import 'package:data_life/blocs/moment_edit_bloc.dart';
 
-
 class MomentEdit extends StatefulWidget {
   final Moment moment;
 
@@ -49,6 +48,7 @@ class _MomentEditState extends State<MomentEdit> {
   final _actionNameController = TextEditingController();
   final _actionNameFocusNode = FocusNode();
   final _locationNameController = TextEditingController();
+  final _locationNameFocusNode = FocusNode();
   final _contactController = TextEditingController();
   final _contactFocusNode = FocusNode();
   final _costController = TextEditingController();
@@ -185,15 +185,19 @@ class _MomentEditState extends State<MomentEdit> {
   void _updateMomentFromForm() {
     _moment.cost = parseCost(_costController.text);
     _moment.details = _feelingsController.text;
-    if (_moment.action == null || _actionNameController.text != _moment.action.name) {
-      var a = Action();
-      a.name = _actionNameController.text;
-      _moment.action = a;
+    if (_moment.action == null) {
+      if (_actionNameController.text.isNotEmpty) {
+        var a = Action();
+        a.name = _actionNameController.text;
+        _moment.action = a;
+      }
     }
-    if (_moment.location == null || _locationNameController.text != _moment.location.name) {
-      var l = Location();
-      l.name = _locationNameController.text;
-      _moment.location = l;
+    if (_moment.location == null) {
+      if (_locationNameController.text.isNotEmpty) {
+        var l = Location();
+        l.name = _locationNameController.text;
+        _moment.location = l;
+      }
     }
     if (_contactController.text.isNotEmpty) {
       var contact = Contact();
@@ -209,13 +213,17 @@ class _MomentEditState extends State<MomentEdit> {
         AddMoment(moment: _moment),
       );
     } else {
+      if (_moment.isContentSameWith(widget.moment)) {
+        print('Moment content is same, no need to save');
+        return;
+      }
       _momentEditBloc.dispatch(UpdateMoment(
         oldMoment: widget.moment,
         newMoment: _moment,
       ));
     }
   }
-  
+
   void _deleteMoment() {
     _momentEditBloc.dispatch(DeleteMoment(moment: widget.moment));
   }
@@ -246,6 +254,7 @@ class _MomentEditState extends State<MomentEdit> {
             location: _moment.location,
             addressController: _locationNameController,
             enabled: !_isReadOnly,
+            focusNode: _locationNameFocusNode,
           ),
         ],
       ),
@@ -327,8 +336,7 @@ class _MomentEditState extends State<MomentEdit> {
 
   Widget _createPeopleFormField() {
     return Padding(
-      padding:
-          const EdgeInsets.only(top: 8.0, bottom: 8.0),
+      padding: const EdgeInsets.only(top: 8.0, bottom: 8.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
@@ -341,43 +349,45 @@ class _MomentEditState extends State<MomentEdit> {
             spacing: 8.0,
             children: _selectedContactWidget(),
           ),
-          _isReadOnly ? Container() : TypeAheadField(
-            textFieldConfiguration: TextFieldConfiguration(
-              autocorrect: false,
-              controller: _contactController,
-              focusNode: _contactFocusNode,
-              decoration: InputDecoration(
-                hintText: "Enter people, delimited by commas",
-                border: InputBorder.none,
-              ),
-              enabled: !_isReadOnly,
-              autofocus: !_isReadOnly,
-            ),
-            suggestionsBoxDecoration: SuggestionsBoxDecoration(),
-            suggestionsCallback: (pattern) {
-              return _momentEditBloc.getContactSuggestions(pattern);
-            },
-            itemBuilder: (context, suggestion) {
-              final Contact contact = suggestion as Contact;
-              return Padding(
-                padding: const EdgeInsets.only(
-                    left: 16, top: 8, right: 16, bottom: 8),
-                child: Text(
-                  contact.name,
+          _isReadOnly
+              ? Container()
+              : TypeAheadField(
+                  textFieldConfiguration: TextFieldConfiguration(
+                    autocorrect: false,
+                    controller: _contactController,
+                    focusNode: _contactFocusNode,
+                    decoration: InputDecoration(
+                      hintText: "Enter people, delimited by commas",
+                      border: InputBorder.none,
+                    ),
+                    enabled: !_isReadOnly,
+                    autofocus: !_isReadOnly,
+                  ),
+                  suggestionsBoxDecoration: SuggestionsBoxDecoration(),
+                  suggestionsCallback: (pattern) {
+                    return _momentEditBloc.getContactSuggestions(pattern);
+                  },
+                  itemBuilder: (context, suggestion) {
+                    final Contact contact = suggestion as Contact;
+                    return Padding(
+                      padding: const EdgeInsets.only(
+                          left: 16, top: 8, right: 16, bottom: 8),
+                      child: Text(
+                        contact.name,
+                      ),
+                    );
+                  },
+                  hideOnEmpty: true,
+                  hideOnLoading: true,
+                  getImmediateSuggestions: true,
+                  onSuggestionSelected: (suggestion) {
+                    setState(() {
+                      _contactController.text = '';
+                      _addContact(suggestion as Contact);
+                      FocusScope.of(context).requestFocus(_contactFocusNode);
+                    });
+                  },
                 ),
-              );
-            },
-            hideOnEmpty: true,
-            hideOnLoading: true,
-            getImmediateSuggestions: true,
-            onSuggestionSelected: (suggestion) {
-              setState(() {
-                _contactController.text = '';
-                _addContact(suggestion as Contact);
-                FocusScope.of(context).requestFocus(_contactFocusNode);
-              });
-            },
-          ),
         ],
       ),
     );
@@ -418,8 +428,7 @@ class _MomentEditState extends State<MomentEdit> {
 
   Widget _createExpendFormField() {
     return Padding(
-      padding:
-          EdgeInsets.only(top: 16.0, bottom: 16.0),
+      padding: EdgeInsets.only(top: 16.0, bottom: 16.0),
       child: LabeledTextFormField(
         labelText: 'Cost (unit: ${AppLocalizations.of(context).currencyName})',
         hintText: '0.0',
@@ -496,7 +505,7 @@ class _MomentEditState extends State<MomentEdit> {
         focusNode: _actionNameFocusNode,
         style: Theme.of(context).textTheme.subhead.copyWith(fontSize: 24),
         autofocus: !_isReadOnly,
-        enabled: !_isReadOnly,
+        enabled: _isNewMoment,
       ),
       onSuggestionSelected: (Action action) {
         _actionNameController.text = action.name;
@@ -530,7 +539,8 @@ class _MomentEditState extends State<MomentEdit> {
           setState(() {
             _isReadOnly = false;
           });
-          FocusScope.of(context).requestFocus(_actionNameFocusNode);
+          // FocusScope.of(context).requestFocus(_actionNameFocusNode);
+          FocusScope.of(context).requestFocus(_locationNameFocusNode);
         },
       );
     } else {
@@ -554,23 +564,25 @@ class _MomentEditState extends State<MomentEdit> {
         title: Text(_moment?.action?.name ?? 'Moment'),
         actions: <Widget>[
           _createEditAction(),
-          _isNewMoment ? Container() : PopupMenuButton<String>(
-            icon: Icon(Icons.more_vert),
-            onSelected: (value) {
-              if (value == 'delete') {
-                _deleteMoment();
-                Navigator.of(context).pop(true);
-              }
-            },
-            itemBuilder: (context) {
-              return [
-                PopupMenuItem<String>(
-                  value: 'delete',
-                  child: Text('Delete'),
+          _isNewMoment
+              ? Container()
+              : PopupMenuButton<String>(
+                  icon: Icon(Icons.more_vert),
+                  onSelected: (value) {
+                    if (value == 'delete') {
+                      _deleteMoment();
+                      Navigator.of(context).pop(true);
+                    }
+                  },
+                  itemBuilder: (context) {
+                    return [
+                      PopupMenuItem<String>(
+                        value: 'delete',
+                        child: Text('Delete'),
+                      ),
+                    ];
+                  },
                 ),
-              ];
-            },
-          ),
         ],
       ),
       body: SafeArea(

@@ -39,7 +39,7 @@ class DatePicker extends StatelessWidget {
           style: valueStyle,
         ),
       ),
-      onTap: !enabled ? () {} : () {
+      onTap: !enabled ? null : () {
         _selectDate(context);
       },
     );

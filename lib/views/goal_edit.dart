@@ -2,18 +2,22 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:data_life/localizations.dart';
+import 'package:data_life/constants.dart';
 
 import 'package:data_life/models/goal.dart';
 import 'package:data_life/models/goal_action.dart';
+import 'package:data_life/models/time_types.dart';
 
 import 'package:data_life/views/goal_action_edit.dart';
 import 'package:data_life/views/progress_target_form_field.dart';
-import 'package:data_life/views/date_time_picker_form_field.dart';
 import 'package:data_life/views/labeled_text_form_field.dart';
 import 'package:data_life/views/unique_check_form_field.dart';
+import 'package:data_life/views/duration_form_field.dart';
+import 'package:data_life/views/common_dialog.dart';
+
+import 'package:data_life/utils/time_util.dart';
 
 import 'package:data_life/blocs/goal_edit_bloc.dart';
-
 
 void _showGoalActionEditPage(
     BuildContext context, Goal goal, GoalAction goalAction) {
@@ -33,7 +37,8 @@ void _showGoalActionEditPage(
 class _GoalActionItem extends StatelessWidget {
   final Goal goal;
   final GoalAction goalAction;
-  const _GoalActionItem({this.goal, this.goalAction})
+  final bool enabled;
+  const _GoalActionItem({this.goal, this.goalAction, this.enabled = true})
       : assert(goal != null),
         assert(goalAction != null);
 
@@ -63,7 +68,7 @@ class _GoalActionItem extends StatelessWidget {
           ],
         ),
       ),
-      onTap: () {
+      onTap: !enabled ? null : () {
         _showGoalActionEditPage(context, goal, goalAction);
       },
     );
@@ -93,6 +98,7 @@ class _GoalEditState extends State<GoalEdit> {
   final _nameFocusNode = FocusNode();
 
   String _title;
+  DurationValue _initialDurationValue;
 
   @override
   void initState() {
@@ -101,11 +107,25 @@ class _GoalEditState extends State<GoalEdit> {
     if (widget.goal != null) {
       _isReadOnly = true;
       _goal.copy(widget.goal);
+      _goal.goalActions = <GoalAction>[];
+      for (var goalAction in widget.goal.goalActions) {
+        _goal.goalActions.add(GoalAction.copeCreate(goalAction));
+      }
       _title = _goal.name;
+      _initialDurationValue = DurationValue(_goal.durationType);
+      _initialDurationValue.startDate =
+          DateTime.fromMillisecondsSinceEpoch(_goal.startTime);
+      _initialDurationValue.stopDate =
+          DateTime.fromMillisecondsSinceEpoch(_goal.stopTime);
     } else {
       _title = 'Goal';
-      final now = DateTime.now();
-      _goal.startTime = now.millisecondsSinceEpoch;
+      _initialDurationValue = DurationValue(DurationType.threeMonth);
+      _initialDurationValue.startDate = TimeUtil.dateNow();
+
+      _goal.startTime = _initialDurationValue.startDate.millisecondsSinceEpoch;
+      _goal.stopTime = _initialDurationValue.stopDate.millisecondsSinceEpoch;
+      _goal.durationType = _initialDurationValue.durationType;
+
       _goal.progress = 0.0;
       _goal.target = 100.0;
     }
@@ -120,8 +140,32 @@ class _GoalEditState extends State<GoalEdit> {
 
   bool get _isNewGoal => widget.goal == null;
 
+  bool _isNeedExitConfirm() {
+    _updateGoalFromForm();
+    if (_isNewGoal) {
+      if (_goal.name.isNotEmpty) {
+        return true;
+      } else {
+        return false;
+      }
+    } else {
+      if (_isReadOnly) {
+        return false;
+      }
+      if (_goal.isContentSameWith(widget.goal)) {
+        return false;
+      } else {
+        return true;
+      }
+    }
+  }
+
   Future<bool> _onWillPop() async {
-    return true;
+    if (!_isNeedExitConfirm()) {
+      return true;
+    }
+    return await CommonDialog.showEditExitConfirmDialog(
+        context, 'Are you sure you want to discard your changes to the goal?');
   }
 
   void _titleChanged(String text) {
@@ -144,31 +188,8 @@ class _GoalEditState extends State<GoalEdit> {
   void _progressChanged(num value) {
     _goal.progress = value;
   }
-  
-  Widget _createStartTimeWidget() {
-    return DateTimePicker(
-      labelText: AppLocalizations.of(context).startTime,
-      initialDateTime: DateTime.fromMillisecondsSinceEpoch(_goal.startTime),
-      selectDateTime: (value) {
-        _goal.startTime = value.millisecondsSinceEpoch;
-      },
-      enabled: !_isReadOnly,
-    );
-  }
 
-  Widget _createStopTimeWidget() {
-    return DateTimePicker(
-      labelText: 'Stop time',
-      initialDateTime: DateTime.fromMillisecondsSinceEpoch(
-          _goal.stopTime ?? _goal.startTime + Duration(days: 1).inMilliseconds),
-      selectDateTime: (value) {
-        _goal.stopTime = value.millisecondsSinceEpoch;
-      },
-      enabled: !_isReadOnly,
-    );
-  }
-
-  Widget _createAddToDoButton() {
+  Widget _createAddGoalActionButton() {
     return InkWell(
       child: Padding(
         padding: EdgeInsets.only(left: 0, top: 8.0, right: 0, bottom: 8.0),
@@ -185,7 +206,7 @@ class _GoalEditState extends State<GoalEdit> {
         ),
       ),
       onTap: _isReadOnly
-          ? () {}
+          ? null
           : () {
               _showGoalActionEditPage(context, _goal, null);
             },
@@ -195,9 +216,9 @@ class _GoalEditState extends State<GoalEdit> {
   Widget _createGoalActionWidget() {
     final toDoItems = <Widget>[];
     for (GoalAction goalAction in _goal.goalActions) {
-      toDoItems.add(_GoalActionItem(goal: _goal, goalAction: goalAction));
+      toDoItems.add(_GoalActionItem(goal: _goal, goalAction: goalAction, enabled: !_isReadOnly,));
     }
-    toDoItems.add(_createAddToDoButton());
+    toDoItems.add(_createAddGoalActionButton());
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
@@ -237,6 +258,25 @@ class _GoalEditState extends State<GoalEdit> {
                     }
                   },
                 ),
+          _isNewGoal
+              ? Container()
+              : PopupMenuButton<String>(
+                  icon: Icon(Icons.more_vert),
+                  onSelected: (value) {
+                    if (value == 'delete') {
+                      _deleteGoal();
+                      Navigator.of(context).pop(true);
+                    }
+                  },
+                  itemBuilder: (context) {
+                    return [
+                      PopupMenuItem<String>(
+                        value: 'delete',
+                        child: Text('Delete'),
+                      ),
+                    ];
+                  },
+                ),
         ],
       ),
       body: SafeArea(
@@ -245,7 +285,9 @@ class _GoalEditState extends State<GoalEdit> {
         child: BlocListener<GoalEditEvent, GoalEditState>(
           bloc: _goalEditBloc,
           listener: (context, state) {
-            if (state is GoalActionAdded || state is GoalActionDeleted || state is GoalActionUpdated) {
+            if (state is GoalActionAdded ||
+                state is GoalActionDeleted ||
+                state is GoalActionUpdated) {
               print('Goal action added/deleted/updated');
               setState(() {});
             }
@@ -254,8 +296,8 @@ class _GoalEditState extends State<GoalEdit> {
             key: _formKey,
             onWillPop: _onWillPop,
             child: Padding(
-              padding:
-                  const EdgeInsets.only(left: 16, top: 16, bottom: 16, right: 16),
+              padding: const EdgeInsets.only(
+                  left: 16, top: 16, bottom: 16, right: 16),
               child: ListView(
                 children: <Widget>[
                   UniqueCheckFormField(
@@ -269,7 +311,7 @@ class _GoalEditState extends State<GoalEdit> {
                       if (text.isEmpty) {
                         return 'Goal name can not empty';
                       }
-                      if (!isUnique && text != widget.goal.name) {
+                      if (!isUnique && text != widget.goal?.name) {
                         return 'Goal name already exist';
                       }
                       return null;
@@ -293,8 +335,23 @@ class _GoalEditState extends State<GoalEdit> {
                   ),
                   Divider(),
                   SizedBox(height: 8),
-                  _createStartTimeWidget(),
-                  _createStopTimeWidget(),
+                  DurationFormField(
+                    enabled: !_isReadOnly,
+                    durationTypeList: goalDurationList,
+                    durationValidator: (durationValue) {
+                      if (durationValue.inDays() < 1) {
+                        return 'Goal duration must bigger than 1 day';
+                      }
+                    },
+                    durationChanged: (durationValue) {
+                      _goal.durationType = durationValue.durationType;
+                      _goal.startTime =
+                          durationValue.startDate.millisecondsSinceEpoch;
+                      _goal.stopTime =
+                          durationValue.stopDate.millisecondsSinceEpoch;
+                    },
+                    initialDurationValue: _initialDurationValue,
+                  ),
                   SizedBox(height: 8),
                   Divider(),
                   SizedBox(height: 8),
@@ -312,16 +369,23 @@ class _GoalEditState extends State<GoalEdit> {
 
   void _editGoal() {
     _updateGoalFromForm();
-    print('${_goal.name}');
     if (_isNewGoal) {
       _goalEditBloc.dispatch(
         AddGoal(goal: _goal),
       );
     } else {
+      if (_goal.isContentSameWith(widget.goal)) {
+        print('Same goal content, not need to update');
+        return;
+      }
       _goalEditBloc.dispatch(UpdateGoal(
         oldGoal: widget.goal,
         newGoal: _goal,
       ));
     }
+  }
+
+  void _deleteGoal() {
+    _goalEditBloc.dispatch(DeleteGoal(goal: widget.goal));
   }
 }

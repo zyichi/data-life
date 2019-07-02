@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 
 
-typedef OnTapCallback<T> = void Function<T>(T data, int index);
+typedef OnTapCallback<T> = void Function(T data, int index);
 
-class SimpleListDialog<T> extends StatefulWidget {
-  final List<T> items;
-  final OnTapCallback<T> onItemSelected;
+class SimpleListDialog extends StatefulWidget {
+  final List<dynamic> items;
+  final OnTapCallback onItemSelected;
   final EdgeInsets itemPadding;
   final int selectedIndex;
 
@@ -19,18 +19,18 @@ class SimpleListDialog<T> extends StatefulWidget {
       : super(key: key);
 
   @override
-  _SimpleListDialogState<T> createState() {
-    return new _SimpleListDialogState<T>();
+  _SimpleListDialogState createState() {
+    return new _SimpleListDialogState();
   }
 }
 
-class _SimpleListDialogState<T> extends State<SimpleListDialog> {
+class _SimpleListDialogState extends State<SimpleListDialog> {
   @override
   void initState() {
     super.initState();
   }
 
-  Widget _buildItemWidget(T item, int index) {
+  Widget _buildItemWidget(dynamic item, int index) {
     final itemStyle = Theme.of(context).textTheme.body1;
     return InkWell(
       child: Padding(

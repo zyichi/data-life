@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
+import 'dart:async';
 
 import 'package:data_life/views/labeled_text_form_field.dart';
 import 'package:data_life/views/simple_list_dialog.dart';
 
-typedef OnItemPicked<T>(T picked, int index);
+typedef OnItemPicked<T> = FutureOr<String> Function(T picked, int index);
 
-class ItemPicker<T> extends StatefulWidget {
+class ItemPicker extends StatefulWidget {
   final String labelText;
-  final List<T> items;
+  final List<dynamic> items;
   final int defaultPicked;
   final OnItemPicked onItemPicked;
   final EdgeInsets padding;
@@ -24,26 +25,31 @@ class ItemPicker<T> extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  ItemPickerState<T> createState() {
-    return new ItemPickerState<T>();
+  ItemPickerState createState() {
+    return new ItemPickerState();
   }
 }
 
-class ItemPickerState<T> extends State<ItemPicker> {
+class ItemPickerState extends State<ItemPicker> {
   int _selectedIndex;
+  String _selectedItemText;
 
   @override
   void initState() {
     super.initState();
 
     _selectedIndex = widget.defaultPicked;
+    _selectedItemText = widget.items[_selectedIndex].toString();
   }
 
-  void _onItemSelected<T>(T value, int index) {
+  void _onItemSelected(dynamic value, int index) async {
     setState(() {
       _selectedIndex = index;
     });
-    widget.onItemPicked(value, index);
+    _selectedItemText = await widget.onItemPicked(value, index);
+    if (_selectedItemText == null) {
+      _selectedItemText = value.toString();
+    }
   }
 
   Widget _createSelectedItemField() {
@@ -53,18 +59,18 @@ class ItemPickerState<T> extends State<ItemPicker> {
         showDialog(
           context: context,
           builder: (context) {
-            return SimpleListDialog<T>(
+            return SimpleListDialog(
               items: widget.items,
               onItemSelected: _onItemSelected,
               selectedIndex: _selectedIndex,
             );
           },
         );
-      } : () {},
+      } : null,
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 8),
         child: Text(
-          widget.items[_selectedIndex].toString(),
+          _selectedItemText,
           style: textStyle,
         ),
       ),

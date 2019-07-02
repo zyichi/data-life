@@ -10,7 +10,6 @@ import 'package:data_life/views/timer_page.dart';
 import 'package:data_life/views/search_page.dart';
 import 'package:data_life/views/my_color.dart';
 import 'package:data_life/views/people_suggestion.dart';
-import 'package:data_life/views/contact_page.dart';
 import 'package:data_life/views/moment_list.dart';
 import 'package:data_life/views/contact_list.dart';
 import 'package:data_life/views/goal_list.dart';
@@ -83,30 +82,19 @@ class HomePageState extends State<HomePage>
         ),
         color: Colors.white,
       ),
-      child: Row(
-        children: <Widget>[
-          IconButton(
-            color: MyColor.greyIcon,
-            icon: Icon(Icons.menu),
-            onPressed: () {},
-          ),
-          Expanded(
-            child: TapOnlyTextField(
-              onTap: () {
-                Navigator.push(
-                  context,
-                  PageTransition(
-                    child: SearchPage(),
-                    type: PageTransitionType.fade,
-                    duration: Duration(microseconds: 300),
-                    // alignment: Alignment.topCenter,
-                  ),
-                );
-              },
-              hintText: 'Search life',
+      child: TapOnlyTextField(
+        onTap: () {
+          Navigator.push(
+            context,
+            PageTransition(
+              child: SearchPage(),
+              type: PageTransitionType.fade,
+              duration: Duration(microseconds: 300),
+              // alignment: Alignment.topCenter,
             ),
-          ),
-        ],
+          );
+        },
+        hintText: 'Search life',
       ),
     );
   }
@@ -125,7 +113,8 @@ class HomePageState extends State<HomePage>
     }
     if (state is MomentDeleted) {
       Scaffold.of(context).showSnackBar(SnackBar(
-        content: Text('Your moment ${state.moment.action.name} has been deleted'),
+        content:
+            Text('Your moment ${state.moment.action.name} has been deleted'),
         duration: Duration(seconds: 10),
         action: SnackBarAction(
           label: 'UNDO',
@@ -144,9 +133,7 @@ class HomePageState extends State<HomePage>
   }
 
   void _goalEditBlocListener(BuildContext context, GoalEditState state) {
-    if (state is GoalAdded ||
-        state is GoalDeleted ||
-        state is GoalUpdated) {
+    if (state is GoalAdded || state is GoalDeleted || state is GoalUpdated) {
       BlocProvider.of<PageBloc<Goal>>(context).dispatch(RefreshPage());
     }
     if (state is GoalDeleted) {
@@ -289,6 +276,7 @@ class TapOnlyTextField extends StatelessWidget {
   Widget build(BuildContext context) {
     return Material(
       color: Colors.white,
+      borderRadius: BorderRadius.all(Radius.circular(8)),
       child: InkWell(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 8.0),

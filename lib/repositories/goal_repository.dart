@@ -48,4 +48,8 @@ class GoalRepository extends PageRepository<Goal> {
     return _goalProvider.saveGoalAction(goalAction);
   }
 
+  Future<GoalAction> getGoalActionViaActionId(int goalId, int actionId) async {
+    return _goalProvider.getGoalActionViaActionId(goalId, actionId);
+  }
+
 }

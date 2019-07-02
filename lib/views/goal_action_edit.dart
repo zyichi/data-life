@@ -3,10 +3,13 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
 
 import 'package:data_life/localizations.dart';
+import 'package:data_life/constants.dart';
 
 import 'package:data_life/views/progress_target_form_field.dart';
-import 'package:data_life/views/date_time_picker_form_field.dart';
 import 'package:data_life/views/item_picker_form_field.dart';
+import 'package:data_life/views/duration_form_field.dart';
+import 'package:data_life/views/type_to_str.dart';
+import 'package:data_life/views/common_dialog.dart';
 
 import 'package:data_life/models/goal.dart';
 import 'package:data_life/models/action.dart';
@@ -111,6 +114,41 @@ String getBestTimeLiteral(BuildContext context, BestTime bestTime) {
   }
 }
 
+
+class _RepeatPickItem {
+  final HowOften howOften;
+  final String caption;
+
+  _RepeatPickItem(this.howOften, this.caption);
+
+  @override
+  String toString() {
+    return caption;
+  }
+}
+class _HowLongPickItem {
+  final HowLong howLong;
+  final String caption;
+
+  _HowLongPickItem(this.howLong, this.caption);
+
+  @override
+  String toString() {
+    return caption;
+  }
+}
+class _BestTimePickItem {
+  final BestTime bestTime;
+  final String caption;
+
+  _BestTimePickItem(this.bestTime, this.caption);
+
+  @override
+  String toString() {
+    return caption;
+  }
+}
+
 class GoalActionEdit extends StatefulWidget {
   static const routeName = '/goalActionEdit';
   final Goal goal;
@@ -133,9 +171,34 @@ class _GoalActionEditState extends State<GoalActionEdit> {
   final TextEditingController _actionNameController = TextEditingController();
   GoalEditBloc _goalEditBloc;
   bool _autoValidateActionName = false;
+  DurationValue _initialDurationValue;
+
+  bool _isNeedExitConfirm() {
+    _updateGoalActionFromForm();
+    if (_isNewGoalAction) {
+      if (_goalAction.action != null) {
+        return true;
+      } else {
+        return false;
+      }
+    } else {
+      if (_isReadOnly) {
+        return false;
+      }
+      if (_goalAction.isContentSameWith(widget.goalAction)) {
+        return false;
+      } else {
+        return true;
+      }
+    }
+  }
 
   Future<bool> _onWillPop() async {
-    return true;
+    if (!_isNeedExitConfirm()) {
+      return true;
+    }
+    return await CommonDialog.showEditExitConfirmDialog(context,
+        'Are you sure you want to discard your changes to the goal action?');
   }
 
   @override
@@ -146,12 +209,28 @@ class _GoalActionEditState extends State<GoalActionEdit> {
 
     if (widget.goalAction != null) {
       _isReadOnly = true;
+
       _goalAction.copy(widget.goalAction);
+
+      _initialDurationValue = DurationValue(_goalAction.durationType);
+      print('Initial duration type: ${TypeToStr.myDurationStr(_initialDurationValue.durationType, context)}');
+      _initialDurationValue.startDate = DateTime.fromMillisecondsSinceEpoch(_goalAction.startTime);
+      _initialDurationValue.stopDate = DateTime.fromMillisecondsSinceEpoch(_goalAction.stopTime);
+
       _actionNameController.text = _goalAction.action.name;
     } else {
       final now = DateTime.now();
-      _goalAction.startTime = now.millisecondsSinceEpoch;
-      _goalAction.stopTime = now.add(Duration(days: 1)).millisecondsSinceEpoch;
+      _initialDurationValue = DurationValue(DurationType.threeDay);
+      _initialDurationValue.startDate = now;
+
+      _goalAction.goalId = widget.goal.id;
+      _goalAction.startTime = _initialDurationValue.startDate.millisecondsSinceEpoch;
+      _goalAction.durationType = _initialDurationValue.durationType;
+      _goalAction.stopTime = _initialDurationValue.stopDate.millisecondsSinceEpoch;
+
+      _goalAction.howOften = HowOften.notRepeat;
+      _goalAction.howLong = HowLong.thirtyMinutes;
+      _goalAction.bestTime = BestTime.anyTime;
       _goalAction.progress = 0.0;
       _goalAction.target = 100.0;
     }
@@ -176,67 +255,53 @@ class _GoalActionEditState extends State<GoalActionEdit> {
     _goalAction.progress = value;
   }
 
-  Widget _createStartTimeWidget() {
-    return DateTimePicker(
-      labelText: AppLocalizations.of(context).startTime,
-      initialDateTime:
-          DateTime.fromMillisecondsSinceEpoch(_goalAction.startTime),
-      selectDateTime: (value) {
-        setState(() {
-          _goalAction.startTime = value.millisecondsSinceEpoch;
-        });
-      },
-    );
-  }
-
-  Widget _createStopTimeWidget() {
-    return DateTimePicker(
-      labelText: 'Stop time',
-      initialDateTime:
-          DateTime.fromMillisecondsSinceEpoch(_goalAction.stopTime),
-      selectDateTime: (value) {
-        setState(() {
-          _goalAction.stopTime = value.millisecondsSinceEpoch;
-        });
-      },
-    );
-  }
-
   Widget _createRepeatWidget() {
-    List<String> repeatList = howOftenOptions.map((e) {
-      return getHowOftenLiteral(context, e);
+    List<_RepeatPickItem> repeatList = howOftenOptions.map((e) {
+      String s = getHowOftenLiteral(context, e);
+      return _RepeatPickItem(e, s);
     }).toList();
+    int pickedIndex = howOftenOptions.indexOf(_goalAction.howOften);
     return ItemPicker(
       labelText: 'Repeat',
       items: repeatList,
-      defaultPicked: 0,
-      onItemPicked: (value, index) {},
+      defaultPicked: pickedIndex,
+      onItemPicked: (value, index) async {
+        _goalAction.howOften = (value as _RepeatPickItem).howOften;
+      },
       enabled: !_isReadOnly,
     );
   }
 
   Widget _createHowLongWidget() {
-    List<String> howLongList = howLongOptions.map((e) {
-      return getHowLongLiteral(context, e);
+    List<_HowLongPickItem> howLongList = howLongOptions.map((e) {
+      String s = getHowLongLiteral(context, e);
+      return _HowLongPickItem(e, s);
     }).toList();
+    int pickedIndex = howLongOptions.indexOf(_goalAction.howLong);
     return ItemPicker(
       labelText: 'How long',
       items: howLongList,
-      defaultPicked: 0,
-      onItemPicked: (value, index) {},
+      defaultPicked: pickedIndex,
+      onItemPicked: (value, index) async {
+        _goalAction.howLong = (value as _HowLongPickItem).howLong;
+      },
       enabled: !_isReadOnly,
     );
   }
 
   Widget _createBestTimeWidget() {
-    List<String> bestTimeList = bestTimeOptions.map((e) {
-      return getBestTimeLiteral(context, e);
+    List<_BestTimePickItem> bestTimeList = bestTimeOptions.map((e) {
+      String s = getBestTimeLiteral(context, e);
+      return _BestTimePickItem(e, s);
     }).toList();
+    int pickedIndex = bestTimeOptions.indexOf(_goalAction.bestTime);
     return ItemPicker(
       labelText: 'Best time',
       items: bestTimeList,
-      defaultPicked: 0,
-      onItemPicked: (value, index) {},
+      defaultPicked: pickedIndex,
+      onItemPicked: (value, index) async {
+        _goalAction.bestTime = (value as _BestTimePickItem).bestTime;
+      },
       enabled: !_isReadOnly,
     );
   }
@@ -299,11 +364,13 @@ class _GoalActionEditState extends State<GoalActionEdit> {
         return _goalEditBloc.getActionSuggestions(pattern);
       },
       validator: (value) {
+        if (!_isNewGoalAction) {
+          return null;
+        }
         if (value.isEmpty) {
           return 'Please enter action';
         }
         for (var goalAction in widget.goal.goalActions) {
-          print(goalAction.action.name);
           if (goalAction.action.name == value) {
             return 'Action already exist in goal';
           }
@@ -315,9 +382,11 @@ class _GoalActionEditState extends State<GoalActionEdit> {
 
   void _updateGoalActionFromForm() {
     if (_goalAction.action == null) {
-      var a = Action();
-      a.name = _actionNameController.text;
-      _goalAction.action = a;
+      if (_actionNameController.text.isNotEmpty) {
+        var a = Action();
+        a.name = _actionNameController.text;
+        _goalAction.action = a;
+      }
     }
   }
 
@@ -327,6 +396,7 @@ class _GoalActionEditState extends State<GoalActionEdit> {
       widget.goal.goalActions.add(_goalAction);
       _goalEditBloc.dispatch(AddGoalAction(goalAction: _goalAction));
     } else {
+      widget.goalAction.copy(_goalAction);
       _goalEditBloc.dispatch(UpdateGoalAction(
           oldGoalAction: widget.goalAction, newGoalAction: _goalAction));
     }
@@ -388,8 +458,22 @@ class _GoalActionEditState extends State<GoalActionEdit> {
               SizedBox(height: 16),
               Divider(),
               SizedBox(height: 16),
-              _createStartTimeWidget(),
-              _createStopTimeWidget(),
+              DurationFormField(
+                enabled: !_isReadOnly,
+                durationTypeList: goalActionDurationList,
+                durationValidator: (durationValue) {
+                  if (durationValue.inDays() < 1) {
+                    return 'Goal duration must bigger than 1 day';
+                  }
+                },
+                durationChanged: (durationValue) {
+                  print('Duration changed: ${TypeToStr.myDurationStr(durationValue.durationType, context)}');
+                  _goalAction.durationType = durationValue.durationType;
+                  _goalAction.startTime = durationValue.startDate.millisecondsSinceEpoch;
+                  _goalAction.stopTime = durationValue.stopDate.millisecondsSinceEpoch;
+                },
+                initialDurationValue: _initialDurationValue,
+              ),
               SizedBox(height: 8),
               Divider(),
               SizedBox(height: 16),

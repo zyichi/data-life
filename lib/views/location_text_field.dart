@@ -26,16 +26,21 @@ class LocationTextField extends StatefulWidget {
   final Location location;
   final TextEditingController addressController;
   final bool enabled;
+  final FocusNode focusNode;
 
   LocationTextField(
-      {this.locationChanged, this.location, this.addressController, this.enabled});
+      {this.locationChanged,
+      this.location,
+      this.addressController,
+      this.enabled,
+      this.focusNode});
 
   @override
   _LocationTextFieldState createState() => _LocationTextFieldState();
 }
 
 class _LocationTextFieldState extends State<LocationTextField> {
-  final _addressFocusNode = FocusNode();
+  FocusNode _addressFocusNode;
   Location _selectedLocation;
   AMapLocation _aMapLocation;
   AMapReGeocodeAddress _aMapReGeocodeAddress;
@@ -46,6 +51,8 @@ class _LocationTextFieldState extends State<LocationTextField> {
   @override
   void initState() {
     super.initState();
+
+    _addressFocusNode = widget.focusNode;
 
     _addressController = widget.addressController ?? TextEditingController();
     if (widget.location != null) {

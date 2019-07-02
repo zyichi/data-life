@@ -16,6 +16,7 @@ class AddGoal extends GoalEditEvent {
   final Goal goal;
   AddGoal({@required this.goal}) : assert(goal != null);
 }
+
 class AddGoalAction extends GoalEditEvent {
   final GoalAction goalAction;
   AddGoalAction({@required this.goalAction}) : assert(goalAction != null);
@@ -58,13 +59,18 @@ class GoalNameUniqueCheck extends GoalEditEvent {
 class GoalUninitialized extends GoalEditState {}
 
 class GoalAdded extends GoalEditState {}
+
 class GoalActionAdded extends GoalEditState {}
+
 class GoalUpdated extends GoalEditState {}
+
 class GoalActionUpdated extends GoalEditState {}
+
 class GoalDeleted extends GoalEditState {
   final Goal goal;
   GoalDeleted({@required this.goal}) : assert(goal != null);
 }
+
 class GoalActionDeleted extends GoalEditState {
   final GoalAction goalAction;
   GoalActionDeleted({@required this.goalAction}) : assert(goalAction != null);
@@ -90,7 +96,8 @@ class GoalEditBloc extends Bloc<GoalEditEvent, GoalEditState> {
   final ActionRepository actionRepository;
 
   GoalEditBloc({@required this.goalRepository, @required this.actionRepository})
-      : assert(goalRepository != null), assert(actionRepository != null);
+      : assert(goalRepository != null),
+        assert(actionRepository != null);
 
   @override
   GoalEditState get initialState => GoalUninitialized();
@@ -102,15 +109,17 @@ class GoalEditBloc extends Bloc<GoalEditEvent, GoalEditState> {
       try {
         final goal = event.goal;
         goal.createTime = now;
-        await goalRepository.save(event.goal);
+        await goalRepository.save(goal);
         for (var goalAction in goal.goalActions) {
+          await _updateActionInfo(goalAction, now);
+          goalAction.goalId = goal.id;
+          goalAction.createTime = now;
           await goalRepository.saveGoalAction(goalAction);
         }
         yield GoalAdded();
       } catch (e) {
         yield GoalEditFailed(
-            error:
-            'Add goal ${event.goal.name} failed: ${e.toString()}');
+            error: 'Add goal ${event.goal.name} failed: ${e.toString()}');
       }
     }
     if (event is UpdateGoal) {
@@ -119,11 +128,23 @@ class GoalEditBloc extends Bloc<GoalEditEvent, GoalEditState> {
       try {
         newGoal.updateTime = now;
         await goalRepository.save(newGoal);
+        for (var goalAction in newGoal.goalActions) {
+          await _updateActionInfo(goalAction, now);
+          goalAction.goalId = newGoal.id;
+          await _updateGoalActionInfo(goalAction, now);
+          await goalRepository.saveGoalAction(goalAction);
+        }
+        for (var goalAction in oldGoal.goalActions) {
+          if (!newGoal.goalActions.contains(goalAction)) {
+            // Goal action removed from old goal.
+            await goalRepository.deleteGoalAction(goalAction);
+            await goalRepository.saveDeletedGoalAction(goalAction);
+          }
+        }
         yield GoalUpdated();
       } catch (e) {
         yield GoalEditFailed(
-            error:
-            'Update goal ${oldGoal.name} failed: ${e.toString()}');
+            error: 'Update goal ${oldGoal.name} failed: ${e.toString()}');
       }
     }
     if (event is DeleteGoal) {
@@ -138,8 +159,7 @@ class GoalEditBloc extends Bloc<GoalEditEvent, GoalEditState> {
         yield GoalDeleted(goal: goal);
       } catch (e) {
         yield GoalEditFailed(
-            error:
-            'Update goal ${goal.name} failed: ${e.toString()}');
+            error: 'Update goal ${goal.name} failed: ${e.toString()}');
       }
     }
     if (event is DeleteGoalAction) {
@@ -153,13 +173,39 @@ class GoalEditBloc extends Bloc<GoalEditEvent, GoalEditState> {
     }
     if (event is GoalNameUniqueCheck) {
       try {
-        Goal goal =
-        await goalRepository.getViaName(event.name);
+        Goal goal = await goalRepository.getViaName(event.name);
         yield GoalNameUniqueCheckResult(
             isUnique: goal == null, text: event.name);
       } catch (e) {
         yield GoalEditFailed(
             error: 'Check if goal name unique failed: ${e.toString()}');
+      }
+    }
+  }
+
+  Future<void> _updateGoalActionInfo(GoalAction goalAction, int now) async {
+    if (goalAction.id == null) {
+      var dbGoalAction = await goalRepository.getGoalActionViaActionId(
+          goalAction.goalId, goalAction.actionId);
+      if (dbGoalAction != null) {
+        goalAction.updateTime = now;
+        goalAction.id = dbGoalAction.id;
+      } else {
+        goalAction.createTime = now;
+      }
+    }
+  }
+
+  Future<void> _updateActionInfo(GoalAction goalAction, int now) async {
+    if (goalAction.action.id == null) {
+      var dbAction = await actionRepository.getViaName(goalAction.action.name);
+      if (dbAction != null) {
+        dbAction.updateTime = now;
+        goalAction.action = dbAction;
+      } else {
+        goalAction.action.createTime = now;
+        await actionRepository.save(goalAction.action);
+        goalAction.actionId = goalAction.action.id;
       }
     }
   }
@@ -176,5 +222,4 @@ class GoalEditBloc extends Bloc<GoalEditEvent, GoalEditState> {
       return actionRepository.search(pattern);
     }
   }
-
 }

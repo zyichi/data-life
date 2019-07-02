@@ -5,7 +5,6 @@ import 'package:data_life/models/action.dart';
 import 'package:data_life/models/goal_action.dart';
 
 import 'package:data_life/db/goal_table.dart';
-import 'package:data_life/db/action_table.dart';
 import 'package:data_life/db/goal_action_table.dart';
 import 'package:data_life/db/life_db.dart';
 
@@ -54,7 +53,8 @@ class GoalProvider {
   }
 
   Future<int> insertDeleted(Goal goal) async {
-    var m = GoalTable.toMap(goal)..['id'] = null;
+    var m = GoalTable.toMap(goal);
+    m[GoalTable.columnId] = null;
     return LifeDb.db.insert(GoalTable.deletedName, m);
   }
 
@@ -71,7 +71,8 @@ class GoalProvider {
   }
 
   Future<int> saveDeletedGoalAction(GoalAction goalAction) async {
-    var m = GoalActionTable.toMap(goalAction)..['id'] = null;
+    var m = GoalActionTable.toMap(goalAction);
+    m[GoalActionTable.columnId] = null;
     return LifeDb.db.insert(GoalActionTable.deletedName, m);
   }
 
@@ -139,4 +140,18 @@ class GoalProvider {
     }
     return affected;
   }
+
+  Future<GoalAction> getGoalActionViaActionId(int goalId, int actionId) async {
+    List<Map> maps = await LifeDb.db.query(
+      GoalActionTable.name,
+      columns: [],
+      where: "${GoalActionTable.columnGoalId} = ? and ${GoalActionTable.columnActionId} = ?",
+      whereArgs: [goalId, actionId],
+    );
+    if (maps.length > 0) {
+      return GoalActionTable.fromMap(maps.first);
+    }
+    return null;
+  }
+
 }

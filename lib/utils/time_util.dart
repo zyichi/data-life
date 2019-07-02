@@ -39,6 +39,21 @@ class TimeUtil {
     return dayHourMinuteFromMillis(seconds * 1000);
   }
 
+  static String formatMillisToDH(int millis, BuildContext context) {
+    var l = dayHourMinuteFromMillis(millis);
+    int days = l[0];
+    int hours = l[1];
+    String dayStr = days == 0 ? '' : '$days days';
+    String hourStr = hours == 0 ? '' : '$hours hours';
+    String s;
+    if (dayStr.isEmpty && hourStr.isEmpty) {
+      s = '0 hours';
+    } else {
+      s = "$dayStr${dayStr.isEmpty ? '' : ' '}$hourStr";
+    }
+    return s;
+  }
+
   static String formatMillisToDHM(int millis, BuildContext context) {
     var l = dayHourMinuteFromMillis(millis);
     int days = l[0];
@@ -56,4 +71,13 @@ class TimeUtil {
     return s;
   }
 
+  static DateTime getDate(int millis) {
+    var d = DateTime.fromMillisecondsSinceEpoch(millis);
+    return DateTime(d.year, d.month, d.day);
+  }
+
+  static DateTime dateNow() {
+    var d = DateTime.now();
+    return DateTime(d.year, d.month, d.day);
+  }
 }

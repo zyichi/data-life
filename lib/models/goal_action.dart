@@ -18,8 +18,6 @@ class GoalAction extends Equatable {
   HowOften howOften;
   HowLong howLong;
   BestTime bestTime;
-  // totalTimeTaken field only used when goal action
-  // deleted from goal.
   int totalTimeTaken = 0;
   int lastActiveTime;
   int createTime;
@@ -35,6 +33,12 @@ class GoalAction extends Equatable {
 
   @override
   List get props => [goalId, actionId, action.name];
+
+  static GoalAction copeCreate(GoalAction g) {
+    var goalAction = GoalAction();
+    goalAction.copy(g);
+    return goalAction;
+  }
 
   void copy(GoalAction goalAction) {
     id = goalAction.id;
@@ -58,8 +62,7 @@ class GoalAction extends Equatable {
   bool isSameWith(GoalAction goalAction) {
     if (id != goalAction.id) return false;
     if (!isContentSameWith(goalAction)) return false;
-    if (action.id != goalAction.action.id) return false;
-    if (!action.isContentSameWith(goalAction.action)) return false;
+    if (!action.isSameWith(goalAction.action)) return false;
     return true;
   }
 

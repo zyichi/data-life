@@ -31,6 +31,58 @@ class Goal {
     return newGoal;
   }
 
+  bool isContentSameWith(Goal goal) {
+    if (name != goal.name) return false;
+    if (target != goal.target) return false;
+    if (progress != goal.progress) return false;
+    if (startTime != goal.startTime) return false;
+    if (stopTime != goal.stopTime) return false;
+    if (durationType != goal.durationType) return false;
+    if (lastActiveTime != goal.lastActiveTime) return false;
+    if (totalTimeTaken != goal.totalTimeTaken) return false;
+    if (createTime != goal.createTime) return false;
+    if (updateTime != goal.updateTime) return false;
+    if (!_isContentSameGoalActionList(goalActions, goal.goalActions)) return false;
+    return true;
+  }
+
+  bool _isSameGoalActionList(List<GoalAction> lhs, List<GoalAction> rhs) {
+    if (lhs.length != rhs.length) return false;
+    for (GoalAction l in lhs) {
+      bool founded = false;
+      for (GoalAction r in rhs) {
+        if (l.isSameWith(r)) {
+          founded = true;
+          break;
+        }
+      }
+      if (!founded) return false;
+    }
+    return true;
+  }
+
+  bool _isContentSameGoalActionList(List<GoalAction> lhs, List<GoalAction> rhs) {
+    if (lhs.length != rhs.length) return false;
+    for (GoalAction l in lhs) {
+      bool founded = false;
+      for (GoalAction r in rhs) {
+        if (l.isContentSameWith(r)) {
+          founded = true;
+          break;
+        }
+      }
+      if (!founded) return false;
+    }
+    return true;
+  }
+
+  bool isSameWith(Goal goal) {
+    if (id != goal.id) return false;
+    if (!_isSameGoalActionList(goalActions, goal.goalActions)) return false;
+    if (!isContentSameWith(goal)) return false;
+    return true;
+  }
+
   void copy(Goal g) {
     id = g.id;
     name = g.name;

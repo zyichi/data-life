@@ -234,9 +234,9 @@ class MomentEditBloc extends Bloc<MomentEditEvent, MomentEditState> {
   Future<void> _updateMomentActionInfo(Moment moment, int now) async {
     Action action = moment.action;
     if (action.id == null) {
-      Action savedAction = await actionRepository.getViaName(action.name);
-      if (savedAction != null) {
-        action.copy(savedAction);
+      Action dbAction = await actionRepository.getViaName(action.name);
+      if (dbAction != null) {
+        action.copy(dbAction);
       }
     }
     if (action.id == null) {
@@ -257,10 +257,10 @@ class MomentEditBloc extends Bloc<MomentEditEvent, MomentEditState> {
   Future<void> _updateMomentLocationInfo(Moment moment, int now) async {
     Location location = moment.location;
     if (location.id == null) {
-      Location savedLocation = await locationRepository
+      Location dbLocation = await locationRepository
           .getViaName(location.name);
-      if (savedLocation != null) {
-        location.copy(savedLocation);
+      if (dbLocation != null) {
+        location.copy(dbLocation);
       }
     }
     if (location.id == null) {
@@ -280,11 +280,11 @@ class MomentEditBloc extends Bloc<MomentEditEvent, MomentEditState> {
 
   Future<void> _updateMomentContactInfo(Moment moment, int now) async {
     for (Contact contact in moment.contacts) {
-      Contact savedContact;
+      Contact dbContact;
       if (contact.id == null) {
-        savedContact = await contactRepository.getViaName(contact.name);
-        if (savedContact != null) {
-          contact.copy(savedContact);
+        dbContact = await contactRepository.getViaName(contact.name);
+        if (dbContact != null) {
+          contact.copy(dbContact);
         }
       }
       if (contact.id != null) {
