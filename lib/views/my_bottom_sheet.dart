@@ -6,7 +6,6 @@ import 'package:data_life/views/location_page.dart';
 
 import 'package:data_life/blocs/theme_bloc.dart';
 
-
 class MyBottomSheet extends StatefulWidget {
   @override
   _MyBottomSheetState createState() => _MyBottomSheetState();
@@ -17,7 +16,7 @@ class _MyBottomSheetState extends State<MyBottomSheet> {
   Widget build(BuildContext context) {
     return SafeArea(
       child: Container(
-        padding: EdgeInsets.only(left: 0, top: 16, right: 0, bottom: 16),
+        padding: EdgeInsets.only(left: 0, top: 8, right: 0, bottom: 8),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           mainAxisSize: MainAxisSize.min,
@@ -25,7 +24,7 @@ class _MyBottomSheetState extends State<MyBottomSheet> {
             InkWell(
               child: Padding(
                 padding: const EdgeInsets.only(
-                    left: 16, top: 8, right: 16, bottom: 8),
+                    left: 16, top: 16, right: 16, bottom: 16),
                 child: Row(
                   children: <Widget>[
                     Icon(Icons.people),
@@ -48,7 +47,7 @@ class _MyBottomSheetState extends State<MyBottomSheet> {
             InkWell(
               child: Padding(
                 padding: const EdgeInsets.only(
-                    left: 16, top: 8, right: 16, bottom: 8),
+                    left: 16, top: 16, right: 16, bottom: 16),
                 child: Row(
                   children: <Widget>[
                     Icon(Icons.place),
@@ -71,7 +70,8 @@ class _MyBottomSheetState extends State<MyBottomSheet> {
             Divider(),
             InkWell(
               child: Padding(
-                padding: const EdgeInsets.only(left: 16, top: 8, right: 16, bottom: 8),
+                padding: const EdgeInsets.only(
+                    left: 16, top: 16, right: 16, bottom: 16),
                 child: Row(
                   children: <Widget>[
                     Icon(Icons.lock),
@@ -81,14 +81,17 @@ class _MyBottomSheetState extends State<MyBottomSheet> {
                 ),
               ),
               onTap: () {
-                BlocProvider.of<ThemeBloc>(context).dispatch(PrivacyChanged(privacy: true));
+                BlocProvider.of<ThemeBloc>(context)
+                    .dispatch(PrivacyChanged(privacy: true));
                 Navigator.pop(context);
               },
             ),
             Divider(),
             InkWell(
               child: Padding(
-                padding: EdgeInsets.only(left: 16, top: 8, right: 16, bottom: 8),
+                padding:
+                    EdgeInsets.only(
+                        left: 16, top: 16, right: 16, bottom: 16),
                 child: Row(
                   children: <Widget>[
                     Icon(Icons.settings),
@@ -101,10 +104,12 @@ class _MyBottomSheetState extends State<MyBottomSheet> {
             ),
             InkWell(
               child: Padding(
-                padding: EdgeInsets.only(left: 16, top: 8, right: 16, bottom: 8),
+                padding:
+                    EdgeInsets.only(
+                        left: 16, top: 16, right: 16, bottom: 16),
                 child: Row(
                   children: <Widget>[
-                    Icon(Icons.info_outline),
+                    Icon(Icons.info),
                     SizedBox(width: 16),
                     Text('About'),
                   ],
