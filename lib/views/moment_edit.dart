@@ -264,7 +264,6 @@ class _MomentEditState extends State<MomentEdit> {
   Widget _selfInputChip() {
     return InputChip(
       padding: EdgeInsets.only(left: 4.0, right: 4.0),
-      backgroundColor: Colors.grey[200],
       label: Text('Me'),
       avatar: Icon(Icons.person),
       deleteIcon: Icon(
@@ -298,7 +297,6 @@ class _MomentEditState extends State<MomentEdit> {
     List<Widget> widgets = _moment.contacts.map((contact) {
       return InputChip(
         padding: EdgeInsets.only(left: 4.0, right: 4.0),
-        backgroundColor: Colors.grey[200],
         label: Text(contact.name),
         avatar: Icon(Icons.person),
         deleteIcon: Icon(

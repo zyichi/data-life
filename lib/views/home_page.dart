@@ -4,18 +4,15 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter/services.dart';
 import 'package:page_transition/page_transition.dart';
 
-import 'package:data_life/views/test_layout.dart';
 import 'package:data_life/views/goal_edit.dart';
-import 'package:data_life/views/timer_page.dart';
 import 'package:data_life/views/search_page.dart';
 import 'package:data_life/views/my_color.dart';
-import 'package:data_life/views/people_suggestion.dart';
 import 'package:data_life/views/moment_list.dart';
-import 'package:data_life/views/contact_list.dart';
 import 'package:data_life/views/goal_list.dart';
 import 'package:data_life/views/todo_list.dart';
 import 'package:data_life/views/moment_edit.dart';
-import 'package:data_life/views/location_list.dart';
+import 'package:data_life/views/test_layout.dart';
+import 'package:data_life/views/my_bottom_sheet.dart';
 
 import 'package:data_life/models/moment.dart';
 import 'package:data_life/models/goal.dart';
@@ -64,7 +61,7 @@ class HomePageState extends State<HomePage>
     _locationEditBloc = BlocProvider.of<LocationEditBloc>(context);
     _goalEditBloc = BlocProvider.of<GoalEditBloc>(context);
 
-    _tabController = TabController(length: 5, vsync: this);
+    _tabController = TabController(length: 3, vsync: this);
   }
 
   @override
@@ -80,9 +77,10 @@ class HomePageState extends State<HomePage>
         borderRadius: BorderRadius.all(
           Radius.circular(4.0),
         ),
-        color: Colors.white,
       ),
       child: TapOnlyTextField(
+        hintText: 'Search life',
+        borderRadius: BorderRadius.all(Radius.circular(8)),
         onTap: () {
           Navigator.push(
             context,
@@ -94,7 +92,6 @@ class HomePageState extends State<HomePage>
             ),
           );
         },
-        hintText: 'Search life',
       ),
     );
   }
@@ -186,8 +183,6 @@ class HomePageState extends State<HomePage>
       AppLocalizations.of(context).moments,
       AppLocalizations.of(context).goals,
       'ToDo',
-      AppLocalizations.of(context).contacts,
-      AppLocalizations.of(context).location,
     ];
 
     return WillPopScope(
@@ -246,12 +241,6 @@ class HomePageState extends State<HomePage>
                 if (text == 'ToDo') {
                   return ToDoList(name: text);
                 }
-                if (text == AppLocalizations.of(context).contacts) {
-                  return ContactList(name: text);
-                }
-                if (text == AppLocalizations.of(context).location) {
-                  return LocationList(name: text);
-                }
               }).toList(growable: false),
             ),
           ),
@@ -265,18 +254,19 @@ class HomePageState extends State<HomePage>
 class TapOnlyTextField extends StatelessWidget {
   final VoidCallback onTap;
   final String hintText;
+  final BorderRadius borderRadius;
 
   const TapOnlyTextField({
     Key key,
     this.onTap,
     this.hintText,
+    this.borderRadius = BorderRadius.zero,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: Colors.white,
-      borderRadius: BorderRadius.all(Radius.circular(8)),
+      borderRadius: borderRadius,
       child: InkWell(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 8.0),
@@ -319,7 +309,6 @@ class _BottomBarState extends State<_BottomBar> {
   Widget build(BuildContext context) {
     return Material(
       elevation: 16.0,
-      color: Colors.white,
       child: Padding(
         padding:
             const EdgeInsets.only(left: 8.0, top: 4.0, right: 8.0, bottom: 8.0),
@@ -332,7 +321,6 @@ class _BottomBarState extends State<_BottomBar> {
               ),
             ),
             IconButton(
-              color: MyColor.greyIcon,
               icon: Icon(Icons.outlined_flag),
               onPressed: () async {
                 Navigator.push(
@@ -346,32 +334,13 @@ class _BottomBarState extends State<_BottomBar> {
               },
             ),
             IconButton(
-              color: MyColor.greyIcon,
-              icon: Icon(Icons.timer),
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (BuildContext context) => TimerPage(
-                          title: AppLocalizations.of(context).timer,
-                        ),
-                    fullscreenDialog: true,
-                  ),
-                );
-              },
-            ),
-            IconButton(
-              color: MyColor.greyIcon,
               icon: Icon(Icons.menu),
-              // onPressed: () => _showSnackBar(context, 'menu'),
               onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => PeopleSuggestion(),
-                    fullscreenDialog: true,
-                    settings: RouteSettings(name: TestLayout.routeName),
-                  ),
+                showModalBottomSheet(
+                  context: context,
+                  builder: (BuildContext context) {
+                    return MyBottomSheet();
+                  },
                 );
               },
             ),

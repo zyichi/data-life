@@ -11,7 +11,6 @@ import 'package:data_life/views/my_color.dart';
 
 import 'package:data_life/utils/time_util.dart';
 
-
 class _LocationListItem extends StatelessWidget {
   final Location location;
 
@@ -35,8 +34,8 @@ class _LocationListItem extends StatelessWidget {
               context,
               MaterialPageRoute(
                   builder: (BuildContext context) => LocationEdit(
-                    location: location,
-                  ),
+                        location: location,
+                      ),
                   fullscreenDialog: true));
         },
         child: Padding(
@@ -47,14 +46,16 @@ class _LocationListItem extends StatelessWidget {
             children: <Widget>[
               Text(
                 location.name,
-                style: Theme.of(context)
-                    .textTheme
-                    .subtitle
-                    .copyWith(fontSize: 18),
+                style:
+                    Theme.of(context).textTheme.subtitle.copyWith(fontSize: 18),
               ),
-              SizedBox(height: 4,),
+              SizedBox(
+                height: 4,
+              ),
               _createLastActiveTimeWidget(context),
-              SizedBox(height: 8,),
+              SizedBox(
+                height: 8,
+              ),
               _createTotalTimeStayWidget(context),
             ],
           ),
@@ -141,9 +142,7 @@ class _LocationListState extends State<LocationList>
             return ListView.separated(
               key: PageStorageKey<String>(widget.name),
               separatorBuilder: (context, index) {
-                return Divider(
-                  color: MyColor.greyDivider,
-                );
+                return Divider();
               },
               itemCount: pagedList.total,
               itemBuilder: (context, index) {

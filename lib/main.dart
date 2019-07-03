@@ -22,6 +22,8 @@ import 'package:data_life/blocs/contact_edit_bloc.dart';
 import 'package:data_life/blocs/location_edit_bloc.dart';
 import 'package:data_life/blocs/goal_edit_bloc.dart';
 import 'package:data_life/blocs/db_bloc.dart';
+import 'package:data_life/blocs/theme_bloc.dart';
+
 import 'package:data_life/paging/page_bloc.dart';
 
 import 'package:data_life/models/moment.dart';
@@ -44,6 +46,7 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   DbBloc _dbBloc = DbBloc();
+  ThemeBloc _themeBloc = ThemeBloc();
 
   MomentRepository _momentRepository;
   ContactRepository _contactRepository;
@@ -100,45 +103,45 @@ class _MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     return BlocProviderTree(
       blocProviders: [
-        BlocProvider<DbBloc>(bloc: _dbBloc),
-        BlocProvider<MomentEditBloc>(bloc: _momentEditBloc),
-        BlocProvider<ContactEditBloc>(bloc: _contactEditBloc),
-        BlocProvider<LocationEditBloc>(bloc: _locationEditBloc),
-        BlocProvider<GoalEditBloc>(bloc: _goalEditBloc),
-        BlocProvider<PageBloc<Moment>>(bloc: _momentListBloc),
-        BlocProvider<PageBloc<Goal>>(bloc: _goalListBloc),
-        BlocProvider<PageBloc<Contact>>(bloc: _contactListBloc),
-        BlocProvider<PageBloc<Location>>(bloc: _locationListBloc),
+        BlocProvider<DbBloc>(builder: (BuildContext context) => _dbBloc),
+        BlocProvider<ThemeBloc>(builder: (BuildContext context) => _themeBloc),
+        BlocProvider<MomentEditBloc>(builder: (BuildContext context) => _momentEditBloc),
+        BlocProvider<ContactEditBloc>(builder: (BuildContext context) => _contactEditBloc),
+        BlocProvider<LocationEditBloc>(builder: (BuildContext context) => _locationEditBloc),
+        BlocProvider<GoalEditBloc>(builder: (BuildContext context) => _goalEditBloc),
+        BlocProvider<PageBloc<Moment>>(builder: (BuildContext context) => _momentListBloc),
+        BlocProvider<PageBloc<Goal>>(builder: (BuildContext context) => _goalListBloc),
+        BlocProvider<PageBloc<Contact>>(builder: (BuildContext context) => _contactListBloc),
+        BlocProvider<PageBloc<Location>>(builder: (BuildContext context) => _locationListBloc),
       ],
-      child: MaterialApp(
-        localizationsDelegates: [
-          const AppLocalizationsDelegate(),
-          GlobalMaterialLocalizations.delegate,
-          GlobalWidgetsLocalizations.delegate
-        ],
-        onGenerateTitle: (context) => AppLocalizations.of(context).appName,
-        supportedLocales: [
-          const Locale('en', ''),
-          const Locale('zh', ''),
-        ],
-        theme: ThemeData(
-          primarySwatch: Colors.green,
-          primaryColor: Colors.green[500],
-          accentColor: Colors.deepOrange[500],
-          // canvasColor: Colors.white,
-          scaffoldBackgroundColor: Colors.white,
-        ),
-        home: BlocBuilder(
-          bloc: _dbBloc,
-          builder: (BuildContext context, DbState state) {
-            if (state is DbClosed) {
-              return SplashPage();
-            }
-            if (state is DbOpen) {
-              return HomePage(title: 'home');
-            }
-          },
-        ),
+      child: BlocBuilder(
+        bloc: _themeBloc,
+        builder: (_, ThemeState themeState) {
+          return MaterialApp(
+            localizationsDelegates: [
+              const AppLocalizationsDelegate(),
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate
+            ],
+            onGenerateTitle: (context) => AppLocalizations.of(context).appName,
+            supportedLocales: [
+              const Locale('en', ''),
+              const Locale('zh', ''),
+            ],
+            theme: themeState.theme,
+            home: BlocBuilder(
+              bloc: _dbBloc,
+              builder: (BuildContext context, DbState state) {
+                if (state is DbClosed) {
+                  return SplashPage();
+                }
+                if (state is DbOpen) {
+                  return HomePage(title: 'home');
+                }
+              },
+            ),
+          );
+        },
       ),
     );
   }

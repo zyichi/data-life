@@ -3,13 +3,10 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:data_life/localizations.dart';
-import 'package:data_life/views/test_layout.dart';
 import 'package:data_life/views/goal_edit.dart';
 import 'package:data_life/views/timer_page.dart';
 import 'package:data_life/views/moment_edit.dart';
 import 'package:data_life/views/search_page.dart';
-import 'package:data_life/views/my_color.dart';
-import 'package:data_life/views/people_suggestion.dart';
 import 'package:flutter/services.dart';
 import 'package:page_transition/page_transition.dart';
 import 'package:data_life/views/contact_page.dart';
@@ -57,12 +54,10 @@ class XHomePageState extends State<XHomePage>
         borderRadius: BorderRadius.all(
           Radius.circular(4.0),
         ),
-        color: Colors.white,
       ),
       child: Row(
         children: <Widget>[
           IconButton(
-            color: MyColor.greyIcon,
             icon: Icon(Icons.menu),
             onPressed: () {},
           ),
@@ -242,7 +237,6 @@ class TapOnlyTextField extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: Colors.white,
       child: InkWell(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 8.0),
@@ -284,7 +278,6 @@ class _BottomBarState extends State<_BottomBar> {
   Widget build(BuildContext context) {
     return Material(
       elevation: 16.0,
-      color: Colors.white,
       child: Padding(
         padding: const EdgeInsets.only(left: 8.0, top: 0, right: 8.0, bottom: 8.0),
         child: Row(
@@ -296,14 +289,13 @@ class _BottomBarState extends State<_BottomBar> {
               ),
             ),
             IconButton(
-              color: MyColor.greyIcon,
               icon: Icon(Icons.outlined_flag),
               onPressed: () async {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
                     builder: (BuildContext context) =>
-                        GoalEdit(AppLocalizations.of(context).goal),
+                        GoalEdit(),
                     fullscreenDialog: true,
                     settings: RouteSettings(
                       name: GoalEdit.routeName,
@@ -313,7 +305,6 @@ class _BottomBarState extends State<_BottomBar> {
               },
             ),
             IconButton(
-              color: MyColor.greyIcon,
               icon: Icon(Icons.people_outline),
               onPressed: () {
                 Navigator.push(
@@ -326,7 +317,6 @@ class _BottomBarState extends State<_BottomBar> {
               },
             ),
             IconButton(
-              color: MyColor.greyIcon,
               icon: Icon(Icons.timer),
               onPressed: () {
                 Navigator.push(
@@ -336,23 +326,6 @@ class _BottomBarState extends State<_BottomBar> {
                           title: AppLocalizations.of(context).timer,
                         ),
                     fullscreenDialog: true,
-                  ),
-                );
-              },
-            ),
-            IconButton(
-              color: MyColor.greyIcon,
-              icon: Icon(Icons.menu),
-              // onPressed: () => _showSnackBar(context, 'menu'),
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => PeopleSuggestion(),
-                    fullscreenDialog: true,
-                    settings: RouteSettings(
-                      name: TestLayout.routeName,
-                    ),
                   ),
                 );
               },

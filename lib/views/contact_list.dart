@@ -12,7 +12,6 @@ import 'package:data_life/views/contact_edit.dart';
 
 import 'package:data_life/utils/time_util.dart';
 
-
 class _ContactListItem extends StatelessWidget {
   final Contact contact;
 
@@ -36,8 +35,8 @@ class _ContactListItem extends StatelessWidget {
               context,
               MaterialPageRoute(
                   builder: (BuildContext context) => ContactEdit(
-                    contact: contact,
-                  ),
+                        contact: contact,
+                      ),
                   fullscreenDialog: true));
         },
         child: Padding(
@@ -48,11 +47,16 @@ class _ContactListItem extends StatelessWidget {
             children: <Widget>[
               Text(
                 contact.name,
-                style: Theme.of(context).textTheme.subtitle.copyWith(fontSize: 18),
+                style:
+                    Theme.of(context).textTheme.subtitle.copyWith(fontSize: 18),
               ),
-              SizedBox(height: 4.0,),
+              SizedBox(
+                height: 4.0,
+              ),
               _createLastMeetTimeWidget(context),
-              SizedBox(height: 8.0,),
+              SizedBox(
+                height: 8.0,
+              ),
               _createTotalTimeTogetherWidget(context),
             ],
           ),
@@ -66,8 +70,9 @@ class _ContactListItem extends StatelessWidget {
     if (contact.lastMeetTime == null) {
       s = '未见面';
     } else {
-      s = TimeUtil.dateStringFromMillis(contact.lastMeetTime)
-          + ' ' + TimeUtil.timeStringFromMillis(contact.lastMeetTime, context);
+      s = TimeUtil.dateStringFromMillis(contact.lastMeetTime) +
+          ' ' +
+          TimeUtil.timeStringFromMillis(contact.lastMeetTime, context);
     }
     return Text(
       '最近见面: $s',
@@ -80,9 +85,7 @@ class _ContactListItem extends StatelessWidget {
       style: Theme.of(context).textTheme.caption,
     );
   }
-
 }
-
 
 class ContactList extends StatefulWidget {
   final String name;
@@ -93,7 +96,8 @@ class ContactList extends StatefulWidget {
   _ContactListState createState() => _ContactListState();
 }
 
-class _ContactListState extends State<ContactList> with AutomaticKeepAliveClientMixin {
+class _ContactListState extends State<ContactList>
+    with AutomaticKeepAliveClientMixin {
   PageBloc<Contact> _contactListBloc;
   Completer<void> _refreshCompleter;
 
@@ -155,9 +159,7 @@ class _ContactListState extends State<ContactList> with AutomaticKeepAliveClient
                 return ListView.separated(
                   key: PageStorageKey<String>(widget.name),
                   separatorBuilder: (context, index) {
-                    return Divider(
-                      color: MyColor.greyDivider,
-                    );
+                    return Divider();
                   },
                   itemCount: pagedList.total,
                   itemBuilder: (context, index) {
@@ -165,7 +167,9 @@ class _ContactListState extends State<ContactList> with AutomaticKeepAliveClient
                     if (contact == null) {
                       _contactListBloc.getItem(index);
                     }
-                    return _ContactListItem(contact: contact,);
+                    return _ContactListItem(
+                      contact: contact,
+                    );
                   },
                 );
               }

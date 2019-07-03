@@ -12,7 +12,6 @@ import 'package:data_life/models/moment.dart';
 
 import 'package:data_life/utils/time_util.dart';
 
-
 class _MomentListItem extends StatelessWidget {
   final Moment moment;
 
@@ -41,16 +40,15 @@ class _MomentListItem extends StatelessWidget {
                   fullscreenDialog: true));
         },
         child: Padding(
-          padding: const EdgeInsets.only(left: 16.0, top: 8.0, bottom: 8.0, right: 16),
+          padding: const EdgeInsets.only(
+              left: 16.0, top: 8.0, bottom: 8.0, right: 16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
               Text(
                 moment.action.name,
-                style: Theme.of(context)
-                    .textTheme
-                    .subtitle
-                    .copyWith(fontSize: 18),
+                style:
+                    Theme.of(context).textTheme.subtitle.copyWith(fontSize: 18),
               ),
               SizedBox(
                 height: 8.0,
@@ -164,9 +162,7 @@ class _MomentListState extends State<MomentList>
             return ListView.separated(
               key: PageStorageKey<String>(widget.name),
               separatorBuilder: (context, index) {
-                return Divider(
-                  color: MyColor.greyDivider,
-                );
+                return Divider();
               },
               itemCount: pagedList.total,
               itemBuilder: (context, index) {

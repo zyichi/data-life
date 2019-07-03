@@ -6,11 +6,9 @@ import 'package:data_life/paging/page_list.dart';
 
 import 'package:data_life/models/goal.dart';
 
-import 'package:data_life/views/my_color.dart';
 import 'package:data_life/views/goal_edit.dart';
 
 import 'package:data_life/utils/time_util.dart';
-
 
 class _GoalListItem extends StatelessWidget {
   final Goal goal;
@@ -64,8 +62,9 @@ class _GoalListItem extends StatelessWidget {
     if (goal.lastActiveTime == null) {
       s = '无';
     } else {
-      s = TimeUtil.dateStringFromMillis(goal.lastActiveTime)
-          + ' ' + TimeUtil.timeStringFromMillis(goal.lastActiveTime, context);
+      s = TimeUtil.dateStringFromMillis(goal.lastActiveTime) +
+          ' ' +
+          TimeUtil.timeStringFromMillis(goal.lastActiveTime, context);
     }
     return Text(
       '最近活跃: $s',
@@ -78,7 +77,6 @@ class _GoalListItem extends StatelessWidget {
       style: Theme.of(context).textTheme.caption,
     );
   }
-
 }
 
 class GoalList extends StatefulWidget {
@@ -136,9 +134,7 @@ class _GoalListState extends State<GoalList>
             return ListView.separated(
               key: PageStorageKey<String>(widget.name),
               separatorBuilder: (context, index) {
-                return Divider(
-                  color: MyColor.greyDivider,
-                );
+                return Divider();
               },
               itemCount: pagedList.total,
               itemBuilder: (context, index) {

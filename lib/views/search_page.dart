@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import 'package:data_life/views/my_color.dart';
 import 'package:data_life/views/hero_name.dart';
 
 enum SearchType {
@@ -93,12 +92,10 @@ const _SearchHistories = <_SearchHistory>[
   ),
 ];
 
-
 class SearchPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      // color: Theme.of(context).primaryColor,
       child: SafeArea(
         bottom: false,
         child: Scaffold(
@@ -111,7 +108,6 @@ class SearchPage extends StatelessWidget {
               ),
               Divider(
                 height: 2.0,
-                color: MyColor.greyDivider,
               ),
               Container(
                 padding: EdgeInsets.only(left: 16.0, top: 32.0, bottom: 16.0),
@@ -125,13 +121,11 @@ class SearchPage extends StatelessWidget {
                   Container(
                     width: 80.0,
                     height: 80.0,
-                    color: Colors.grey[100],
                     child: Stack(
                       alignment: Alignment(0, 0),
                       children: <Widget>[
                         Icon(
                           Icons.event,
-                          color: Color(0xFF0000EE),
                         ),
                         Positioned(
                           child: Text('Event'),
@@ -143,13 +137,11 @@ class SearchPage extends StatelessWidget {
                   Container(
                     width: 80.0,
                     height: 80.0,
-                    color: Colors.grey[100],
                     child: Stack(
                       alignment: Alignment(0, 0),
                       children: <Widget>[
                         Icon(
                           Icons.outlined_flag,
-                          color: Color(0xFF0000EE),
                         ),
                         Positioned(
                           child: Text('Goal'),
@@ -161,13 +153,11 @@ class SearchPage extends StatelessWidget {
                   Container(
                     width: 80.0,
                     height: 80.0,
-                    color: Colors.grey[100],
                     child: Stack(
                       alignment: Alignment(0, 0),
                       children: <Widget>[
                         Icon(
                           Icons.people_outline,
-                          color: Color(0xFF0000EE),
                         ),
                         Positioned(
                           child: Text('People'),
@@ -179,13 +169,11 @@ class SearchPage extends StatelessWidget {
                   Container(
                     width: 80.0,
                     height: 80.0,
-                    color: Colors.grey[100],
                     child: Stack(
                       children: <Widget>[
                         Align(
                           child: Icon(
                             Icons.place,
-                            color: Color(0xFF0000EE),
                           ),
                           alignment: Alignment.center,
                         ),
@@ -199,7 +187,6 @@ class SearchPage extends StatelessWidget {
                       ],
                     ),
                   ),
-
                 ],
               ),
               Container(
@@ -222,9 +209,7 @@ class SearchPage extends StatelessWidget {
                           children: <Widget>[
                             Text(
                               history.keyword,
-                              style: TextStyle(
-                                color: Color(0xFF551A8B),
-                              ),
+                              style: TextStyle(),
                             ),
                             Expanded(
                               child: SizedBox(),
@@ -237,9 +222,7 @@ class SearchPage extends StatelessWidget {
                                 padding: const EdgeInsets.all(8.0),
                                 child: Text(
                                   'Remove',
-                                  style: TextStyle(
-                                    color: Colors.blueAccent[200],
-                                  ),
+                                  style: TextStyle(),
                                 ),
                               ),
                             ),
@@ -268,7 +251,6 @@ class _SearchBar extends StatelessWidget {
         child: Row(
           children: <Widget>[
             IconButton(
-              color: MyColor.greyIcon,
               icon: Icon(Icons.arrow_back),
               onPressed: () {
                 Navigator.pop(context);
@@ -277,8 +259,8 @@ class _SearchBar extends StatelessWidget {
             Expanded(
               child: TextField(
                 style: Theme.of(context).textTheme.title.copyWith(
-                  fontWeight: FontWeight.normal,
-                ),
+                      fontWeight: FontWeight.normal,
+                    ),
                 decoration: InputDecoration(
                   border: InputBorder.none,
                   hintText: 'Search life',

@@ -42,7 +42,6 @@ class _SimpleListDialogState extends State<SimpleListDialog> {
               flex: 1,
               child: widget.selectedIndex == index ? Icon(
                 Icons.done,
-                color: Colors.blueAccent,
               ) : SizedBox(width: 24.0, height: 24.0,),
             ),
           ],

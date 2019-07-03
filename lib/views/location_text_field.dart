@@ -255,7 +255,6 @@ class _LocationTextFieldState extends State<LocationTextField> {
               Icon(
                 suggestion.iconData,
                 size: 18,
-                color: MyColor.lightGreyIcon,
               ),
               Expanded(
                 child: Padding(
