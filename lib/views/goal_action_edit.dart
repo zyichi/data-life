@@ -334,6 +334,7 @@ class _GoalActionEditState extends State<GoalActionEdit> {
     return Scaffold(
       appBar: AppBar(
         title: Text(_goalAction.action?.name ?? 'Action'),
+        centerTitle: true,
         actions: <Widget>[
           _createEditAction(),
           _isNewGoalAction

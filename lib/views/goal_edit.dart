@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:page_transition/page_transition.dart';
 
 import 'package:data_life/localizations.dart';
 
@@ -15,19 +16,18 @@ import 'package:data_life/views/date_picker_form_field.dart';
 
 import 'package:data_life/blocs/goal_edit_bloc.dart';
 
+
 void _showGoalActionEditPage(
     BuildContext context, Goal goal, GoalAction goalAction) {
   Navigator.push(
       context,
-      MaterialPageRoute(
-          builder: (BuildContext context) => GoalActionEdit(
-                goal: goal,
-                goalAction: goalAction,
-              ),
-          fullscreenDialog: true,
-          settings: RouteSettings(
-            name: GoalActionEdit.routeName,
-          )));
+      PageTransition(
+        child: GoalActionEdit(
+          goal: goal,
+          goalAction: goalAction,
+        ),
+        type: PageTransitionType.rightToLeft,
+      ));
 }
 
 class _GoalActionItem extends StatelessWidget {
@@ -226,11 +226,36 @@ class _GoalEditState extends State<GoalEdit> {
     );
   }
 
+  void _updateGoalFromForm() {}
+
+  void _editGoal() {
+    _updateGoalFromForm();
+    if (_isNewGoal) {
+      _goalEditBloc.dispatch(
+        AddGoal(goal: _goal),
+      );
+    } else {
+      if (_goal.isContentSameWith(widget.goal)) {
+        print('Same goal content, not need to update');
+        return;
+      }
+      _goalEditBloc.dispatch(UpdateGoal(
+        oldGoal: widget.goal,
+        newGoal: _goal,
+      ));
+    }
+  }
+
+  void _deleteGoal() {
+    _goalEditBloc.dispatch(DeleteGoal(goal: widget.goal));
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text(_title),
+        centerTitle: true,
         actions: <Widget>[
           _isReadOnly
               ? IconButton(
@@ -330,7 +355,8 @@ class _GoalEditState extends State<GoalEdit> {
                   SizedBox(height: 8),
                   DatePickerFormField(
                     labelText: 'From',
-                    initialDateTime: DateTime.fromMillisecondsSinceEpoch(_goal.startTime),
+                    initialDateTime:
+                        DateTime.fromMillisecondsSinceEpoch(_goal.startTime),
                     selectDate: (date) {
                       setState(() {
                         _goal.startTime = date.millisecondsSinceEpoch;
@@ -340,7 +366,8 @@ class _GoalEditState extends State<GoalEdit> {
                   ),
                   DatePickerFormField(
                     labelText: 'To',
-                    initialDateTime: DateTime.fromMillisecondsSinceEpoch(_goal.stopTime),
+                    initialDateTime:
+                        DateTime.fromMillisecondsSinceEpoch(_goal.stopTime),
                     selectDate: (date) {
                       setState(() {
                         _goal.stopTime = date.millisecondsSinceEpoch;
@@ -359,29 +386,5 @@ class _GoalEditState extends State<GoalEdit> {
         ),
       ),
     );
-  }
-
-  void _updateGoalFromForm() {}
-
-  void _editGoal() {
-    _updateGoalFromForm();
-    if (_isNewGoal) {
-      _goalEditBloc.dispatch(
-        AddGoal(goal: _goal),
-      );
-    } else {
-      if (_goal.isContentSameWith(widget.goal)) {
-        print('Same goal content, not need to update');
-        return;
-      }
-      _goalEditBloc.dispatch(UpdateGoal(
-        oldGoal: widget.goal,
-        newGoal: _goal,
-      ));
-    }
-  }
-
-  void _deleteGoal() {
-    _goalEditBloc.dispatch(DeleteGoal(goal: widget.goal));
   }
 }

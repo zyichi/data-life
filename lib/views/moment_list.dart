@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:page_transition/page_transition.dart';
 
 import 'package:data_life/paging/page_bloc.dart';
 import 'package:data_life/paging/page_list.dart';
 
 import 'package:data_life/views/moment_edit.dart';
-import 'package:data_life/views/my_color.dart';
 
 import 'package:data_life/models/contact.dart';
 import 'package:data_life/models/moment.dart';
@@ -33,11 +33,12 @@ class _MomentListItem extends StatelessWidget {
         onTap: () {
           Navigator.push(
               context,
-              MaterialPageRoute(
-                  builder: (BuildContext context) => MomentEdit(
-                        moment: moment,
-                      ),
-                  fullscreenDialog: true));
+              PageTransition(
+                child: MomentEdit(
+                  moment: moment,
+                ),
+                type: PageTransitionType.rightToLeft,
+              ));
         },
         child: Padding(
           padding: const EdgeInsets.only(
