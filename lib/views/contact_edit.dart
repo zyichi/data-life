@@ -170,7 +170,7 @@ class _ContactEditState extends State<ContactEdit> {
                   ),
                   Divider(),
                   SizedBox(height: 8.0),
-                  DateTimePicker(
+                  DateTimePickerFormField(
                     labelText: 'First meet time',
                     initialDateTime: DateTime.fromMillisecondsSinceEpoch(
                         _contact.firstMeetTime),
@@ -182,7 +182,7 @@ class _ContactEditState extends State<ContactEdit> {
                     enabled: !_isReadOnly,
                   ),
                   SizedBox(height: 4.0),
-                  DateTimePicker(
+                  DateTimePickerFormField(
                     labelText: 'First known time',
                     initialDateTime: DateTime.fromMillisecondsSinceEpoch(
                         _contact.firstKnowTime),

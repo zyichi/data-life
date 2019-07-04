@@ -21,30 +21,19 @@ List<DurationType> defaultDurationList = [
 
 List<DurationType> goalDurationList = [
   DurationType.oneWeek,
-  DurationType.halfMonth,
   DurationType.oneMonth,
   DurationType.threeMonth,
-  DurationType.halfYear,
   DurationType.oneYear,
-  DurationType.threeYear,
-  DurationType.fiveYear,
   DurationType.forever,
   DurationType.customTime,
 ];
 
 
 List<DurationType> goalActionDurationList = [
-  // DurationType.oneDay,
-  // DurationType.twoDay,
-  // DurationType.threeDay,
   DurationType.oneWeek,
-  DurationType.halfMonth,
   DurationType.oneMonth,
   DurationType.threeMonth,
-  DurationType.halfYear,
   DurationType.oneYear,
-  DurationType.threeYear,
-  DurationType.fiveYear,
   DurationType.forever,
   DurationType.customTime,
 ];

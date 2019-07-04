@@ -8,7 +8,9 @@ import 'package:data_life/models/time_types.dart';
 import 'package:data_life/views/simple_list_dialog.dart';
 import 'package:data_life/views/type_to_str.dart';
 import 'package:data_life/views/labeled_text_form_field.dart';
-import 'package:data_life/views/date_time_picker_form_field.dart';
+import 'package:data_life/views/date_picker_form_field.dart';
+
+import 'package:data_life/utils/time_util.dart';
 
 
 typedef DurationValidator = String Function(DurationValue durationValue);
@@ -109,15 +111,19 @@ class _DurationFormFieldState extends State<DurationFormField> {
     }).toList();
     if (widget.initialDurationValue == null) {
       _durationValue = DurationValue(widget.durationTypeList[0]);
-      _durationValue.startDate = DateTime.now();
+      _durationValue.startDate = TimeUtil.dateNow();
     } else {
       _durationValue = widget.initialDurationValue;
     }
 
     _indexPicked = _durationItemList
         .indexWhere((item) => item.durationType == _durationValue.durationType);
-    _durationText = TypeToStr.myDurationStr(
-        _durationItemList[_indexPicked].durationType, context);
+    if (_durationValue.durationType == DurationType.customTime) {
+      _durationText = '${_durationValue.inDays()} days';
+    } else {
+      _durationText =
+          TypeToStr.myDurationStr(_durationValue.durationType, context);
+    }
   }
 
   @override
@@ -127,12 +133,13 @@ class _DurationFormFieldState extends State<DurationFormField> {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
-            DateTimePicker(
+            DatePickerFormField(
               enabled: widget.enabled,
               initialDateTime: _durationValue.startDate,
-              labelText: 'Start time',
-              selectDateTime: (time) {
-                _durationValue.startDate = time;
+              labelText: 'Begin date',
+              selectDate: (date) {
+                print('Date selected: $date');
+                _durationValue.startDate = date;
                 widget.durationChanged(_durationValue);
               },
             ),
@@ -158,25 +165,28 @@ class _DurationFormFieldState extends State<DurationFormField> {
   FutureOr<void> _onItemPicked(dynamic d, int index) async {
     var value = d as _DurationPickItem;
     if (value.durationType == DurationType.customTime) {
-      DatePicker.showDateTimePicker(
+      DatePicker.showDatePicker(
         context,
         showTitleActions: true,
-        onConfirm: (time) {
+        onConfirm: (date) {
+          print('Date selected: $date');
+          _durationValue.durationType = value.durationType;
+          _durationValue.stopDate = date;
           setState(() {
-            _durationValue.durationType = value.durationType;
-            _durationValue.stopDate = time;
             _indexPicked = index;
             _durationText = '${_durationValue.inDays()} days';
-            widget.durationChanged(_durationValue);
           });
+          widget.durationChanged(_durationValue);
         },
-        currentTime: _durationValue.stopDate,
+        currentTime: _durationValue.startDate,
       );
     } else {
-      _indexPicked = index;
       _durationValue.durationType = value.durationType;
-      _durationText =
-          TypeToStr.myDurationStr(_durationValue._durationType, context);
+      setState(() {
+        _indexPicked = index;
+        _durationText =
+            TypeToStr.myDurationStr(_durationValue._durationType, context);
+      });
       widget.durationChanged(_durationValue);
     }
   }

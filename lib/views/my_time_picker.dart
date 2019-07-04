@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 
 
-class TimePicker extends StatelessWidget {
+class MyTimePicker extends StatelessWidget {
   final EdgeInsets contentPadding;
   final TimeOfDay selectedTime;
   final ValueChanged<TimeOfDay> selectTime;
   final bool enabled;
 
-  const TimePicker(
+  const MyTimePicker(
       {Key key,
         this.selectedTime,
         this.selectTime,

@@ -2,20 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:data_life/localizations.dart';
-import 'package:data_life/constants.dart';
 
 import 'package:data_life/models/goal.dart';
 import 'package:data_life/models/goal_action.dart';
-import 'package:data_life/models/time_types.dart';
 
 import 'package:data_life/views/goal_action_edit.dart';
 import 'package:data_life/views/progress_target_form_field.dart';
 import 'package:data_life/views/labeled_text_form_field.dart';
 import 'package:data_life/views/unique_check_form_field.dart';
-import 'package:data_life/views/duration_form_field.dart';
 import 'package:data_life/views/common_dialog.dart';
-
-import 'package:data_life/utils/time_util.dart';
+import 'package:data_life/views/date_picker_form_field.dart';
 
 import 'package:data_life/blocs/goal_edit_bloc.dart';
 
@@ -68,9 +64,11 @@ class _GoalActionItem extends StatelessWidget {
           ],
         ),
       ),
-      onTap: !enabled ? null : () {
-        _showGoalActionEditPage(context, goal, goalAction);
-      },
+      onTap: !enabled
+          ? null
+          : () {
+              _showGoalActionEditPage(context, goal, goalAction);
+            },
     );
   }
 }
@@ -98,7 +96,6 @@ class _GoalEditState extends State<GoalEdit> {
   final _nameFocusNode = FocusNode();
 
   String _title;
-  DurationValue _initialDurationValue;
 
   @override
   void initState() {
@@ -112,19 +109,11 @@ class _GoalEditState extends State<GoalEdit> {
         _goal.goalActions.add(GoalAction.copeCreate(goalAction));
       }
       _title = _goal.name;
-      _initialDurationValue = DurationValue(_goal.durationType);
-      _initialDurationValue.startDate =
-          DateTime.fromMillisecondsSinceEpoch(_goal.startTime);
-      _initialDurationValue.stopDate =
-          DateTime.fromMillisecondsSinceEpoch(_goal.stopTime);
     } else {
       _title = 'Goal';
-      _initialDurationValue = DurationValue(DurationType.threeMonth);
-      _initialDurationValue.startDate = DateTime.now();
 
-      _goal.startTime = _initialDurationValue.startDate.millisecondsSinceEpoch;
-      _goal.stopTime = _initialDurationValue.stopDate.millisecondsSinceEpoch;
-      _goal.durationType = _initialDurationValue.durationType;
+      _goal.startTime = DateTime.now().millisecondsSinceEpoch;
+      _goal.stopTime = _goal.startTime + Duration(days: 7).inMilliseconds;
 
       _goal.progress = 0.0;
       _goal.target = 100.0;
@@ -216,7 +205,11 @@ class _GoalEditState extends State<GoalEdit> {
   Widget _createGoalActionWidget() {
     final toDoItems = <Widget>[];
     for (GoalAction goalAction in _goal.goalActions) {
-      toDoItems.add(_GoalActionItem(goal: _goal, goalAction: goalAction, enabled: !_isReadOnly,));
+      toDoItems.add(_GoalActionItem(
+        goal: _goal,
+        goalAction: goalAction,
+        enabled: !_isReadOnly,
+      ));
     }
     toDoItems.add(_createAddGoalActionButton());
     return Column(
@@ -335,22 +328,25 @@ class _GoalEditState extends State<GoalEdit> {
                   ),
                   Divider(),
                   SizedBox(height: 8),
-                  DurationFormField(
+                  DatePickerFormField(
+                    labelText: 'From',
+                    initialDateTime: DateTime.fromMillisecondsSinceEpoch(_goal.startTime),
+                    selectDate: (date) {
+                      setState(() {
+                        _goal.startTime = date.millisecondsSinceEpoch;
+                      });
+                    },
                     enabled: !_isReadOnly,
-                    durationTypeList: goalDurationList,
-                    durationValidator: (durationValue) {
-                      if (durationValue.inDays() < 1) {
-                        return 'Goal duration must bigger than 1 day';
-                      }
+                  ),
+                  DatePickerFormField(
+                    labelText: 'To',
+                    initialDateTime: DateTime.fromMillisecondsSinceEpoch(_goal.stopTime),
+                    selectDate: (date) {
+                      setState(() {
+                        _goal.stopTime = date.millisecondsSinceEpoch;
+                      });
                     },
-                    durationChanged: (durationValue) {
-                      _goal.durationType = durationValue.durationType;
-                      _goal.startTime =
-                          durationValue.startDate.millisecondsSinceEpoch;
-                      _goal.stopTime =
-                          durationValue.stopDate.millisecondsSinceEpoch;
-                    },
-                    initialDurationValue: _initialDurationValue,
+                    enabled: !_isReadOnly,
                   ),
                   SizedBox(height: 8),
                   Divider(),

@@ -6,13 +6,13 @@ import 'package:flutter_datetime_picker/flutter_datetime_picker.dart';
 import 'package:data_life/views/labeled_text_form_field.dart';
 
 
-class DateTimePicker extends StatefulWidget {
+class DateTimePickerFormField extends StatefulWidget {
   final String labelText;
   final DateTime initialDateTime;
   final ValueChanged<DateTime> selectDateTime;
   final bool enabled;
 
-  const DateTimePicker(
+  const DateTimePickerFormField(
       {Key key,
       this.labelText,
       this.initialDateTime,
@@ -21,17 +21,17 @@ class DateTimePicker extends StatefulWidget {
       : super(key: key);
 
   @override
-  DateTimePickerState createState() {
-    return new DateTimePickerState();
+  DateTimePickerFormFieldState createState() {
+    return new DateTimePickerFormFieldState();
   }
 }
 
-class DateTimePickerState extends State<DateTimePicker> {
+class DateTimePickerFormFieldState extends State<DateTimePickerFormField> {
   @override
   Widget build(BuildContext context) {
     final TextStyle valueStyle = Theme.of(context).textTheme.subhead;
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
         LabelFormField(
           label: widget.labelText,

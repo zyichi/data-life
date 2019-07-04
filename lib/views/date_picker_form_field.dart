@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:data_life/views/labeled_text_form_field.dart';
-import 'package:data_life/views/date_picker.dart';
+import 'package:data_life/views/my_date_picker.dart';
 
 
 class DatePickerFormField extends StatefulWidget {
@@ -42,7 +42,7 @@ class DatePickerFormFieldState extends State<DatePickerFormField> {
         LabelFormField(label: widget.labelText,
           padding: EdgeInsets.all(0),
         ),
-        DatePicker(
+        MyDatePicker(
           selectedDate: _selectedDate,
           contentPadding: EdgeInsets.only(
               left: 0.0, top: 8.0, right: 0.0, bottom: 8.0),

@@ -399,7 +399,7 @@ class _MomentEditState extends State<MomentEdit> {
   }
 
   Widget _createBeginTimeField() {
-    return DateTimePicker(
+    return DateTimePickerFormField(
       labelText: AppLocalizations.of(context).begin,
       initialDateTime: DateTime.fromMillisecondsSinceEpoch(_moment.beginTime),
       selectDateTime: (value) {
@@ -412,7 +412,7 @@ class _MomentEditState extends State<MomentEdit> {
   }
 
   Widget _createEndTimeField() {
-    return DateTimePicker(
+    return DateTimePickerFormField(
       labelText: AppLocalizations.of(context).end,
       initialDateTime: DateTime.fromMillisecondsSinceEpoch(_moment.endTime),
       selectDateTime: (value) {

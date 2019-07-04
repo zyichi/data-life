@@ -71,12 +71,16 @@ class TimeUtil {
     return s;
   }
 
-  static DateTime XgetDate(int millis) {
+  static DateTime getDateFromMillis(int millis) {
     var d = DateTime.fromMillisecondsSinceEpoch(millis);
     return DateTime(d.year, d.month, d.day);
   }
 
-  static DateTime XdateNow() {
+  static DateTime getDate(DateTime d) {
+    return DateTime(d.year, d.month, d.day);
+  }
+
+  static DateTime dateNow() {
     var d = DateTime.now();
     return DateTime(d.year, d.month, d.day);
   }

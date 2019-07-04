@@ -32,7 +32,7 @@ class TypeToStr {
       case DurationType.forever:
         return "Forever";
       case DurationType.customTime:
-        return "Custom time";
+        return "Custom end time...";
       default:
         return null;
     }

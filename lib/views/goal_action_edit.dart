@@ -3,13 +3,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
 
 import 'package:data_life/localizations.dart';
-import 'package:data_life/constants.dart';
 
-import 'package:data_life/views/progress_target_form_field.dart';
 import 'package:data_life/views/item_picker_form_field.dart';
-import 'package:data_life/views/duration_form_field.dart';
-import 'package:data_life/views/type_to_str.dart';
 import 'package:data_life/views/common_dialog.dart';
+import 'package:data_life/views/date_time_picker_form_field.dart';
 
 import 'package:data_life/models/goal.dart';
 import 'package:data_life/models/action.dart';
@@ -17,6 +14,7 @@ import 'package:data_life/models/goal_action.dart';
 import 'package:data_life/models/time_types.dart';
 
 import 'package:data_life/blocs/goal_edit_bloc.dart';
+
 
 final howOftenOptions = [
   HowOften.notRepeat,
@@ -34,9 +32,7 @@ final howOftenOptions = [
 final howLongOptions = [
   HowLong.fifteenMinutes,
   HowLong.thirtyMinutes,
-  HowLong.fortyFiveMinutes,
   HowLong.oneHour,
-  HowLong.oneHourThirtyMinutes,
   HowLong.twoHours,
   HowLong.halfDay,
   HowLong.wholeDay
@@ -126,28 +122,7 @@ class _RepeatPickItem {
     return caption;
   }
 }
-class _HowLongPickItem {
-  final HowLong howLong;
-  final String caption;
 
-  _HowLongPickItem(this.howLong, this.caption);
-
-  @override
-  String toString() {
-    return caption;
-  }
-}
-class _BestTimePickItem {
-  final BestTime bestTime;
-  final String caption;
-
-  _BestTimePickItem(this.bestTime, this.caption);
-
-  @override
-  String toString() {
-    return caption;
-  }
-}
 
 class GoalActionEdit extends StatefulWidget {
   static const routeName = '/goalActionEdit';
@@ -171,7 +146,6 @@ class _GoalActionEditState extends State<GoalActionEdit> {
   final TextEditingController _actionNameController = TextEditingController();
   GoalEditBloc _goalEditBloc;
   bool _autoValidateActionName = false;
-  DurationValue _initialDurationValue;
 
   bool _isNeedExitConfirm() {
     _updateGoalActionFromForm();
@@ -212,21 +186,11 @@ class _GoalActionEditState extends State<GoalActionEdit> {
 
       _goalAction.copy(widget.goalAction);
 
-      _initialDurationValue = DurationValue(_goalAction.durationType);
-      print('Initial duration type: ${TypeToStr.myDurationStr(_initialDurationValue.durationType, context)}');
-      _initialDurationValue.startDate = DateTime.fromMillisecondsSinceEpoch(_goalAction.startTime);
-      _initialDurationValue.stopDate = DateTime.fromMillisecondsSinceEpoch(_goalAction.stopTime);
-
       _actionNameController.text = _goalAction.action.name;
     } else {
-      final now = DateTime.now();
-      _initialDurationValue = DurationValue(widget.goal.durationType);
-      _initialDurationValue.startDate = now;
-
       _goalAction.goalId = widget.goal.id;
-      _goalAction.startTime = _initialDurationValue.startDate.millisecondsSinceEpoch;
-      _goalAction.durationType = _initialDurationValue.durationType;
-      _goalAction.stopTime = _initialDurationValue.stopDate.millisecondsSinceEpoch;
+      _goalAction.startTime = DateTime.now().millisecondsSinceEpoch;
+      _goalAction.stopTime = _goalAction.startTime + Duration(hours: 1).inMilliseconds;
 
       _goalAction.howOften = HowOften.notRepeat;
       _goalAction.howLong = HowLong.thirtyMinutes;
@@ -247,14 +211,6 @@ class _GoalActionEditState extends State<GoalActionEdit> {
 
   bool get _isNewGoalAction => widget.goalAction == null;
 
-  void _targetChanged(num value) {
-    _goalAction.target = value;
-  }
-
-  void _progressChanged(num value) {
-    _goalAction.progress = value;
-  }
-
   Widget _createRepeatWidget() {
     List<_RepeatPickItem> repeatList = howOftenOptions.map((e) {
       String s = getHowOftenLiteral(context, e);
@@ -267,40 +223,6 @@ class _GoalActionEditState extends State<GoalActionEdit> {
       defaultPicked: pickedIndex,
       onItemPicked: (value, index) async {
         _goalAction.howOften = (value as _RepeatPickItem).howOften;
-      },
-      enabled: !_isReadOnly,
-    );
-  }
-
-  Widget _createHowLongWidget() {
-    List<_HowLongPickItem> howLongList = howLongOptions.map((e) {
-      String s = getHowLongLiteral(context, e);
-      return _HowLongPickItem(e, s);
-    }).toList();
-    int pickedIndex = howLongOptions.indexOf(_goalAction.howLong);
-    return ItemPicker(
-      labelText: 'How long',
-      items: howLongList,
-      defaultPicked: pickedIndex,
-      onItemPicked: (value, index) async {
-        _goalAction.howLong = (value as _HowLongPickItem).howLong;
-      },
-      enabled: !_isReadOnly,
-    );
-  }
-
-  Widget _createBestTimeWidget() {
-    List<_BestTimePickItem> bestTimeList = bestTimeOptions.map((e) {
-      String s = getBestTimeLiteral(context, e);
-      return _BestTimePickItem(e, s);
-    }).toList();
-    int pickedIndex = bestTimeOptions.indexOf(_goalAction.bestTime);
-    return ItemPicker(
-      labelText: 'Best time',
-      items: bestTimeList,
-      defaultPicked: pickedIndex,
-      onItemPicked: (value, index) async {
-        _goalAction.bestTime = (value as _BestTimePickItem).bestTime;
       },
       enabled: !_isReadOnly,
     );
@@ -344,7 +266,7 @@ class _GoalActionEditState extends State<GoalActionEdit> {
         controller: _actionNameController,
         focusNode: _actionNameFocusNode,
         style: Theme.of(context).textTheme.subhead.copyWith(fontSize: 24),
-        autofocus: !_isReadOnly,
+        // autofocus: !_isReadOnly,
         enabled: _isNewGoalAction,
       ),
       onSuggestionSelected: (Action action) {
@@ -447,39 +369,27 @@ class _GoalActionEditState extends State<GoalActionEdit> {
               _createActionNameFormField(),
               Divider(),
               SizedBox(height: 16),
-              ProgressTarget(
-                progressChanged: _progressChanged,
-                targetChanged: _targetChanged,
-                progressFocusNode: _progressFocusNode,
-                initialProgress: _goalAction.progress,
-                initialTarget: _goalAction.target,
+              DateTimePickerFormField(
+                labelText: 'From',
+                initialDateTime: DateTime.fromMillisecondsSinceEpoch(_goalAction.startTime),
+                selectDateTime: (time) {
+                  setState(() {
+                    _goalAction.startTime = time.millisecondsSinceEpoch;
+                  });
+                },
                 enabled: !_isReadOnly,
               ),
-              SizedBox(height: 16),
-              Divider(),
-              SizedBox(height: 16),
-              DurationFormField(
+              DateTimePickerFormField(
+                labelText: 'To',
+                initialDateTime: DateTime.fromMillisecondsSinceEpoch(_goalAction.stopTime),
+                selectDateTime: (time) {
+                  setState(() {
+                    _goalAction.stopTime = time.millisecondsSinceEpoch;
+                  });
+                },
                 enabled: !_isReadOnly,
-                durationTypeList: goalActionDurationList,
-                durationValidator: (durationValue) {
-                  if (durationValue.inDays() < 1) {
-                    return 'Goal duration must bigger than 1 day';
-                  }
-                },
-                durationChanged: (durationValue) {
-                  print('Duration changed: ${TypeToStr.myDurationStr(durationValue.durationType, context)}');
-                  _goalAction.durationType = durationValue.durationType;
-                  _goalAction.startTime = durationValue.startDate.millisecondsSinceEpoch;
-                  _goalAction.stopTime = durationValue.stopDate.millisecondsSinceEpoch;
-                },
-                initialDurationValue: _initialDurationValue,
               ),
-              SizedBox(height: 8),
-              Divider(),
-              SizedBox(height: 16),
               _createRepeatWidget(),
-              _createHowLongWidget(),
-              _createBestTimeWidget(),
             ],
           ),
         ),
