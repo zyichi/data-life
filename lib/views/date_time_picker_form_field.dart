@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+
+import 'package:flutter_datetime_picker/flutter_datetime_picker.dart';
 
 import 'package:data_life/views/labeled_text_form_field.dart';
-import 'package:data_life/views/date_picker.dart';
-import 'package:data_life/views/time_picker.dart';
 
 
 class DateTimePicker extends StatefulWidget {
@@ -13,10 +14,10 @@ class DateTimePicker extends StatefulWidget {
 
   const DateTimePicker(
       {Key key,
-        this.labelText,
-        this.initialDateTime,
-        this.selectDateTime,
-        this.enabled = true})
+      this.labelText,
+      this.initialDateTime,
+      this.selectDateTime,
+      this.enabled = true})
       : super(key: key);
 
   @override
@@ -26,63 +27,39 @@ class DateTimePicker extends StatefulWidget {
 }
 
 class DateTimePickerState extends State<DateTimePicker> {
-  DateTime _selectedDate;
-  TimeOfDay _selectedTime;
-
-  @override
-  void initState() {
-    super.initState();
-
-    _selectedDate = widget.initialDateTime;
-    _selectedTime = TimeOfDay.fromDateTime(widget.initialDateTime);
-  }
-
   @override
   Widget build(BuildContext context) {
+    final TextStyle valueStyle = Theme.of(context).textTheme.subhead;
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: <Widget>[
-        LabelFormField(label: widget.labelText,
+        LabelFormField(
+          label: widget.labelText,
           padding: EdgeInsets.all(0),
         ),
-        Row(
-          children: <Widget>[
-            DatePicker(
-              selectedDate: _selectedDate,
-              contentPadding: EdgeInsets.only(
-                  left: 0.0, top: 8.0, right: 16.0, bottom: 8.0),
-              selectDate: (value) {
-                setState(() {
-                  _selectedDate = value;
-                });
-                widget.selectDateTime(_combineTime(_selectedDate, _selectedTime));
+        InkWell(
+          child: Padding(
+            padding:
+            EdgeInsets.only(left: 0.0, top: 8.0, right: 0.0, bottom: 8.0),
+            child: Text(
+              DateFormat.yMMMEd().add_Hm().format(widget.initialDateTime),
+              style: valueStyle,
+            ),
+          ),
+          onTap: widget.enabled
+              ? () {
+            DatePicker.showDateTimePicker(
+              context,
+              showTitleActions: true,
+              onConfirm: (time) {
+                widget.selectDateTime(time);
               },
-              enabled: widget.enabled,
-            ),
-            Expanded(
-              child: TimePicker(
-                selectedTime: _selectedTime,
-                contentPadding:
-                EdgeInsets.only(left: 16.0, top: 8.0, bottom: 8.0),
-                selectTime: (value) {
-                  setState(() {
-                    _selectedTime = value;
-                  });
-                  widget.selectDateTime(_combineTime(_selectedDate, _selectedTime));
-                },
-                enabled: widget.enabled,
-              ),
-            ),
-          ],
+              currentTime: widget.initialDateTime,
+            );
+          } : null,
         ),
       ],
     );
   }
-
-  DateTime _combineTime(DateTime d, TimeOfDay t) {
-    return DateTime(
-        _selectedDate.year, _selectedDate.month, _selectedDate.day,
-        _selectedTime.hour, _selectedTime.minute
-    );
-  }
 }
+

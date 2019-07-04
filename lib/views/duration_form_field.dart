@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
-import 'package:intl/intl.dart';
 
 import 'package:flutter_datetime_picker/flutter_datetime_picker.dart';
 
@@ -9,6 +8,7 @@ import 'package:data_life/models/time_types.dart';
 import 'package:data_life/views/simple_list_dialog.dart';
 import 'package:data_life/views/type_to_str.dart';
 import 'package:data_life/views/labeled_text_form_field.dart';
+import 'package:data_life/views/date_time_picker_form_field.dart';
 
 
 typedef DurationValidator = String Function(DurationValue durationValue);
@@ -127,7 +127,15 @@ class _DurationFormFieldState extends State<DurationFormField> {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
-            _createStartDateWidget(),
+            DateTimePicker(
+              enabled: widget.enabled,
+              initialDateTime: _durationValue.startDate,
+              labelText: 'Start time',
+              selectDateTime: (time) {
+                _durationValue.startDate = time;
+                widget.durationChanged(_durationValue);
+              },
+            ),
             _createDurationWidget(),
             fieldState.hasError
                 ? Text(
@@ -171,41 +179,6 @@ class _DurationFormFieldState extends State<DurationFormField> {
           TypeToStr.myDurationStr(_durationValue._durationType, context);
       widget.durationChanged(_durationValue);
     }
-  }
-
-  Widget _createStartDateWidget() {
-    final TextStyle valueStyle = Theme.of(context).textTheme.subhead;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: <Widget>[
-        LabelFormField(
-          label: 'Start time',
-        ),
-        InkWell(
-          child: Padding(
-            padding:
-                EdgeInsets.only(left: 0.0, top: 8.0, right: 0.0, bottom: 8.0),
-            child: Text(
-              DateFormat.yMMMEd().add_Hm().format(_durationValue.startDate),
-              style: valueStyle,
-            ),
-          ),
-          onTap: widget.enabled
-              ? () {
-                  DatePicker.showDateTimePicker(
-                    context,
-                    showTitleActions: true,
-                    onConfirm: (time) {
-                      _durationValue.startDate = time;
-                      widget.durationChanged(_durationValue);
-                    },
-                    currentTime: _durationValue.startDate,
-                  );
-                }
-              : null,
-        ),
-      ],
-    );
   }
 
   Widget _createSelectedItemField() {
