@@ -42,14 +42,11 @@ class ItemPickerState extends State<ItemPicker> {
     _selectedItemText = widget.items[_selectedIndex].toString();
   }
 
-  void _onItemSelected(dynamic value, int index) async {
+  void _onItemSelected(dynamic value, int index) {
     setState(() {
       _selectedIndex = index;
-    });
-    _selectedItemText = await widget.onItemPicked(value, index);
-    if (_selectedItemText == null) {
       _selectedItemText = value.toString();
-    }
+    });
   }
 
   Widget _createSelectedItemField() {

@@ -27,7 +27,7 @@ enum BestTime {
   anyTime,
 }
 enum DurationType {
-  userSelectTime,
+  customTime,
   oneDay,
   twoDay,
   threeDay,
@@ -45,7 +45,7 @@ enum DurationType {
 
 int durationTypeInMillis(DurationType t) {
   switch (t) {
-    case DurationType.userSelectTime:
+    case DurationType.customTime:
       return null;
       break;
     case DurationType.oneDay:

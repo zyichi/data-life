@@ -220,7 +220,7 @@ class _GoalActionEditState extends State<GoalActionEdit> {
       _actionNameController.text = _goalAction.action.name;
     } else {
       final now = DateTime.now();
-      _initialDurationValue = DurationValue(DurationType.threeDay);
+      _initialDurationValue = DurationValue(widget.goal.durationType);
       _initialDurationValue.startDate = now;
 
       _goalAction.goalId = widget.goal.id;

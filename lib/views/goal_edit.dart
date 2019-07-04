@@ -120,7 +120,7 @@ class _GoalEditState extends State<GoalEdit> {
     } else {
       _title = 'Goal';
       _initialDurationValue = DurationValue(DurationType.threeMonth);
-      _initialDurationValue.startDate = TimeUtil.dateNow();
+      _initialDurationValue.startDate = DateTime.now();
 
       _goal.startTime = _initialDurationValue.startDate.millisecondsSinceEpoch;
       _goal.stopTime = _initialDurationValue.stopDate.millisecondsSinceEpoch;

@@ -31,8 +31,8 @@ class TypeToStr {
         return "Five year";
       case DurationType.forever:
         return "Forever";
-      case DurationType.userSelectTime:
-        return "Select a stop time ...";
+      case DurationType.customTime:
+        return "Custom time";
       default:
         return null;
     }

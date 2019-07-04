@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
+import 'package:intl/intl.dart';
+
+import 'package:flutter_datetime_picker/flutter_datetime_picker.dart';
 
 import 'package:data_life/models/time_types.dart';
 
-import 'package:data_life/views/date_picker_form_field.dart';
-import 'package:data_life/views/item_picker_form_field.dart';
+import 'package:data_life/views/simple_list_dialog.dart';
 import 'package:data_life/views/type_to_str.dart';
+import 'package:data_life/views/labeled_text_form_field.dart';
 
-import 'package:data_life/utils/time_util.dart';
 
 typedef DurationValidator = String Function(DurationValue durationValue);
 
@@ -31,7 +33,7 @@ class DurationValue {
   set startDate(DateTime d) {
     int days = inDays();
     _startDate = d;
-    if (_durationType != DurationType.userSelectTime) {
+    if (_durationType != DurationType.customTime) {
       _stopDate = _startDate
           .add(Duration(milliseconds: durationTypeInMillis(durationType)));
     } else {
@@ -41,7 +43,7 @@ class DurationValue {
 
   DateTime get stopDate => _stopDate;
   set stopDate(DateTime d) {
-    if (_durationType == DurationType.userSelectTime) {
+    if (_durationType == DurationType.customTime) {
       _stopDate = d;
     }
   }
@@ -49,7 +51,7 @@ class DurationValue {
   DurationType get durationType => _durationType;
   set durationType(DurationType dT) {
     _durationType = dT;
-    if (_startDate != null && _durationType != DurationType.userSelectTime) {
+    if (_startDate != null && _durationType != DurationType.customTime) {
       _stopDate = _startDate
           .add(Duration(milliseconds: durationTypeInMillis(_durationType)));
     }
@@ -90,8 +92,9 @@ class DurationFormField extends StatefulWidget {
 
 class _DurationFormFieldState extends State<DurationFormField> {
   DurationValue _durationValue;
-  int _indexPicked;
   List<_DurationPickItem> _durationItemList;
+  int _indexPicked;
+  String _durationText;
 
   @override
   void initState() {
@@ -106,14 +109,15 @@ class _DurationFormFieldState extends State<DurationFormField> {
     }).toList();
     if (widget.initialDurationValue == null) {
       _durationValue = DurationValue(widget.durationTypeList[0]);
-      _durationValue.startDate =
-          TimeUtil.getDate(DateTime.now().millisecondsSinceEpoch);
+      _durationValue.startDate = DateTime.now();
     } else {
       _durationValue = widget.initialDurationValue;
     }
 
     _indexPicked = _durationItemList
         .indexWhere((item) => item.durationType == _durationValue.durationType);
+    _durationText = TypeToStr.myDurationStr(
+        _durationItemList[_indexPicked].durationType, context);
   }
 
   @override
@@ -143,46 +147,107 @@ class _DurationFormFieldState extends State<DurationFormField> {
     );
   }
 
-  FutureOr<String> _onItemPicked(dynamic d, int index) async {
+  FutureOr<void> _onItemPicked(dynamic d, int index) async {
     var value = d as _DurationPickItem;
-    _durationValue.durationType = value.durationType;
-    if (value.durationType == DurationType.userSelectTime) {
-      final DateTime picked = await showDatePicker(
-          context: context,
-          initialDate: _durationValue.stopDate,
-          firstDate: DateTime(1998, 1, 1),
-          lastDate: DateTime(3998, 1, 1));
-      if (picked != null) {
-        _durationValue.stopDate = picked;
-        return '${_durationValue.inDays()} days';
-      } else {
-        return '${_durationValue.inDays()} days';
-      }
+    if (value.durationType == DurationType.customTime) {
+      DatePicker.showDateTimePicker(
+        context,
+        showTitleActions: true,
+        onConfirm: (time) {
+          setState(() {
+            _durationValue.durationType = value.durationType;
+            _durationValue.stopDate = time;
+            _indexPicked = index;
+            _durationText = '${_durationValue.inDays()} days';
+            widget.durationChanged(_durationValue);
+          });
+        },
+        currentTime: _durationValue.stopDate,
+      );
+    } else {
+      _indexPicked = index;
+      _durationValue.durationType = value.durationType;
+      _durationText =
+          TypeToStr.myDurationStr(_durationValue._durationType, context);
+      widget.durationChanged(_durationValue);
     }
-    widget.durationChanged(_durationValue);
-    return null;
   }
 
   Widget _createStartDateWidget() {
-    return DatePickerFormField(
-      labelText: 'Start date',
-      initialDateTime:
-          TimeUtil.getDate(_durationValue.startDate.millisecondsSinceEpoch),
-      selectDate: (value) {
-        _durationValue.startDate = value;
-        widget.durationChanged(_durationValue);
-      },
-      enabled: widget.enabled,
+    final TextStyle valueStyle = Theme.of(context).textTheme.subhead;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: <Widget>[
+        LabelFormField(
+          label: 'Start time',
+        ),
+        InkWell(
+          child: Padding(
+            padding:
+                EdgeInsets.only(left: 0.0, top: 8.0, right: 0.0, bottom: 8.0),
+            child: Text(
+              DateFormat.yMMMEd().add_Hm().format(_durationValue.startDate),
+              style: valueStyle,
+            ),
+          ),
+          onTap: widget.enabled
+              ? () {
+                  DatePicker.showDateTimePicker(
+                    context,
+                    showTitleActions: true,
+                    onConfirm: (time) {
+                      _durationValue.startDate = time;
+                      widget.durationChanged(_durationValue);
+                    },
+                    currentTime: _durationValue.startDate,
+                  );
+                }
+              : null,
+        ),
+      ],
+    );
+  }
+
+  Widget _createSelectedItemField() {
+    final textStyle = Theme.of(context).textTheme.subhead;
+    return InkWell(
+      onTap: widget.enabled
+          ? () {
+              showDialog(
+                context: context,
+                builder: (context) {
+                  return SimpleListDialog(
+                    items: _durationItemList,
+                    onItemSelected: _onItemPicked,
+                    selectedIndex: _indexPicked,
+                  );
+                },
+              );
+            }
+          : null,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        child: Text(
+          _durationText,
+          style: textStyle,
+        ),
+      ),
     );
   }
 
   Widget _createDurationWidget() {
-    return ItemPicker(
-      labelText: 'Duration',
-      items: _durationItemList,
-      defaultPicked: _indexPicked,
-      onItemPicked: _onItemPicked,
-      enabled: widget.enabled,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        LabelFormField(label: 'Duration'),
+        Row(
+          children: <Widget>[
+            Expanded(
+              child: _createSelectedItemField(),
+            ),
+          ],
+        ),
+      ],
     );
   }
 }

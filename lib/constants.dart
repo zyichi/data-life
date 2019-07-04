@@ -16,7 +16,7 @@ List<DurationType> defaultDurationList = [
   DurationType.threeYear,
   DurationType.fiveYear,
   DurationType.forever,
-  DurationType.userSelectTime,
+  DurationType.customTime,
 ];
 
 List<DurationType> goalDurationList = [
@@ -29,14 +29,14 @@ List<DurationType> goalDurationList = [
   DurationType.threeYear,
   DurationType.fiveYear,
   DurationType.forever,
-  DurationType.userSelectTime,
+  DurationType.customTime,
 ];
 
 
 List<DurationType> goalActionDurationList = [
-  DurationType.oneDay,
-  DurationType.twoDay,
-  DurationType.threeDay,
+  // DurationType.oneDay,
+  // DurationType.twoDay,
+  // DurationType.threeDay,
   DurationType.oneWeek,
   DurationType.halfMonth,
   DurationType.oneMonth,
@@ -46,5 +46,5 @@ List<DurationType> goalActionDurationList = [
   DurationType.threeYear,
   DurationType.fiveYear,
   DurationType.forever,
-  DurationType.userSelectTime,
+  DurationType.customTime,
 ];

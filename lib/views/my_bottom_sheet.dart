@@ -20,7 +20,7 @@ class _MyBottomSheetState extends State<MyBottomSheet> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           mainAxisSize: MainAxisSize.min,
-          children: <Widget>[
+          children: <Widget>[   
             InkWell(
               child: Padding(
                 padding: const EdgeInsets.only(
