@@ -5,14 +5,14 @@ import 'package:flutter/material.dart';
 class TimeUtil {
 
   static String formatTime(int milliseconds) {
-    return DateFormat.yMMMMd()
+    return DateFormat(DateFormat.YEAR_MONTH_DAY)
         .add_Hms()
         .format(DateTime.fromMillisecondsSinceEpoch(milliseconds).toLocal());
   }
 
 
   static String dateStringFromDateTime(DateTime t) {
-    return DateFormat.yMMMEd().format(t);
+    return DateFormat(DateFormat.YEAR_ABBR_MONTH_WEEKDAY_DAY).format(t);
   }
 
   static String dateStringFromMillis(int millis) {

@@ -37,7 +37,7 @@ class MyDatePicker extends StatelessWidget {
       child: Padding(
         padding: contentPadding,
         child: Text(
-          DateFormat.yMMMEd().format(selectedDate),
+          DateFormat(DateFormat.YEAR_ABBR_MONTH_WEEKDAY_DAY).format(selectedDate),
           style: valueStyle,
         ),
       ),

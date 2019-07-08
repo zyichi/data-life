@@ -37,3 +37,14 @@ List<DurationType> goalActionDurationList = [
   DurationType.forever,
   DurationType.customTime,
 ];
+
+List<RepeatType> defaultRepeatTypeList = [
+  RepeatType.oneTime,
+  RepeatType.daily,
+  RepeatType.mondayToFriday,
+  RepeatType.weekly,
+  RepeatType.monthlyFirstWeekDay,
+  RepeatType.monthlySameDay,
+  RepeatType.yearly,
+  RepeatType.custom,
+];
