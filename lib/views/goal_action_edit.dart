@@ -3,8 +3,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:page_transition/page_transition.dart';
 
-import 'package:data_life/localizations.dart';
-
 import 'package:data_life/views/common_dialog.dart';
 import 'package:data_life/views/date_time_picker_form_field.dart';
 import 'package:data_life/views/labeled_text_form_field.dart';
@@ -14,8 +12,13 @@ import 'package:data_life/models/goal.dart';
 import 'package:data_life/models/action.dart';
 import 'package:data_life/models/goal_action.dart';
 import 'package:data_life/models/time_types.dart';
+import 'package:data_life/models/repeat_types.dart';
 
 import 'package:data_life/blocs/goal_edit_bloc.dart';
+
+import 'package:data_life/localizations.dart';
+import 'package:data_life/utils/time_util.dart';
+
 
 final howOftenOptions = [
   HowOften.notRepeat,
@@ -178,16 +181,16 @@ class _GoalActionEditState extends State<GoalActionEdit> {
 
       _actionNameController.text = _goalAction.action.name;
     } else {
+      DateTime now = DateTime.now();
       _goalAction.goalId = widget.goal.id;
-      _goalAction.startTime = DateTime.now().millisecondsSinceEpoch;
+      _goalAction.startTime = now.millisecondsSinceEpoch;
       _goalAction.stopTime =
           _goalAction.startTime + Duration(hours: 1).inMilliseconds;
-
-      _goalAction.howOften = HowOften.notRepeat;
-      _goalAction.howLong = HowLong.thirtyMinutes;
-      _goalAction.bestTime = BestTime.anyTime;
-      _goalAction.progress = 0.0;
-      _goalAction.target = 100.0;
+      _goalAction.repeatType = RepeatType.oneTime;
+      _goalAction.repeatEvery = RepeatEvery.day;
+      _goalAction.repeatEveryStep = 1;
+      _goalAction.monthRepeatOn = MonthRepeatOn.day;
+      _goalAction.weekdaySeqOfMonth = TimeUtil.getWeekdaySeqOfMonth(now);
     }
 
     _actionNameController.addListener(() {
@@ -383,11 +386,7 @@ class _GoalActionEditState extends State<GoalActionEdit> {
                       String result = await Navigator.push(
                           context,
                           PageTransition(
-                            child: RepeatPage(
-                              startTime: DateTime.fromMillisecondsSinceEpoch(
-                                  _goalAction.startTime),
-                              repeatType: RepeatType.oneTime,
-                            ),
+                            child: RepeatPage(goalAction: _goalAction),
                             type: PageTransitionType.rightToLeft,
                           ));
                       if (result != null) {

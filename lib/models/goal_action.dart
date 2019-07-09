@@ -1,7 +1,7 @@
 import 'package:equatable/equatable.dart';
 
 import 'package:data_life/models/action.dart';
-import 'package:data_life/models/time_types.dart';
+import 'package:data_life/models/repeat_types.dart';
 
 
 class GoalAction extends Equatable {
@@ -10,14 +10,14 @@ class GoalAction extends Equatable {
   int id;
   int goalId;
   int actionId;
-  num target;
-  num progress;
   int startTime;
   int stopTime;
-  DurationType durationType;
-  HowOften howOften;
-  HowLong howLong;
-  BestTime bestTime;
+  RepeatType repeatType;
+  RepeatEvery repeatEvery;
+  int repeatEveryStep;
+  MonthRepeatOn monthRepeatOn;
+  WeekdaySeqOfMonth weekdaySeqOfMonth;
+  List<int> repeatOnList = <int>[];
   int totalTimeTaken = 0;
   int lastActiveTime;
   int createTime;
@@ -46,12 +46,6 @@ class GoalAction extends Equatable {
     actionId = goalAction.actionId;
     startTime = goalAction.startTime;
     stopTime = goalAction.stopTime;
-    durationType = goalAction.durationType;
-    target = goalAction.target;
-    progress = goalAction.progress;
-    howOften = goalAction.howOften;
-    howLong = goalAction.howLong;
-    bestTime = goalAction.bestTime;
     totalTimeTaken = goalAction.totalTimeTaken;
     lastActiveTime = goalAction.lastActiveTime;
     createTime = goalAction.createTime;
@@ -71,12 +65,6 @@ class GoalAction extends Equatable {
     if (actionId != goalAction.actionId) return false;
     if (startTime != goalAction.startTime) return false;
     if (stopTime != goalAction.stopTime) return false;
-    if (durationType != goalAction.durationType) return false;
-    if (target != goalAction.target) return false;
-    if (progress != goalAction.progress) return false;
-    if (howOften != goalAction.howOften) return false;
-    if (howLong != goalAction.howLong) return false;
-    if (bestTime != goalAction.bestTime) return false;
     if (totalTimeTaken != goalAction.totalTimeTaken) return false;
     if (lastActiveTime != goalAction.lastActiveTime) return false;
     if (createTime != goalAction.createTime) return false;

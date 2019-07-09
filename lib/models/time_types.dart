@@ -42,16 +42,6 @@ enum DurationType {
   forever,
 }
 
-enum RepeatType {
-  custom,
-  oneTime,
-  daily,
-  mondayToFriday,
-  weekly,
-  monthlyFirstWeekDay,
-  monthlySameDay,
-  yearly,
-}
 
 int durationTypeInMillis(DurationType t) {
   switch (t) {

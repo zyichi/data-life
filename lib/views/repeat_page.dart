@@ -3,7 +3,10 @@ import 'package:intl/intl.dart';
 import 'package:page_transition/page_transition.dart';
 
 import 'package:data_life/views/repeat_custom_page.dart';
-import 'package:data_life/models/time_types.dart';
+
+import 'package:data_life/models/repeat_types.dart';
+import 'package:data_life/models/goal_action.dart';
+
 import 'package:data_life/constants.dart';
 
 
@@ -12,57 +15,44 @@ String repeatTypeToStr(RepeatType t, DateTime time) {
   switch (t) {
     case RepeatType.custom:
       return 'Custom...';
-      break;
     case RepeatType.oneTime:
       return 'One-time action';
-      break;
     case RepeatType.daily:
       return 'Daily';
-      break;
     case RepeatType.mondayToFriday:
       return 'Monday to Friday';
-      break;
     case RepeatType.weekly:
       return 'Weekly (every ${DateFormat(DateFormat.WEEKDAY).format(time)})';
-      break;
     case RepeatType.monthlyFirstWeekDay:
       return 'Monthly (first ${DateFormat(DateFormat.WEEKDAY).format(time)} of every month)';
-      break;
     case RepeatType.monthlySameDay:
       return 'Monthly (on the same day each month)';
-      break;
     case RepeatType.yearly:
       return 'Yearly (every ${DateFormat(DateFormat.MONTH_DAY).format(time)})';
-      break;
+    default:
+      return null;
   }
-  return null;
 }
 
 class RepeatPage extends StatefulWidget {
-  final DateTime startTime;
-  final RepeatType repeatType;
+  final GoalAction goalAction;
 
-  RepeatPage({this.startTime, this.repeatType})
-      : assert(startTime != null),
-        assert(repeatType != null);
+  RepeatPage({this.goalAction})
+      : assert(goalAction != null);
 
   @override
   _RepeatPageState createState() => _RepeatPageState();
 }
 
 class _RepeatPageState extends State<RepeatPage> {
-  RepeatType _repeatType;
-
   @override
   void initState() {
     super.initState();
-
-    _repeatType = widget.repeatType;
   }
 
   List<Widget> _createRepeatTypeList() {
     return defaultRepeatTypeList.map((t) {
-      String _repeatText = repeatTypeToStr(t, widget.startTime);
+      String _repeatText = repeatTypeToStr(t, DateTime.fromMillisecondsSinceEpoch(widget.goalAction.startTime));
       return InkWell(
         child: Padding(
           padding:
@@ -72,7 +62,7 @@ class _RepeatPageState extends State<RepeatPage> {
             children: <Widget>[
               Radio<RepeatType>(
                 value: t,
-                groupValue: _repeatType,
+                groupValue: widget.goalAction.repeatType,
                 onChanged: (newValue) {
                   _repeatTypeChanged(newValue);
                 },
@@ -92,14 +82,14 @@ class _RepeatPageState extends State<RepeatPage> {
 
   void _repeatTypeChanged(RepeatType t) {
     setState(() {
-      _repeatType = t;
+      widget.goalAction.repeatType = t;
     });
     if (t == RepeatType.custom) {
       Navigator.push(
           context,
           PageTransition(
             child: RepeatCustomPage(
-              startTime: widget.startTime,
+              goalAction: widget.goalAction,
             ),
             type: PageTransitionType.rightToLeft,
           ));
