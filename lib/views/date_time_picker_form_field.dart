@@ -31,7 +31,7 @@ class DateTimePickerFormFieldState extends State<DateTimePickerFormField> {
   Widget build(BuildContext context) {
     final TextStyle valueStyle = Theme.of(context).textTheme.subhead;
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: <Widget>[
         LabelFormField(
           label: widget.labelText,

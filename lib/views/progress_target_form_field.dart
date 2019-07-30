@@ -93,7 +93,8 @@ class ProgressTargetState extends State<ProgressTarget> {
           child: _createTextInput(
               AppLocalizations.of(context).enterTarget,
               AppLocalizations.of(context).target,
-              _targetController, widget.targetFocusNode),
+              _targetController,
+              widget.targetFocusNode),
         ),
       ],
     );
@@ -131,16 +132,19 @@ class ProgressTargetState extends State<ProgressTarget> {
       child: FormField(
         builder: (fieldState) {
           return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
               _createProgressTargetFormField(),
               _createProgressWidget(),
               fieldState.hasError
-                  ? Text(
-                      fieldState.errorText,
-                      style: TextStyle(
-                        color: Colors.red,
-                      ),
-                    )
+                  ? Padding(
+                      padding: EdgeInsets.only(top: 8),
+                      child: Text(
+                        fieldState.errorText,
+                        style: TextStyle(
+                          color: Colors.red,
+                        ),
+                      ))
                   : Container(),
             ],
           );

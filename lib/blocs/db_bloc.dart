@@ -24,7 +24,7 @@ class DbBloc extends Bloc<DbEvent, DbState> {
   Stream<DbState> mapEventToState(DbEvent event) async* {
     if (event is OpenDb) {
       try {
-        // await LifeDb.delete();
+        await LifeDb.delete();
         await LifeDb.open();
         yield DbOpen();
       } catch (_) {

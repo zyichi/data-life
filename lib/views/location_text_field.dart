@@ -234,6 +234,7 @@ class _LocationTextFieldState extends State<LocationTextField> {
         if (value.isEmpty) {
           return 'Please enter location';
         }
+        return null;
       },
       getImmediateSuggestions: true,
       hideOnEmpty: true,

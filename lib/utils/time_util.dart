@@ -108,4 +108,27 @@ class TimeUtil {
     }
   }
 
+  static List<String> getWeekdayTextList(String localeName) {
+    DateFormat formatter = DateFormat(DateFormat.ABBR_WEEKDAY, localeName);
+    var l = [
+      DateTime(2000, 1, 3, 1),
+      DateTime(2000, 1, 4, 1),
+      DateTime(2000, 1, 5, 1),
+      DateTime(2000, 1, 6, 1),
+      DateTime(2000, 1, 7, 1),
+      DateTime(2000, 1, 8, 1),
+      DateTime(2000, 1, 9, 1)
+    ].map((day) => formatter.format(day)).toList();
+    l.insert(0, null);
+    return l;
+  }
+
+  static List<String> getMonthTextList(String localeName) {
+    DateFormat formatter = DateFormat(DateFormat.ABBR_MONTH, localeName);
+    var l = List.generate(12, (index) {
+      return formatter.format(DateTime(2019, index+1));
+    });
+    l.insert(0, null);
+    return l;
+  }
 }

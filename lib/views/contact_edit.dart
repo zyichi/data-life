@@ -75,7 +75,7 @@ class _ContactEditState extends State<ContactEdit> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocListener<ContactEditEvent, ContactEditState>(
+    return BlocListener<ContactEditBloc, ContactEditState>(
       bloc: _contactEditBloc,
       listener: (context, state) {
         if (state is ContactNameUniqueCheckResult) {

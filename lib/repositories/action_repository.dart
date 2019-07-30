@@ -4,7 +4,7 @@ import 'package:data_life/models/action.dart';
 import 'package:data_life/repositories/action_provider.dart';
 
 
-class ActionRepository extends PageRepository<Action> {
+class ActionRepository extends PageRepository<MyAction> {
   final ActionProvider _actionProvider;
 
   ActionRepository(this._actionProvider);
@@ -15,19 +15,19 @@ class ActionRepository extends PageRepository<Action> {
   }
 
   @override
-  Future<List<Action>> get({int startIndex, int count}) async {
+  Future<List<MyAction>> get({int startIndex, int count}) async {
     return _actionProvider.get(startIndex: startIndex, count: count);
   }
 
-  Future<Action> getViaName(String name) async {
+  Future<MyAction> getViaName(String name) async {
     return _actionProvider.getViaName(name);
   }
 
-  Future<List<Action>> search(String pattern) async {
+  Future<List<MyAction>> search(String pattern) async {
     return _actionProvider.search(pattern);
   }
 
-  Future<int> save(Action action) async {
+  Future<int> save(MyAction action) async {
     return _actionProvider.save(action);
   }
 }

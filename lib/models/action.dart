@@ -1,20 +1,20 @@
 import 'package:equatable/equatable.dart';
 
 
-class Action extends Equatable {
-  Action();
+class MyAction extends Equatable {
+  MyAction();
 
   int id;
   String name;
   int totalTimeTaken = 0;
-  int lastActiveTime;
+  int lastActiveTime = 0;
   int createTime;
   int updateTime;
 
   @override
   List get props => [name];
 
-  void copy(Action a) {
+  void copy(MyAction a) {
     id = a.id;
     name = a.name;
     totalTimeTaken = a.totalTimeTaken;
@@ -23,13 +23,13 @@ class Action extends Equatable {
     updateTime = a.updateTime;
   }
   
-  bool isSameWith(Action a) {
+  bool isSameWith(MyAction a) {
     if (id != a.id) return false;
     if (!isContentSameWith(a)) return false;
     return true;
   }
   
-  bool isContentSameWith(Action a) {
+  bool isContentSameWith(MyAction a) {
     if ((name ?? '') != (a.name ?? '')) return false;
     if (totalTimeTaken != a.totalTimeTaken) return false;
     if (lastActiveTime != a.lastActiveTime) return false;

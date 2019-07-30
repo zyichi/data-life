@@ -24,7 +24,7 @@ class _MomentListItem extends StatelessWidget {
         alignment: Alignment.center,
         height: 48.0,
         child: Padding(
-          padding: const EdgeInsets.only(left: 0, top: 8.0, bottom: 8.0),
+          padding: const EdgeInsets.only(left: 16, top: 8.0, right: 16, bottom: 8.0),
           child: Text('Loading ...'),
         ),
       );
@@ -48,20 +48,15 @@ class _MomentListItem extends StatelessWidget {
             children: <Widget>[
               Text(
                 moment.action.name,
-                style:
-                    Theme.of(context).textTheme.subtitle.copyWith(fontSize: 18),
+                style: Theme.of(context).textTheme.title,
               ),
-              SizedBox(
-                height: 8.0,
-              ),
+              SizedBox(height: 8.0),
               _createTimeWidget(context),
               Text(
                 moment.location.name,
               ),
               _createContactsWidget(),
-              SizedBox(
-                height: 8.0,
-              ),
+              SizedBox(height: 8.0),
               _createDurationWidget(context),
             ],
           ),
@@ -182,6 +177,7 @@ class _MomentListState extends State<MomentList>
               child: Text('Load moment failed'),
             );
           }
+          return null;
         },
       ),
     );

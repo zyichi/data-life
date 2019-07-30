@@ -1,62 +1,55 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:page_transition/page_transition.dart';
 
 import 'package:data_life/views/repeat_custom_page.dart';
+import 'package:data_life/views/type_to_str.dart';
 
 import 'package:data_life/models/repeat_types.dart';
 import 'package:data_life/models/goal_action.dart';
 
 import 'package:data_life/constants.dart';
 
-
-
-String repeatTypeToStr(RepeatType t, DateTime time) {
-  switch (t) {
-    case RepeatType.custom:
-      return 'Custom...';
-    case RepeatType.oneTime:
-      return 'One-time action';
-    case RepeatType.daily:
-      return 'Daily';
-    case RepeatType.mondayToFriday:
-      return 'Monday to Friday';
-    case RepeatType.weekly:
-      return 'Weekly (every ${DateFormat(DateFormat.WEEKDAY).format(time)})';
-    case RepeatType.monthlyFirstWeekDay:
-      return 'Monthly (first ${DateFormat(DateFormat.WEEKDAY).format(time)} of every month)';
-    case RepeatType.monthlySameDay:
-      return 'Monthly (on the same day each month)';
-    case RepeatType.yearly:
-      return 'Yearly (every ${DateFormat(DateFormat.MONTH_DAY).format(time)})';
-    default:
-      return null;
-  }
-}
-
 class RepeatPage extends StatefulWidget {
   final GoalAction goalAction;
+  final Repeat customRepeat;
 
-  RepeatPage({this.goalAction})
-      : assert(goalAction != null);
+  RepeatPage({this.goalAction, this.customRepeat}) : assert(goalAction != null);
 
   @override
   _RepeatPageState createState() => _RepeatPageState();
 }
 
 class _RepeatPageState extends State<RepeatPage> {
+  Repeat _customRepeat;
+
   @override
   void initState() {
+    if (widget.goalAction.repeatType == RepeatType.custom) {
+      _customRepeat = widget.goalAction.getRepeat();
+    } else {
+      _customRepeat = widget.customRepeat;
+    }
     super.initState();
   }
 
   List<Widget> _createRepeatTypeList() {
     return defaultRepeatTypeList.map((t) {
-      String _repeatText = repeatTypeToStr(t, DateTime.fromMillisecondsSinceEpoch(widget.goalAction.startTime));
+      String _repeatText;
+      if (t == RepeatType.custom) {
+        if (_customRepeat != null) {
+          _repeatText = TypeToStr.repeatToReadableText(_customRepeat, context);
+          _repeatText = 'Custom ($_repeatText)';
+        } else {
+          _repeatText = 'Custom...';
+        }
+      } else {
+        var repeat = Repeat.buildRepeat(t,
+            DateTime.fromMillisecondsSinceEpoch(widget.goalAction.startTime));
+        _repeatText = TypeToStr.repeatToReadableText(repeat, context);
+      }
       return InkWell(
         child: Padding(
-          padding:
-              const EdgeInsets.only(left: 8, top: 0, right: 16, bottom: 0),
+          padding: const EdgeInsets.only(left: 8, top: 0, right: 16, bottom: 0),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: <Widget>[
@@ -80,12 +73,12 @@ class _RepeatPageState extends State<RepeatPage> {
     }).toList();
   }
 
-  void _repeatTypeChanged(RepeatType t) {
+  void _repeatTypeChanged(RepeatType t) async {
     setState(() {
       widget.goalAction.repeatType = t;
     });
     if (t == RepeatType.custom) {
-      Navigator.push(
+      await Navigator.push(
           context,
           PageTransition(
             child: RepeatCustomPage(
@@ -93,6 +86,12 @@ class _RepeatPageState extends State<RepeatPage> {
             ),
             type: PageTransitionType.rightToLeft,
           ));
+      setState(() {
+        _customRepeat = widget.goalAction.getRepeat();
+      });
+    } else {
+      widget.goalAction.setRepeat(Repeat.buildRepeat(
+          t, DateTime.fromMillisecondsSinceEpoch(widget.goalAction.startTime)));
     }
   }
 
@@ -100,6 +99,15 @@ class _RepeatPageState extends State<RepeatPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        leading: IconButton(
+          icon: Icon(
+            Icons.chevron_left,
+            size: 40,
+          ),
+          onPressed: () {
+            Navigator.pop(context, _customRepeat);
+          },
+        ),
         title: Text('Repeat'),
       ),
       body: Padding(

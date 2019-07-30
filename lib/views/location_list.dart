@@ -23,7 +23,8 @@ class _LocationListItem extends StatelessWidget {
         alignment: Alignment.centerLeft,
         height: 48.0,
         child: Padding(
-          padding: const EdgeInsets.only(left: 0.0, top: 8.0, bottom: 8.0),
+          padding: const EdgeInsets.only(
+              left: 16.0, top: 8.0, bottom: 8.0, right: 16),
           child: Text('Loading ...'),
         ),
       );
@@ -40,23 +41,19 @@ class _LocationListItem extends StatelessWidget {
               ));
         },
         child: Padding(
-          padding: const EdgeInsets.only(left: 0.0, top: 8.0, bottom: 8.0),
+          padding:
+              const EdgeInsets.only(left: 16, top: 8.0, right: 16, bottom: 8.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
               Text(
                 location.name,
-                style:
-                    Theme.of(context).textTheme.subtitle.copyWith(fontSize: 18),
+                style: Theme.of(context).textTheme.title,
               ),
-              SizedBox(
-                height: 4,
-              ),
+              SizedBox(height: 8),
               _createLastActiveTimeWidget(context),
-              SizedBox(
-                height: 8,
-              ),
+              SizedBox(height: 8),
               _createTotalTimeStayWidget(context),
             ],
           ),
@@ -124,7 +121,7 @@ class _LocationListState extends State<LocationList>
     print('LocationList.build');
     super.build(context);
     return Padding(
-      padding: const EdgeInsets.only(left: 16, top: 8, right: 16, bottom: 8),
+      padding: const EdgeInsets.only(left: 0, top: 8, right: 0, bottom: 8),
       child: BlocBuilder(
         bloc: _locationListBloc,
         builder: (context, state) {
@@ -162,6 +159,7 @@ class _LocationListState extends State<LocationList>
               child: Text('Load location failed'),
             );
           }
+          return null;
         },
       ),
     );

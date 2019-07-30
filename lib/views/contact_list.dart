@@ -24,7 +24,8 @@ class _ContactListItem extends StatelessWidget {
         alignment: Alignment.centerLeft,
         height: 48.0,
         child: Padding(
-          padding: const EdgeInsets.only(left: 0.0, top: 8.0, bottom: 8.0),
+          padding:
+              const EdgeInsets.only(left: 16, top: 8, right: 16, bottom: 8),
           child: Text('Loading ...'),
         ),
       );
@@ -41,23 +42,19 @@ class _ContactListItem extends StatelessWidget {
               ));
         },
         child: Padding(
-          padding: const EdgeInsets.only(left: 0.0, top: 8.0, bottom: 8.0),
+          padding:
+              const EdgeInsets.only(left: 16, top: 8, right: 16, bottom: 8),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
               Text(
                 contact.name,
-                style:
-                    Theme.of(context).textTheme.subtitle.copyWith(fontSize: 18),
+                style: Theme.of(context).textTheme.title,
               ),
-              SizedBox(
-                height: 4.0,
-              ),
+              SizedBox(height: 8),
               _createLastMeetTimeWidget(context),
-              SizedBox(
-                height: 8.0,
-              ),
+              SizedBox(height: 8),
               _createTotalTimeTogetherWidget(context),
             ],
           ),
@@ -131,10 +128,11 @@ class _ContactListState extends State<ContactList>
         if (state is PageLoaded || state is PageError) {
           print('ContactList RefreshIndicator complete');
           _refreshCompleter?.complete();
+          _refreshCompleter = null;
         }
       },
       child: Padding(
-        padding: const EdgeInsets.only(left: 16, top: 8, right: 16, bottom: 8),
+        padding: const EdgeInsets.only(left: 0, top: 8, right: 0, bottom: 8),
         child: RefreshIndicator(
           onRefresh: () {
             print('ContactList RefreshIndicator onRefresh');
@@ -179,6 +177,7 @@ class _ContactListState extends State<ContactList>
                   child: Text('Load contact failed'),
                 );
               }
+              return null;
             },
           ),
         ),

@@ -13,6 +13,7 @@ import 'package:data_life/models/contact.dart';
 import 'package:data_life/models/location.dart';
 import 'package:data_life/models/moment.dart';
 import 'package:data_life/models/goal.dart';
+import 'package:data_life/models/todo.dart';
 
 
 abstract class PageEvent extends Equatable {
@@ -156,6 +157,9 @@ class PageBloc<Item> extends Bloc<PageEvent, PageState> {
     }
     if (l is List<Goal>) {
       return 'GOAL';
+    }
+    if (l is List<Todo>) {
+      return 'TODO';
     }
     return 'UNKNOWN';
   }

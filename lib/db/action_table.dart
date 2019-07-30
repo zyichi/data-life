@@ -15,7 +15,7 @@ create table $name (
   $columnId integer primary key autoincrement,
   $columnName text not null,
   $columnTotalTimeTaken integer default 0,
-  $columnLastActiveTime integer default null,
+  $columnLastActiveTime integer default 0,
   $columnCreateTime integer not null,
   $columnUpdateTime integer default null)
 ''';
@@ -27,8 +27,8 @@ create unique index action_name_idx on $name(
 
   static List<String> get initSqlList => [createSql, createIndexSql];
 
-  static Action fromMap(Map map) {
-    final action = Action();
+  static MyAction fromMap(Map map) {
+    final action = MyAction();
     action.id = map[ActionTable.columnId] as int;
     action.name = map[ActionTable.columnName] as String;
     action.totalTimeTaken = map[ActionTable.columnTotalTimeTaken] as int;
@@ -38,7 +38,7 @@ create unique index action_name_idx on $name(
     return action;
   }
 
-  static Map<String, dynamic> toMap(Action action) {
+  static Map<String, dynamic> toMap(MyAction action) {
     var map = <String, dynamic>{
       ActionTable.columnName: action.name,
       ActionTable.columnTotalTimeTaken: action.totalTimeTaken,

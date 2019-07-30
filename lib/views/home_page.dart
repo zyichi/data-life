@@ -6,27 +6,52 @@ import 'package:page_transition/page_transition.dart';
 
 import 'package:data_life/views/goal_edit.dart';
 import 'package:data_life/views/search_page.dart';
-import 'package:data_life/views/my_color.dart';
 import 'package:data_life/views/moment_list.dart';
 import 'package:data_life/views/goal_list.dart';
 import 'package:data_life/views/todo_list.dart';
 import 'package:data_life/views/moment_edit.dart';
-import 'package:data_life/views/test_layout.dart';
 import 'package:data_life/views/my_bottom_sheet.dart';
 
 import 'package:data_life/models/moment.dart';
 import 'package:data_life/models/goal.dart';
 import 'package:data_life/models/contact.dart';
 import 'package:data_life/models/location.dart';
+import 'package:data_life/models/todo.dart';
 
 import 'package:data_life/blocs/moment_edit_bloc.dart';
 import 'package:data_life/blocs/goal_edit_bloc.dart';
 import 'package:data_life/blocs/contact_edit_bloc.dart';
 import 'package:data_life/blocs/location_edit_bloc.dart';
+import 'package:data_life/blocs/todo_bloc.dart';
 
 import 'package:data_life/paging/page_bloc.dart';
 
 import 'package:data_life/localizations.dart';
+
+
+enum TabType {
+  moments,
+  goals,
+  todo,
+}
+List<TabType> tabTypeList = [
+  TabType.moments,
+  TabType.goals,
+  TabType.todo,
+];
+String tabTypeToStr(TabType t, BuildContext context) {
+  switch (t) {
+    case TabType.moments:
+      return AppLocalizations.of(context).moments;
+    case TabType.goals:
+      return AppLocalizations.of(context).goals;
+    case TabType.todo:
+      return 'To-do';
+    default:
+      return null;
+  }
+}
+
 
 class HomePage extends StatefulWidget {
   final String title;
@@ -47,8 +72,13 @@ class HomePageState extends State<HomePage>
   GoalEditBloc _goalEditBloc;
   ContactEditBloc _contactEditBloc;
   LocationEditBloc _locationEditBloc;
+  TodoBloc _todoBloc;
 
   var _androidApp = MethodChannel("android_app");
+
+  var _newTodoCount = 0;
+  final double _todoCountBubbleMinWidth = 24;
+  final double _todoCountBubbleMinHeight = 24;
 
   @override
   void initState() {
@@ -60,8 +90,9 @@ class HomePageState extends State<HomePage>
     _contactEditBloc = BlocProvider.of<ContactEditBloc>(context);
     _locationEditBloc = BlocProvider.of<LocationEditBloc>(context);
     _goalEditBloc = BlocProvider.of<GoalEditBloc>(context);
+    _todoBloc = BlocProvider.of<TodoBloc>(context);
 
-    _tabController = TabController(length: 3, vsync: this);
+    _tabController = TabController(length: tabTypeList.length, vsync: this);
   }
 
   @override
@@ -176,15 +207,19 @@ class HomePageState extends State<HomePage>
     }
   }
 
+  void _todoBlocListener(
+      BuildContext context, TodoState state) {
+    if (state is TodayTodoCreated || state is TodoDismissed || state is TodoDone) {
+      setState(() {
+        _newTodoCount = _todoBloc.waitingTodoCount;
+      });
+      BlocProvider.of<PageBloc<Todo>>(context).dispatch(RefreshPage());
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     print('HomePage.build');
-    var _tabs = <String>[
-      AppLocalizations.of(context).moments,
-      AppLocalizations.of(context).goals,
-      'ToDo',
-    ];
-
     return WillPopScope(
       onWillPop: () {
         if (Platform.isAndroid) {
@@ -196,6 +231,7 @@ class HomePageState extends State<HomePage>
         } else {
           return Future.value(true);
         }
+        return Future.value(true);
       },
       child: Material(
         child: Scaffold(
@@ -204,42 +240,88 @@ class HomePageState extends State<HomePage>
             bottom: TabBar(
               indicator: _getIndicator(),
               controller: _tabController,
-              tabs: _tabs.map((text) {
-                return Tab(text: text);
+              tabs: tabTypeList.map((tabType) {
+                return Tab(
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Stack(
+                        children: [
+                          Align(
+                            alignment: Alignment.center,
+                            child: Padding(
+                              padding: const EdgeInsets.only(left: 16, top: 0, right: 16, bottom: 0),
+                              child: Text(tabTypeToStr(tabType, context)),
+                            ),
+                          ),
+                          (tabType == TabType.todo && _newTodoCount > 0) ? Positioned(
+                            top: 0,
+                            right: 0,
+                            child: Container(
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(_todoCountBubbleMinWidth / 2),
+                                color: Colors.red,
+                              ),
+                              constraints: BoxConstraints(
+                                minWidth: _todoCountBubbleMinWidth,
+                                minHeight: _todoCountBubbleMinHeight,
+                              ),
+                              child: Center(
+                                child: Padding(
+                                  padding: const EdgeInsets.all(4.0),
+                                  child: Text(
+                                    _newTodoCount > 99 ? '99+' : _newTodoCount.toString(),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ) : Container(),
+                        ],
+                      ),
+                    ],
+                  ),
+                );
               }).toList(growable: false),
             ),
           ),
-          body: BlocListenerTree(
-            blocListeners: [
-              BlocListener<MomentEditEvent, MomentEditState>(
+          body: MultiBlocListener(
+            listeners: [
+              BlocListener<MomentEditBloc, MomentEditState>(
                 bloc: _momentEditBloc,
                 listener: _momentEditBlocListener,
               ),
-              BlocListener<GoalEditEvent, GoalEditState>(
+              BlocListener<TodoBloc, TodoState>(
+                bloc: _todoBloc,
+                listener: _todoBlocListener,
+              ),
+              BlocListener<GoalEditBloc, GoalEditState>(
                 bloc: _goalEditBloc,
                 listener: _goalEditBlocListener,
               ),
-              BlocListener<ContactEditEvent, ContactEditState>(
+              BlocListener<ContactEditBloc, ContactEditState>(
                 bloc: _contactEditBloc,
                 listener: _contactEditBlocListener,
               ),
-              BlocListener<LocationEditEvent, LocationEditState>(
+              BlocListener<LocationEditBloc, LocationEditState>(
                 bloc: _locationEditBloc,
                 listener: _locationEditBlocListener,
               ),
             ],
             child: TabBarView(
               controller: _tabController,
-              children: _tabs.map((text) {
+              children: tabTypeList.map((tabType) {
+                String text = tabTypeToStr(tabType, context);
                 print('Create tab view for $text');
-                if (text == AppLocalizations.of(context).moments) {
-                  return MomentList(name: text);
-                }
-                if (text == AppLocalizations.of(context).goals) {
-                  return GoalList(name: text);
-                }
-                if (text == 'ToDo') {
-                  return ToDoList(name: text);
+                switch (tabType) {
+                  case TabType.moments:
+                    return MomentList(name: text);
+                  case TabType.goals:
+                    return GoalList(name: text);
+                  case TabType.todo:
+                    return TodoList(name: text);
+                  default:
+                    return null;
                 }
               }).toList(growable: false),
             ),

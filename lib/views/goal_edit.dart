@@ -13,18 +13,19 @@ import 'package:data_life/views/labeled_text_form_field.dart';
 import 'package:data_life/views/unique_check_form_field.dart';
 import 'package:data_life/views/common_dialog.dart';
 import 'package:data_life/views/date_picker_form_field.dart';
+import 'package:data_life/views/type_to_str.dart';
 
 import 'package:data_life/blocs/goal_edit_bloc.dart';
 
-
 void _showGoalActionEditPage(
-    BuildContext context, Goal goal, GoalAction goalAction) {
+    BuildContext context, Goal goal, GoalAction goalAction, bool readOnly) {
   Navigator.push(
       context,
       PageTransition(
         child: GoalActionEdit(
           goal: goal,
           goalAction: goalAction,
+          parentReadOnly: readOnly,
         ),
         type: PageTransitionType.rightToLeft,
       ));
@@ -33,8 +34,9 @@ void _showGoalActionEditPage(
 class _GoalActionItem extends StatelessWidget {
   final Goal goal;
   final GoalAction goalAction;
-  final bool enabled;
-  const _GoalActionItem({this.goal, this.goalAction, this.enabled = true})
+  final bool parentReadOnly;
+  const _GoalActionItem(
+      {this.goal, this.goalAction, this.parentReadOnly = true})
       : assert(goal != null),
         assert(goalAction != null);
 
@@ -59,16 +61,17 @@ class _GoalActionItem extends StatelessWidget {
             ),
             Expanded(
               flex: 2,
-              child: Text('ongoing', style: statusStyle),
+              child: Text(
+                TypeToStr.goalActionStatusToStr(goalAction.status, context),
+                style: statusStyle,
+              ),
             ),
           ],
         ),
       ),
-      onTap: !enabled
-          ? null
-          : () {
-              _showGoalActionEditPage(context, goal, goalAction);
-            },
+      onTap: () {
+        _showGoalActionEditPage(context, goal, goalAction, parentReadOnly);
+      },
     );
   }
 }
@@ -197,7 +200,7 @@ class _GoalEditState extends State<GoalEdit> {
       onTap: _isReadOnly
           ? null
           : () {
-              _showGoalActionEditPage(context, _goal, null);
+              _showGoalActionEditPage(context, _goal, null, false);
             },
     );
   }
@@ -208,7 +211,7 @@ class _GoalEditState extends State<GoalEdit> {
       toDoItems.add(_GoalActionItem(
         goal: _goal,
         goalAction: goalAction,
-        enabled: !_isReadOnly,
+        parentReadOnly: _isReadOnly,
       ));
     }
     toDoItems.add(_createAddGoalActionButton());
@@ -300,7 +303,7 @@ class _GoalEditState extends State<GoalEdit> {
       body: SafeArea(
         top: false,
         bottom: false,
-        child: BlocListener<GoalEditEvent, GoalEditState>(
+        child: BlocListener<GoalEditBloc, GoalEditState>(
           bloc: _goalEditBloc,
           listener: (context, state) {
             if (state is GoalActionAdded ||
@@ -353,27 +356,55 @@ class _GoalEditState extends State<GoalEdit> {
                   ),
                   Divider(),
                   SizedBox(height: 8),
-                  DatePickerFormField(
-                    labelText: 'From',
-                    initialDateTime:
-                        DateTime.fromMillisecondsSinceEpoch(_goal.startTime),
-                    selectDate: (date) {
-                      setState(() {
-                        _goal.startTime = date.millisecondsSinceEpoch;
-                      });
+                  FormField(
+                    builder: (FormFieldState fieldState) {
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: <Widget>[
+                          DatePickerFormField(
+                            labelText: 'From',
+                            initialDateTime:
+                                DateTime.fromMillisecondsSinceEpoch(
+                                    _goal.startTime),
+                            selectDate: (date) {
+                              fieldState.didChange(null);
+                              _goal.startTime = date.millisecondsSinceEpoch;
+                            },
+                            enabled: !_isReadOnly,
+                          ),
+                          DatePickerFormField(
+                            labelText: 'To',
+                            initialDateTime:
+                                DateTime.fromMillisecondsSinceEpoch(
+                                    _goal.stopTime),
+                            selectDate: (date) {
+                              fieldState.didChange(null);
+                              _goal.stopTime = date.millisecondsSinceEpoch;
+                            },
+                            enabled: !_isReadOnly,
+                          ),
+                          FormFieldError(
+                            errorText: fieldState.errorText,
+                          )
+                        ],
+                      );
                     },
-                    enabled: !_isReadOnly,
-                  ),
-                  DatePickerFormField(
-                    labelText: 'To',
-                    initialDateTime:
-                        DateTime.fromMillisecondsSinceEpoch(_goal.stopTime),
-                    selectDate: (date) {
-                      setState(() {
-                        _goal.stopTime = date.millisecondsSinceEpoch;
-                      });
+                    autovalidate: true,
+                    validator: (value) {
+                      var now = DateTime.now();
+                      var nowDate = DateTime(now.year, now.month, now.day);
+                      if (_goal.startTime < nowDate.millisecondsSinceEpoch) {
+                        return '开始时间必须在当前时间之后';
+                      }
+                      if (_goal.stopTime - _goal.startTime <
+                          Duration(days: 3).inMilliseconds) {
+                        return '时长必须大于三天';
+                      }
+                      if (_goal.startTime > _goal.stopTime) {
+                        return '开始时间必须早于结束时间';
+                      }
+                      return null;
                     },
-                    enabled: !_isReadOnly,
                   ),
                   SizedBox(height: 8),
                   Divider(),

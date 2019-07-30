@@ -23,12 +23,14 @@ class CommonDialog {
               onPressed: () {
                 Navigator.of(context).pop(false);
               },
+              textColor: Theme.of(context).primaryColorDark,
             ),
             FlatButton(
               child: Text(AppLocalizations.of(context).discard),
               onPressed: () {
                 Navigator.of(context).pop(true);
               },
+              textColor: Theme.of(context).primaryColorDark,
             )
           ],
         );

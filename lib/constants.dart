@@ -44,7 +44,7 @@ List<RepeatType> defaultRepeatTypeList = [
   RepeatType.daily,
   RepeatType.mondayToFriday,
   RepeatType.weekly,
-  RepeatType.monthlyFirstWeekDay,
+  RepeatType.monthlyFirstWeekday,
   RepeatType.monthlySameDay,
   RepeatType.yearly,
   RepeatType.custom,

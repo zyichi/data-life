@@ -41,6 +41,11 @@ class ThemeBloc extends Bloc<ThemeEvent, ThemeState> {
   final ThemeData _privacyTheme = ThemeData.dark().copyWith(
   );
   final ThemeData _defaultTheme = ThemeData.light().copyWith(
+    primaryColorLight: Colors.green[200],
+    primaryColorDark: Colors.green[700],
+    primaryColor: Colors.green[500],
+    accentColor: Colors.deepOrange[500],
+    scaffoldBackgroundColor: Colors.white,
   );
   final ThemeData _XdefaultTheme = ThemeData(
     primarySwatch: Colors.green,

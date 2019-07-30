@@ -1,6 +1,17 @@
-import 'package:data_life/models/goal_action.dart';
+import 'dart:math';
 
+import 'package:data_life/models/goal_action.dart';
 import 'package:data_life/models/time_types.dart';
+
+
+enum GoalStatus {
+  none,
+  ongoing,
+  expired,
+  paused,
+  finished,
+}
+
 
 class Goal {
   Goal();
@@ -11,8 +22,9 @@ class Goal {
   num progress;
   int startTime;
   int stopTime;
+  GoalStatus status = GoalStatus.ongoing;
   DurationType durationType;
-  int lastActiveTime;
+  int lastActiveTime = 0;
   int totalTimeTaken = 0;
   int createTime;
   int updateTime;
@@ -23,6 +35,15 @@ class Goal {
     return goalActions.map((goalAction) {
       return goalAction.totalTimeTaken;
     }).reduce((a, b) => a + b);
+  }
+
+  void updateFieldFromGoalAction() {
+    totalTimeTaken = 0;
+    lastActiveTime = 0;
+    for (var goalAction in goalActions) {
+      totalTimeTaken += goalAction.totalTimeTaken;
+      lastActiveTime = max(lastActiveTime, goalAction.lastActiveTime ?? 0);
+    }
   }
 
   static Goal copyCreate(Goal goal) {
@@ -37,6 +58,7 @@ class Goal {
     if (progress != goal.progress) return false;
     if (startTime != goal.startTime) return false;
     if (stopTime != goal.stopTime) return false;
+    if (status != goal.status) return false;
     if (durationType != goal.durationType) return false;
     if (lastActiveTime != goal.lastActiveTime) return false;
     if (totalTimeTaken != goal.totalTimeTaken) return false;
@@ -90,6 +112,7 @@ class Goal {
     progress = g.progress;
     startTime = g.startTime;
     stopTime = g.stopTime;
+    status = g.status;
     durationType = g.durationType;
     lastActiveTime = g.lastActiveTime;
     totalTimeTaken = g.totalTimeTaken;

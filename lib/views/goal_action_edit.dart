@@ -7,6 +7,7 @@ import 'package:data_life/views/common_dialog.dart';
 import 'package:data_life/views/date_time_picker_form_field.dart';
 import 'package:data_life/views/labeled_text_form_field.dart';
 import 'package:data_life/views/repeat_page.dart';
+import 'package:data_life/views/type_to_str.dart';
 
 import 'package:data_life/models/goal.dart';
 import 'package:data_life/models/action.dart';
@@ -18,7 +19,6 @@ import 'package:data_life/blocs/goal_edit_bloc.dart';
 
 import 'package:data_life/localizations.dart';
 import 'package:data_life/utils/time_util.dart';
-
 
 final howOftenOptions = [
   HowOften.notRepeat,
@@ -114,13 +114,15 @@ String getBestTimeLiteral(BuildContext context, BestTime bestTime) {
   }
 }
 
-
 class GoalActionEdit extends StatefulWidget {
   static const routeName = '/goalActionEdit';
   final Goal goal;
   final GoalAction goalAction;
+  final bool parentReadOnly;
 
-  const GoalActionEdit({this.goal, this.goalAction}) : assert(goal != null);
+  const GoalActionEdit(
+      {this.goal, this.goalAction, this.parentReadOnly = false})
+      : assert(goal != null);
 
   @override
   _GoalActionEditState createState() {
@@ -138,6 +140,7 @@ class _GoalActionEditState extends State<GoalActionEdit> {
   GoalEditBloc _goalEditBloc;
   bool _autoValidateActionName = false;
   String _repeatText;
+  Repeat _customRepeat;
 
   bool _isNeedExitConfirm() {
     _updateGoalActionFromForm();
@@ -173,7 +176,6 @@ class _GoalActionEditState extends State<GoalActionEdit> {
 
     _goalEditBloc = BlocProvider.of<GoalEditBloc>(context);
 
-    _repeatText = 'One-time action';
     if (widget.goalAction != null) {
       _isReadOnly = true;
 
@@ -186,11 +188,7 @@ class _GoalActionEditState extends State<GoalActionEdit> {
       _goalAction.startTime = now.millisecondsSinceEpoch;
       _goalAction.stopTime =
           _goalAction.startTime + Duration(hours: 1).inMilliseconds;
-      _goalAction.repeatType = RepeatType.oneTime;
-      _goalAction.repeatEvery = RepeatEvery.day;
-      _goalAction.repeatEveryStep = 1;
-      _goalAction.monthRepeatOn = MonthRepeatOn.day;
-      _goalAction.weekdaySeqOfMonth = TimeUtil.getWeekdaySeqOfMonth(now);
+      _goalAction.setRepeat(Repeat.oneTime(now));
     }
 
     _actionNameController.addListener(() {
@@ -205,6 +203,7 @@ class _GoalActionEditState extends State<GoalActionEdit> {
   bool get _isNewGoalAction => widget.goalAction == null;
 
   Widget _createEditAction() {
+    if (widget.parentReadOnly) return Container();
     if (_isReadOnly) {
       return IconButton(
         icon: Icon(Icons.edit),
@@ -212,7 +211,6 @@ class _GoalActionEditState extends State<GoalActionEdit> {
           setState(() {
             _isReadOnly = false;
           });
-          // FocusScope.of(context).requestFocus(_actionNameFocusNode);
           FocusScope.of(context).requestFocus(_progressFocusNode);
         },
       );
@@ -227,6 +225,27 @@ class _GoalActionEditState extends State<GoalActionEdit> {
         },
       );
     }
+  }
+
+  Widget _createMoreActionMenu() {
+    if (widget.parentReadOnly || _isNewGoalAction) return Container();
+    return PopupMenuButton<String>(
+      icon: Icon(Icons.more_vert),
+      onSelected: (value) {
+        if (value == 'delete') {
+          _deleteGoalAction();
+          Navigator.of(context).pop(true);
+        }
+      },
+      itemBuilder: (context) {
+        return [
+          PopupMenuItem<String>(
+            value: 'delete',
+            child: Text('Delete'),
+          ),
+        ];
+      },
+    );
   }
 
   Widget _createActionNameFormField() {
@@ -245,12 +264,12 @@ class _GoalActionEditState extends State<GoalActionEdit> {
         // autofocus: !_isReadOnly,
         enabled: _isNewGoalAction,
       ),
-      onSuggestionSelected: (Action action) {
+      onSuggestionSelected: (MyAction action) {
         _actionNameController.text = action.name;
         _goalAction.action = action;
       },
       itemBuilder: (context, suggestion) {
-        final action = suggestion as Action;
+        final action = suggestion as MyAction;
         return Padding(
           padding: const EdgeInsets.only(left: 8.0, top: 8.0, bottom: 8.0),
           child: Text(
@@ -266,13 +285,16 @@ class _GoalActionEditState extends State<GoalActionEdit> {
           return null;
         }
         if (value.isEmpty) {
+          print('here 1');
           return 'Please enter action';
         }
         for (var goalAction in widget.goal.goalActions) {
           if (goalAction.action.name == value) {
+            print('here 2 ${goalAction.action.name}:$value');
             return 'Action already exist in goal';
           }
         }
+        return null;
       },
       autovalidate: _autoValidateActionName,
     );
@@ -281,7 +303,7 @@ class _GoalActionEditState extends State<GoalActionEdit> {
   void _updateGoalActionFromForm() {
     if (_goalAction.action == null) {
       if (_actionNameController.text.isNotEmpty) {
-        var a = Action();
+        var a = MyAction();
         a.name = _actionNameController.text;
         _goalAction.action = a;
       }
@@ -291,6 +313,9 @@ class _GoalActionEditState extends State<GoalActionEdit> {
   void _editGoalAction() {
     _updateGoalActionFromForm();
     if (_isNewGoalAction) {
+      setState(() {
+        _autoValidateActionName = false;
+      });
       widget.goal.goalActions.add(_goalAction);
       _goalEditBloc.dispatch(AddGoalAction(goalAction: _goalAction));
     } else {
@@ -307,31 +332,18 @@ class _GoalActionEditState extends State<GoalActionEdit> {
 
   @override
   Widget build(BuildContext context) {
+    _repeatText =
+        TypeToStr.repeatToReadableText(_goalAction.getRepeat(), context);
+    if (_goalAction.repeatType == RepeatType.custom) {
+      _repeatText = 'Custom ($_repeatText)';
+    }
     return Scaffold(
       appBar: AppBar(
         title: Text(_goalAction.action?.name ?? 'Action'),
         centerTitle: true,
         actions: <Widget>[
           _createEditAction(),
-          _isNewGoalAction
-              ? Container()
-              : PopupMenuButton<String>(
-                  icon: Icon(Icons.more_vert),
-                  onSelected: (value) {
-                    if (value == 'delete') {
-                      _deleteGoalAction();
-                      Navigator.of(context).pop(true);
-                    }
-                  },
-                  itemBuilder: (context) {
-                    return [
-                      PopupMenuItem<String>(
-                        value: 'delete',
-                        child: Text('Delete'),
-                      ),
-                    ];
-                  },
-                ),
+          _createMoreActionMenu(),
         ],
       ),
       body: SafeArea(
@@ -346,27 +358,36 @@ class _GoalActionEditState extends State<GoalActionEdit> {
               _createActionNameFormField(),
               Divider(),
               SizedBox(height: 16),
-              DateTimePickerFormField(
-                labelText: 'From',
-                initialDateTime:
-                    DateTime.fromMillisecondsSinceEpoch(_goalAction.startTime),
-                selectDateTime: (time) {
-                  setState(() {
-                    _goalAction.startTime = time.millisecondsSinceEpoch;
-                  });
+              FormField(
+                builder: (fieldState) {
+                  return Column(
+                    children: <Widget>[
+                      DateTimePickerFormField(
+                        labelText: 'From',
+                        initialDateTime:
+                        DateTime.fromMillisecondsSinceEpoch(_goalAction.startTime),
+                        selectDateTime: (time) {
+                          _goalAction.startTime = time.millisecondsSinceEpoch;
+                          fieldState.didChange(null);
+                        },
+                        enabled: !_isReadOnly,
+                      ),
+                      DateTimePickerFormField(
+                        labelText: 'To',
+                        initialDateTime:
+                        DateTime.fromMillisecondsSinceEpoch(_goalAction.stopTime),
+                        selectDateTime: (time) {
+                          _goalAction.stopTime = time.millisecondsSinceEpoch;
+                          fieldState.didChange(null);
+                        },
+                        enabled: !_isReadOnly,
+                      ),
+                    ],
+                  );
                 },
-                enabled: !_isReadOnly,
-              ),
-              DateTimePickerFormField(
-                labelText: 'To',
-                initialDateTime:
-                    DateTime.fromMillisecondsSinceEpoch(_goalAction.stopTime),
-                selectDateTime: (time) {
-                  setState(() {
-                    _goalAction.stopTime = time.millisecondsSinceEpoch;
-                  });
+                validator: (value) {
+                  return null;
                 },
-                enabled: !_isReadOnly,
               ),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -382,17 +403,23 @@ class _GoalActionEditState extends State<GoalActionEdit> {
                         style: Theme.of(context).textTheme.subhead,
                       ),
                     ),
-                    onTap: () async {
-                      String result = await Navigator.push(
-                          context,
-                          PageTransition(
-                            child: RepeatPage(goalAction: _goalAction),
-                            type: PageTransitionType.rightToLeft,
-                          ));
-                      if (result != null) {
-                        _repeatText = result;
-                      }
-                    },
+                    onTap: _isReadOnly
+                        ? null
+                        : () async {
+                            _customRepeat = await Navigator.push(
+                                context,
+                                PageTransition(
+                                  child: RepeatPage(
+                                    goalAction: _goalAction,
+                                    customRepeat: _customRepeat,
+                                  ),
+                                  type: PageTransitionType.rightToLeft,
+                                ));
+                            setState(() {
+                              _repeatText = TypeToStr.repeatToReadableText(
+                                  _goalAction.getRepeat(), context);
+                            });
+                          },
                   )
                 ],
               ),

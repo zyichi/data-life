@@ -31,6 +31,8 @@ class UpdateGoal extends GoalEditEvent {
         assert(newGoal != null);
 }
 
+class UpdateGoalStatus extends GoalEditEvent {}
+
 class UpdateGoalAction extends GoalEditEvent {
   final GoalAction oldGoalAction;
   final GoalAction newGoalAction;
@@ -58,7 +60,11 @@ class GoalNameUniqueCheck extends GoalEditEvent {
 
 class GoalUninitialized extends GoalEditState {}
 
-class GoalAdded extends GoalEditState {}
+class GoalAdded extends GoalEditState {
+  final Goal goal;
+
+  GoalAdded({this.goal});
+}
 
 class GoalActionAdded extends GoalEditState {}
 
@@ -116,7 +122,7 @@ class GoalEditBloc extends Bloc<GoalEditEvent, GoalEditState> {
           goalAction.createTime = now;
           await goalRepository.saveGoalAction(goalAction);
         }
-        yield GoalAdded();
+        yield GoalAdded(goal: goal);
       } catch (e) {
         yield GoalEditFailed(
             error: 'Add goal ${event.goal.name} failed: ${e.toString()}');
@@ -162,6 +168,9 @@ class GoalEditBloc extends Bloc<GoalEditEvent, GoalEditState> {
             error: 'Update goal ${goal.name} failed: ${e.toString()}');
       }
     }
+    if (event is UpdateGoalStatus) {
+
+    }
     if (event is DeleteGoalAction) {
       yield GoalActionDeleted(goalAction: event.goalAction);
     }
@@ -185,8 +194,8 @@ class GoalEditBloc extends Bloc<GoalEditEvent, GoalEditState> {
 
   Future<void> _updateGoalActionInfo(GoalAction goalAction, int now) async {
     if (goalAction.id == null) {
-      var dbGoalAction = await goalRepository.getGoalActionViaActionId(
-          goalAction.goalId, goalAction.actionId);
+      var dbGoalAction = await goalRepository.getGoalActionViaGoalAndAction(
+          goalAction.goalId, goalAction.actionId, true);
       if (dbGoalAction != null) {
         goalAction.updateTime = now;
         goalAction.id = dbGoalAction.id;
@@ -215,7 +224,7 @@ class GoalEditBloc extends Bloc<GoalEditEvent, GoalEditState> {
     return goal == null;
   }
 
-  Future<List<Action>> getActionSuggestions(String pattern) async {
+  Future<List<MyAction>> getActionSuggestions(String pattern) async {
     if (pattern.isEmpty) {
       return actionRepository.get(startIndex: 0, count: 8);
     } else {

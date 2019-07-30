@@ -33,6 +33,27 @@ class LabelFormField extends StatelessWidget {
   }
 }
 
+
+class FormFieldError extends StatelessWidget {
+  final String errorText;
+
+  FormFieldError({this.errorText});
+
+  @override
+  Widget build(BuildContext context) {
+    return _isShowError() ? Text(
+      errorText,
+      style: TextStyle(
+        color: Colors.red,
+      ),
+    ) : Container();
+  }
+
+  bool _isShowError() {
+    return errorText != null && errorText.isNotEmpty;
+  }
+}
+
 class LabeledTextFormField extends StatelessWidget {
   final String labelText;
   final String hintText;

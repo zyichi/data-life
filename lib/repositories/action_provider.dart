@@ -19,13 +19,13 @@ class ActionProvider {
         await LifeDb.db.rawQuery('select count(*) from ${ActionTable.name}'));
   }
 
-  Future<List<Action>> getTestData({int startIndex, int count}) async {
+  Future<List<MyAction>> getTestData({int startIndex, int count}) async {
     return Future.delayed(Duration(seconds: 1), () {
       startIndex = min(startIndex, testTotal);
       int endIndex = min(startIndex + count - 1, testTotal - 1);
-      final actions = List<Action>();
+      final actions = List<MyAction>();
       for (int i = startIndex; i <= endIndex; ++i) {
-        final action = Action();
+        final action = MyAction();
         action.id = i;
         actions.add(action);
       }
@@ -33,7 +33,7 @@ class ActionProvider {
     });
   }
 
-  Future<List<Action>> get({int startIndex, int count}) async {
+  Future<List<MyAction>> get({int startIndex, int count}) async {
     List<Map> maps = await LifeDb.db.query(
       ActionTable.name,
       columns: [],
@@ -46,7 +46,7 @@ class ActionProvider {
     }).toList();
   }
 
-  Future<Action> getViaId(int id) async {
+  Future<MyAction> getViaId(int id) async {
     List<Map> maps = await LifeDb.db.query(ActionTable.name,
       columns: [],
       where: '${ActionTable.columnId} = ?',
@@ -58,7 +58,7 @@ class ActionProvider {
     return null;
   }
 
-  Future<Action> getViaName(String name) async {
+  Future<MyAction> getViaName(String name) async {
     List<Map> maps = await LifeDb.db.query(ActionTable.name,
       columns: [],
       where: '${ActionTable.columnName} = ?',
@@ -70,7 +70,7 @@ class ActionProvider {
     return null;
   }
 
-  Future<List<Action>> search(String pattern) async {
+  Future<List<MyAction>> search(String pattern) async {
     List<Map> maps = await LifeDb.db.query(ActionTable.name,
       columns: [],
       where: "${ActionTable.columnName} like '%$pattern%'",
@@ -82,17 +82,17 @@ class ActionProvider {
     }).toList();
   }
 
-  Future<int> insert(Action action) async {
+  Future<int> insert(MyAction action) async {
     return LifeDb.db.insert(ActionTable.name, ActionTable.toMap(action));
   }
 
-  Future<int> update(Action action) async {
+  Future<int> update(MyAction action) async {
     assert(action.id != null);
     return LifeDb.db.update(ActionTable.name, ActionTable.toMap(action),
         where: "${ActionTable.columnId} = ?", whereArgs: [action.id]);
   }
 
-  Future<int> save(Action action) async {
+  Future<int> save(MyAction action) async {
     int affected = 0;
     if (action.id == null) {
       action.id = await insert(action);

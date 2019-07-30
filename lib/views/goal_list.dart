@@ -23,7 +23,7 @@ class _GoalListItem extends StatelessWidget {
         alignment: Alignment.centerLeft,
         height: 48.0,
         child: Padding(
-          padding: const EdgeInsets.only(left: 0.0, top: 8.0, bottom: 8.0),
+          padding: const EdgeInsets.only(left: 16.0, top: 8.0, right: 16, bottom: 8.0),
           child: Text('Loading ...'),
         ),
       );
@@ -38,7 +38,7 @@ class _GoalListItem extends StatelessWidget {
               ));
         },
         child: Padding(
-          padding: const EdgeInsets.only(left: 0.0, top: 8.0, bottom: 8.0),
+          padding: const EdgeInsets.only(left: 16.0, top: 8.0, right: 16, bottom: 8.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisAlignment: MainAxisAlignment.center,
@@ -46,7 +46,7 @@ class _GoalListItem extends StatelessWidget {
               Text(
                 goal.name,
                 style:
-                    Theme.of(context).textTheme.subtitle.copyWith(fontSize: 18),
+                    Theme.of(context).textTheme.title,
               ),
               SizedBox(height: 4),
               _createLastActiveTimeWidget(context),
@@ -117,7 +117,7 @@ class _GoalListState extends State<GoalList>
     print('GoalList.build');
     super.build(context);
     return Padding(
-      padding: const EdgeInsets.only(left: 16, top: 8, right: 16, bottom: 8),
+      padding: const EdgeInsets.symmetric(vertical: 8),
       child: BlocBuilder(
         bloc: _goalListBloc,
         builder: (context, state) {
@@ -155,6 +155,7 @@ class _GoalListState extends State<GoalList>
               child: Text('Load goal failed'),
             );
           }
+          return null;
         },
       ),
     );

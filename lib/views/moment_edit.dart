@@ -13,6 +13,7 @@ import 'package:data_life/models/action.dart';
 import 'package:data_life/models/contact.dart';
 import 'package:data_life/models/location.dart';
 import 'package:data_life/models/moment.dart';
+import 'package:data_life/models/todo.dart';
 
 import 'package:data_life/localizations.dart';
 
@@ -20,9 +21,11 @@ import 'package:data_life/blocs/moment_edit_bloc.dart';
 
 class MomentEdit extends StatefulWidget {
   final Moment moment;
+  final Todo todo;
 
   const MomentEdit({
     this.moment,
+    this.todo,
   });
 
   @override
@@ -79,8 +82,12 @@ class _MomentEditState extends State<MomentEdit> {
       }
     } else {
       final now = DateTime.now();
-      _moment.beginTime = now.millisecondsSinceEpoch;
-      _moment.endTime = now.add(Duration(minutes: 30)).millisecondsSinceEpoch;
+      _moment.beginTime = now.subtract(Duration(minutes: 60)).millisecondsSinceEpoch;
+      _moment.endTime = now.millisecondsSinceEpoch;
+
+      if (widget.todo != null) {
+        _actionNameController.text = widget.todo.goalAction.action.name;
+      }
     }
 
     _contactController.addListener(_contactControllerListener);
@@ -187,7 +194,7 @@ class _MomentEditState extends State<MomentEdit> {
     _moment.details = _feelingsController.text;
     if (_moment.action == null) {
       if (_actionNameController.text.isNotEmpty) {
-        var a = Action();
+        var a = MyAction();
         a.name = _actionNameController.text;
         _moment.action = a;
       }
@@ -210,7 +217,7 @@ class _MomentEditState extends State<MomentEdit> {
     _updateMomentFromForm();
     if (_isNewMoment) {
       _momentEditBloc.dispatch(
-        AddMoment(moment: _moment),
+        AddMoment(moment: _moment, todo: widget.todo),
       );
     } else {
       if (_moment.isContentSameWith(widget.moment)) {
@@ -398,32 +405,6 @@ class _MomentEditState extends State<MomentEdit> {
     _moment.contacts.add(contact);
   }
 
-  Widget _createBeginTimeField() {
-    return DateTimePickerFormField(
-      labelText: AppLocalizations.of(context).begin,
-      initialDateTime: DateTime.fromMillisecondsSinceEpoch(_moment.beginTime),
-      selectDateTime: (value) {
-        setState(() {
-          _moment.beginTime = value.millisecondsSinceEpoch;
-        });
-      },
-      enabled: !_isReadOnly,
-    );
-  }
-
-  Widget _createEndTimeField() {
-    return DateTimePickerFormField(
-      labelText: AppLocalizations.of(context).end,
-      initialDateTime: DateTime.fromMillisecondsSinceEpoch(_moment.endTime),
-      selectDateTime: (value) {
-        setState(() {
-          _moment.endTime = value.millisecondsSinceEpoch;
-        });
-      },
-      enabled: !_isReadOnly,
-    );
-  }
-
   Widget _createExpendFormField() {
     return Padding(
       padding: EdgeInsets.only(top: 16.0, bottom: 16.0),
@@ -458,12 +439,9 @@ class _MomentEditState extends State<MomentEdit> {
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: _createSentimentIcons(),
               ),
-              state.hasError
-                  ? Text(
-                      state.errorText,
-                      style: TextStyle(color: Colors.red),
-                    )
-                  : Container(),
+              FormFieldError(
+                errorText: state.errorText,
+              ),
             ],
           ),
         );
@@ -472,6 +450,7 @@ class _MomentEditState extends State<MomentEdit> {
         if (_moment.sentiment == null) {
           return AppLocalizations.of(context).selectSentiment;
         }
+        return null;
       },
     );
   }
@@ -502,15 +481,15 @@ class _MomentEditState extends State<MomentEdit> {
         controller: _actionNameController,
         focusNode: _actionNameFocusNode,
         style: Theme.of(context).textTheme.subhead.copyWith(fontSize: 24),
-        autofocus: !_isReadOnly,
-        enabled: _isNewMoment,
+        autofocus: !_isReadOnly && widget.todo == null,
+        enabled: _isNewMoment && widget.todo == null,
       ),
-      onSuggestionSelected: (Action action) {
+      onSuggestionSelected: (MyAction action) {
         _actionNameController.text = action.name;
         _moment.action = action;
       },
       itemBuilder: (context, suggestion) {
-        final action = suggestion as Action;
+        final action = suggestion as MyAction;
         return Padding(
           padding: const EdgeInsets.only(left: 8.0, top: 8.0, bottom: 8.0),
           child: Text(
@@ -525,6 +504,7 @@ class _MomentEditState extends State<MomentEdit> {
         if (value.isEmpty) {
           return 'Please enter action';
         }
+        return null;
       },
     );
   }
@@ -554,12 +534,32 @@ class _MomentEditState extends State<MomentEdit> {
     }
   }
 
+  String _getTitle() {
+    if (widget.moment != null) {
+      return widget.moment.action.name;
+    }
+    if (widget.todo != null) {
+      return widget.todo.goalAction.action.name;
+      // return 'Done to-do ${widget.todo.goalAction.action.name}';
+    }
+    return 'Moment';
+  }
+
+  Widget _createEditHint() {
+    return Text(
+      'Mark to-do ${widget.todo.goalAction.action.name} as done',
+      style: TextStyle(
+        color: Theme.of(context).accentColor,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
-        title: Text(_moment?.action?.name ?? 'Moment'),
+        title: Text(_getTitle()),
         actions: <Widget>[
           _createEditAction(),
           _isNewMoment
@@ -592,8 +592,21 @@ class _MomentEditState extends State<MomentEdit> {
           child: ListView(
             padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 16),
             children: <Widget>[
-              _createActionNameFormField(),
-              Divider(),
+              widget.todo != null
+                  ? Align(
+                      alignment: Alignment.topCenter,
+                      child: _createEditHint(),
+                    )
+                  : Container(),
+              widget.moment == null && widget.todo == null
+                  ? Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: <Widget>[
+                        _createActionNameFormField(),
+                        Divider(),
+                      ],
+                    )
+                  : Container(),
               _createLocationField(),
               Divider(),
               _createPeopleFormField(),
@@ -605,23 +618,51 @@ class _MomentEditState extends State<MomentEdit> {
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: <Widget>[
-                        _createBeginTimeField(),
-                        _createEndTimeField(),
-                        fieldState.hasError
-                            ? Text(
-                                fieldState.errorText,
-                                style: TextStyle(
-                                  color: Colors.red,
-                                ),
-                              )
-                            : Container(),
+                        DateTimePickerFormField(
+                          labelText: AppLocalizations.of(context).begin,
+                          initialDateTime: DateTime.fromMillisecondsSinceEpoch(
+                              _moment.beginTime),
+                          selectDateTime: (value) {
+                            _moment.beginTime = value.millisecondsSinceEpoch;
+                            fieldState.didChange(null);
+                          },
+                          enabled: !_isReadOnly,
+                        ),
+                        DateTimePickerFormField(
+                          labelText: AppLocalizations.of(context).end,
+                          initialDateTime: DateTime.fromMillisecondsSinceEpoch(
+                              _moment.endTime),
+                          selectDateTime: (value) {
+                            _moment.endTime = value.millisecondsSinceEpoch;
+                            fieldState.didChange(null);
+                          },
+                          enabled: !_isReadOnly,
+                        ),
+                        FormFieldError(
+                          errorText: fieldState.errorText,
+                        ),
                       ],
                     );
                   },
+                  autovalidate: true,
                   validator: (value) {
+                    print('Moment time validator');
+                    // If to-do is not null, we need to limit time to today.
+                    var now = DateTime.now();
+                    if (widget.todo != null) {
+                      var t = DateTime.fromMillisecondsSinceEpoch(
+                          _moment.beginTime);
+                      if (t.isBefore(DateTime(now.year, now.month, now.day))) {
+                        return "任务完成时间必须是今天";
+                      }
+                    }
+                    if (_moment.endTime > now.millisecondsSinceEpoch) {
+                      return '结束时间不能在将来';
+                    }
                     if (_moment.beginTime > _moment.endTime) {
                       return '开始时间必须早于结束时间';
                     }
+                    return null;
                   },
                 ),
               ),

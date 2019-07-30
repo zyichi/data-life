@@ -24,12 +24,12 @@ class Moment {
   int createTime;
   int updateTime;
 
-  Action _action;
+  MyAction _action;
   Location _location;
   List<Contact> contacts = <Contact>[];
 
-  Action get action => _action;
-  set action(Action a) {
+  MyAction get action => _action;
+  set action(MyAction a) {
     _action = a;
     actionId = a?.id;
   }

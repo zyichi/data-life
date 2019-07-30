@@ -1,17 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 
 import 'package:data_life/models/repeat_types.dart';
 import 'package:data_life/models/goal_action.dart';
 
+import 'package:data_life/utils/time_util.dart';
+import 'package:data_life/views/type_to_str.dart';
 
-class _Repeat {
-  RepeatEvery every;
-  int everyStep;
-  MonthRepeatOn monthRepeatOn;
-  WeekdaySeqOfMonth weekdaySeqOfMonth;
-  List<int> onList = <int>[];
-}
 
 List<RepeatEvery> defaultRepeatEveryList = [
   RepeatEvery.day,
@@ -27,90 +21,21 @@ List<WeekdaySeqOfMonth> weekdaySeqOfMonthList = [
   WeekdaySeqOfMonth.last,
 ];
 
-String _monthRepeatOnToStr(MonthRepeatOn monthRepeatsOn, BuildContext context) {
-  switch (monthRepeatsOn) {
-    case MonthRepeatOn.day:
-      return 'Day';
-    case MonthRepeatOn.week:
-      return 'Week';
-    default:
-      return null;
-  }
-}
 
-String _repeatEveryToStr(RepeatEvery t, BuildContext context) {
-  switch (t) {
-    case RepeatEvery.day:
-      return 'day';
-    case RepeatEvery.week:
-      return 'week';
-    case RepeatEvery.month:
-      return 'month';
-    case RepeatEvery.year:
-      return 'year';
-    default:
-      return null;
-  }
-}
-
-String _weekdaySeqOfMonthToStr(WeekdaySeqOfMonth seq, context) {
-  switch (seq) {
-    case WeekdaySeqOfMonth.first:
-      return 'First';
-    case WeekdaySeqOfMonth.second:
-      return 'Second';
-    case WeekdaySeqOfMonth.third:
-      return 'Third';
-    case WeekdaySeqOfMonth.fourth:
-      return 'Fourth';
-    case WeekdaySeqOfMonth.last:
-      return 'Last';
-    default:
-      return null;
-  }
-}
-
-List<String> getWeekdayTextList(String localeName) {
-  DateFormat formatter = DateFormat(DateFormat.ABBR_WEEKDAY, localeName);
-  var l = [
-    DateTime(2000, 1, 3, 1),
-    DateTime(2000, 1, 4, 1),
-    DateTime(2000, 1, 5, 1),
-    DateTime(2000, 1, 6, 1),
-    DateTime(2000, 1, 7, 1),
-    DateTime(2000, 1, 8, 1),
-    DateTime(2000, 1, 9, 1)
-  ].map((day) => formatter.format(day)).toList();
-  l.insert(0, null);
-  return l;
-}
-
-List<String> getMonthTextList(String localeName) {
-  DateFormat formatter = DateFormat(DateFormat.ABBR_MONTH, localeName);
-  var l = List.generate(12, (index) {
-    return formatter.format(DateTime(2019, index+1));
-  });
-  l.insert(0, null);
-  return l;
-}
-
-String getWeekdayStr(int weekday, String localeName) {
-  return getWeekdayTextList(localeName)[weekday];
-}
-
+typedef PickConfirm = bool Function(bool pick);
 class MultiPickItem<T> extends StatefulWidget {
   final T value;
   final double maxWidth;
   final double maxHeight;
   final bool selected;
-  final ValueChanged<bool> onSelect;
+  final PickConfirm pickConfirm;
 
   MultiPickItem(
       {this.value,
       this.maxWidth,
       this.maxHeight,
       this.selected = false,
-      this.onSelect});
+      this.pickConfirm});
 
   @override
   _MultiPickItemState createState() => _MultiPickItemState();
@@ -146,10 +71,10 @@ class _MultiPickItemState extends State<MultiPickItem> {
         ),
       ),
       onTap: () {
+        bool confirmed = widget.pickConfirm(!_selected);
         setState(() {
-          _selected = !_selected;
+          _selected = confirmed;
         });
-        widget.onSelect(_selected);
       },
     );
   }
@@ -181,13 +106,20 @@ class MultiPick<T> extends StatelessWidget {
         return MultiPickItem<T>(
           maxWidth: itemMaxWidth,
           maxHeight: itemMaxHeight,
-          onSelect: (selected) {
+          pickConfirm: (selected) {
             if (selected) {
               pickedValues.add(value);
               onChanged(pickedValues);
+              return true;
             } else {
-              pickedValues.remove(value);
-              onChanged(pickedValues);
+              // At least on item be picked.
+              if (pickedValues.length > 1) {
+                pickedValues.remove(value);
+                onChanged(pickedValues);
+                return false;
+              } else {
+                return true;
+              }
             }
           },
           value: value,
@@ -210,42 +142,47 @@ class RepeatCustomPage extends StatefulWidget {
 class _RepeatCustomPageState extends State<RepeatCustomPage> {
   final _repeatEveryTextController = TextEditingController();
   String _repeatEveryErrorText;
-  final _repeat = _Repeat();
+  Repeat _repeat;
   var _weekRepeatOnList = <int>[];
   var _monthDayRepeatOnList = <int>[];
   var _monthWeekdayRepeatOnList = <int>[];
   var _yearRepeatOnList = <int>[];
   List<String> _weekdayTextList;
   List<String> _monthTextList;
+  MonthRepeatOn _monthRepeatOn;
+  WeekdaySeqOfMonth _weekdaySeqOfMonth;
 
   @override
   void initState() {
     super.initState();
 
-    _repeat.every = widget.goalAction.repeatEvery;
-    _repeat.everyStep = widget.goalAction.repeatEveryStep;
-    _repeat.monthRepeatOn = widget.goalAction.monthRepeatOn;
-    _repeat.weekdaySeqOfMonth = widget.goalAction.weekdaySeqOfMonth;
+    _repeat = widget.goalAction.getRepeat();
+    assert(_repeat.type == RepeatType.custom);
 
     // We cache repeat on list for each repeat every.
-    DateTime startTime =
-        DateTime.fromMillisecondsSinceEpoch(widget.goalAction.startTime);
-    _weekRepeatOnList.add(startTime.weekday);
-    _monthDayRepeatOnList.add(startTime.day);
-    _monthWeekdayRepeatOnList.add(startTime.weekday);
-    _yearRepeatOnList.add(startTime.month);
-    if (widget.goalAction.repeatEvery == RepeatEvery.week) {
-      _weekRepeatOnList = widget.goalAction.repeatOnList;
+    _weekRepeatOnList.add(_repeat.startTime.weekday);
+    _monthDayRepeatOnList.add(_repeat.startTime.day);
+    _monthWeekdayRepeatOnList.add(_repeat.startTime.weekday);
+    _yearRepeatOnList.add(_repeat.startTime.month);
+    if (_repeat.every == RepeatEvery.week) {
+      _weekRepeatOnList = _repeat.onList;
     }
-    if (widget.goalAction.repeatEvery == RepeatEvery.month) {
-      if (widget.goalAction.monthRepeatOn == MonthRepeatOn.day) {
-        _monthDayRepeatOnList = widget.goalAction.repeatOnList;
+    if (_repeat.every == RepeatEvery.month) {
+      _monthRepeatOn = _repeat.monthRepeatOn;
+      if (_monthRepeatOn == MonthRepeatOn.day) {
+        _monthDayRepeatOnList = _repeat.onList;
       } else {
-        _monthWeekdayRepeatOnList = widget.goalAction.repeatOnList;
+        _weekdaySeqOfMonth = _repeat.weekdaySeqOfMonth;
+        _monthWeekdayRepeatOnList = _repeat.onList;
       }
+    } else {
+      _repeat.monthRepeatOn = null;
+      _repeat.weekdaySeqOfMonth = null;
+      _monthRepeatOn = MonthRepeatOn.day;
+      _weekdaySeqOfMonth = TimeUtil.getWeekdaySeqOfMonth(_repeat.startTime);
     }
-    if (widget.goalAction.repeatEvery == RepeatEvery.year) {
-      _yearRepeatOnList = widget.goalAction.repeatOnList;
+    if (_repeat.every == RepeatEvery.year) {
+      _yearRepeatOnList = _repeat.onList;
     }
 
     _repeatEveryTextController.text = _repeat.everyStep.toString();
@@ -253,8 +190,11 @@ class _RepeatCustomPageState extends State<RepeatCustomPage> {
       String value = _repeatEveryTextController.text;
       int n = int.tryParse(value);
       setState(() {
-        if (n == null || n <= 0) {
-          _repeatEveryErrorText = 'Repeats every must be integer bigger than 0';
+        if (n == null) {
+          _repeatEveryErrorText = 'Repeat every must be integer';
+          _repeat.everyStep = 1;
+        } else if (n <= 0) {
+          _repeatEveryErrorText = 'Repeat every must bigger than 0';
           _repeat.everyStep = 1;
         } else {
           _repeatEveryErrorText = null;
@@ -298,19 +238,19 @@ class _RepeatCustomPageState extends State<RepeatCustomPage> {
                   children: <Widget>[
                     Radio<MonthRepeatOn>(
                       value: MonthRepeatOn.day,
-                      groupValue: _repeat.monthRepeatOn,
+                      groupValue: _monthRepeatOn,
                       onChanged: (value) {
                         setState(() {
-                          _repeat.monthRepeatOn = value;
+                          _monthRepeatOn = value;
                         });
                       },
                     ),
-                    Text(_monthRepeatOnToStr(MonthRepeatOn.day, context)),
+                    Text(TypeToStr.monthRepeatOnToStr(MonthRepeatOn.day, context)),
                   ],
                 ),
                 onTap: () {
                   setState(() {
-                    _repeat.monthRepeatOn = MonthRepeatOn.day;
+                    _monthRepeatOn = MonthRepeatOn.day;
                   });
                 },
               ),
@@ -319,30 +259,32 @@ class _RepeatCustomPageState extends State<RepeatCustomPage> {
                   children: <Widget>[
                     Radio<MonthRepeatOn>(
                       value: MonthRepeatOn.week,
-                      groupValue: _repeat.monthRepeatOn,
+                      groupValue: _monthRepeatOn,
                       onChanged: (value) {
                         setState(() {
-                          _repeat.monthRepeatOn = value;
+                          _monthRepeatOn = value;
                         });
                       },
                     ),
-                    Text(_monthRepeatOnToStr(MonthRepeatOn.week, context)),
+                    Text(TypeToStr.monthRepeatOnToStr(MonthRepeatOn.week, context)),
                   ],
                 ),
                 onTap: () {
                   setState(() {
-                    _repeat.monthRepeatOn = MonthRepeatOn.week;
+                    _monthRepeatOn = MonthRepeatOn.week;
                   });
                 },
               ),
             ],
           ),
-          _repeat.monthRepeatOn == MonthRepeatOn.day
+          _monthRepeatOn == MonthRepeatOn.day
               ? Padding(
                   padding: EdgeInsets.only(top: 16),
                   child: MultiPick<int>(
                     onChanged: (newValues) {
-                      _monthDayRepeatOnList = newValues;
+                      setState(() {
+                        _monthDayRepeatOnList = newValues;
+                      });
                     },
                     pickedValues: _monthDayRepeatOnList,
                     values: List.generate(31, (index) => index + 1),
@@ -355,17 +297,17 @@ class _RepeatCustomPageState extends State<RepeatCustomPage> {
                   children: <Widget>[
                     DropdownButtonHideUnderline(
                       child: DropdownButton(
-                        value: _repeat.weekdaySeqOfMonth,
+                        value: _weekdaySeqOfMonth,
                         onChanged: (newValue) {
                           setState(() {
-                            _repeat.weekdaySeqOfMonth = newValue;
+                            _weekdaySeqOfMonth = newValue;
                           });
                         },
                         items: weekdaySeqOfMonthList
                             .map<DropdownMenuItem<WeekdaySeqOfMonth>>((e) {
                           return DropdownMenuItem<WeekdaySeqOfMonth>(
                             child:
-                                Text('${_weekdaySeqOfMonthToStr(e, context)}'),
+                                Text('${TypeToStr.weekdaySeqOfMonthToStr(e, context)}'),
                             value: e,
                           );
                         }).toList(),
@@ -399,69 +341,42 @@ class _RepeatCustomPageState extends State<RepeatCustomPage> {
   }
 
   Future<bool> _onWillPop() async {
-    widget.goalAction.repeatEveryStep = _repeat.everyStep;
-    widget.goalAction.repeatEvery = _repeat.every;
-    widget.goalAction.monthRepeatOn = _repeat.monthRepeatOn;
-    widget.goalAction.weekdaySeqOfMonth = _repeat.weekdaySeqOfMonth;
-    if (widget.goalAction.repeatEvery == RepeatEvery.week) {
-      widget.goalAction.repeatOnList = _weekRepeatOnList;
-      widget.goalAction.monthRepeatOn = MonthRepeatOn.day;
+    if (_repeat.every == RepeatEvery.day) {
+      _repeat.onList = [];
     }
-    if (widget.goalAction.repeatEvery == RepeatEvery.month) {
-      if (widget.goalAction.monthRepeatOn == MonthRepeatOn.day) {
-        widget.goalAction.repeatOnList = _monthDayRepeatOnList;
+    if (_repeat.every == RepeatEvery.week) {
+      _repeat.onList = _weekRepeatOnList;
+    }
+    if (_repeat.every == RepeatEvery.month) {
+      _repeat.monthRepeatOn = _monthRepeatOn;
+      if (_repeat.monthRepeatOn == MonthRepeatOn.day) {
+        _repeat.onList = _monthDayRepeatOnList;
       } else {
-        widget.goalAction.repeatOnList = _monthWeekdayRepeatOnList;
+        _repeat.weekdaySeqOfMonth = _weekdaySeqOfMonth;
+        _repeat.onList = _monthWeekdayRepeatOnList;
       }
     }
-    if (widget.goalAction.repeatEvery == RepeatEvery.year) {
-      widget.goalAction.repeatOnList = _yearRepeatOnList;
-      widget.goalAction.monthRepeatOn = MonthRepeatOn.day;
+    if (_repeat.every == RepeatEvery.year) {
+      _repeat.onList = _yearRepeatOnList;
     }
-    if (widget.goalAction.repeatEvery == RepeatEvery.day) {
-      widget.goalAction.repeatOnList = [];
-      widget.goalAction.monthRepeatOn = MonthRepeatOn.day;
-    }
-    print('Repeat on list: ${widget.goalAction.repeatOnList}');
+    _repeat.onList.sort();
+    widget.goalAction.setRepeat(_repeat);
     return true;
   }
 
-  String _createRepeatText() {
-    if (_repeat.every == RepeatEvery.day) {
-      String dayText = _repeat.everyStep == 1 ? 'day' : 'days';
-      return 'Do action every ${_repeat.everyStep} $dayText';
-    }
-    if (_repeat.every == RepeatEvery.week) {
-      _weekRepeatOnList.sort();
-      List<String> weeks = _weekRepeatOnList.map((weekday) {
-        return _weekdayTextList[weekday];
-      }).toList();
-      String weekText = _repeat.everyStep == 1 ? 'week' : '${_repeat.everyStep} weeks';
-      return 'Do action every $weekText on ${weeks.join(', ')}';
-    }
-    if (_repeat.every == RepeatEvery.month) {
-    }
-    if (_repeat.every == RepeatEvery.year) {
-      _yearRepeatOnList.sort();
-      List<String> years = _yearRepeatOnList.map((month) {
-        return _monthTextList[month];
-      }).toList();
-      DateTime d = DateTime.fromMillisecondsSinceEpoch(widget.goalAction.startTime);
-      String yearText = _repeat.everyStep == 1 ? 'year' : '${_repeat.everyStep} years';
-      return 'Do action every $yearText on ${years.join(', ')} ${d.day}';
-    }
-    return 'Not implemented';
+  String _createRepeatReadableText() {
+    return TypeToStr.repeatToReadableText(_repeat, context);
   }
 
   @override
   Widget build(BuildContext context) {
     if (_weekdayTextList == null) {
       _weekdayTextList =
-          getWeekdayTextList(Localizations.localeOf(context).toString());
+          TimeUtil.getWeekdayTextList(Localizations.localeOf(context).toString());
     }
     if (_monthTextList == null) {
       _monthTextList =
-          getMonthTextList(Localizations.localeOf(context).toString());
+          TimeUtil.getMonthTextList(Localizations.localeOf(context).toString());
     }
     return Scaffold(
       appBar: AppBar(
@@ -505,7 +420,6 @@ class _RepeatCustomPageState extends State<RepeatCustomPage> {
                           onChanged: (RepeatEvery newValue) {
                             setState(() {
                               _repeat.every = newValue;
-                              if (_repeat.every == RepeatEvery.week) {}
                             });
                           },
                           items: defaultRepeatEveryList
@@ -516,7 +430,7 @@ class _RepeatCustomPageState extends State<RepeatCustomPage> {
                               child: Padding(
                                 padding: const EdgeInsets.only(left: 8),
                                 child: Text(
-                                  _repeatEveryToStr(value, context),
+                                  TypeToStr.repeatEveryToStr(value, context),
                                   style: Theme.of(context).textTheme.subhead,
                                 ),
                               ),
@@ -538,7 +452,7 @@ class _RepeatCustomPageState extends State<RepeatCustomPage> {
             ),
             Padding(
               padding: const EdgeInsets.only(left: 16),
-              child: Text(_createRepeatText()),
+              child: Text('Do action ${_createRepeatReadableText()}'),
             ),
             Divider(),
             Padding(

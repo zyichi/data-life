@@ -74,7 +74,7 @@ class _LocationEditState extends State<LocationEdit> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocListener<LocationEditEvent, LocationEditState>(
+    return BlocListener<LocationEditBloc, LocationEditState>(
       bloc: _locationEditBloc,
       listener: (context, state) {
         if (state is LocationNameUniqueCheckResult) {

@@ -33,7 +33,7 @@ create table $name (
   $columnProvince text default null,
   $columnCountry text default null,
   $columnTotalTimeStay integer default 0,
-  $columnLastVisitTime integer default null,
+  $columnLastVisitTime integer default 0,
   $columnCreateTime integer not null,
   $columnUpdateTime integer default null)
 ''';

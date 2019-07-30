@@ -11,24 +11,11 @@ class GoalTable {
   static const columnProgress = 'progress';
   static const columnStartTime = 'startTime';
   static const columnStopTime = 'stopTime';
+  static const columnStatus = 'status';
   static const columnDurationType = 'durationType';
   static const columnLastActiveTime = 'lastActiveTime';
   static const columnCreateTime = 'createTime';
   static const columnUpdateTime = 'updateTime';
-
-  static const createSql = '''
-create table $name (
-  $columnId integer primary key autoincrement,
-  $columnName text not null,
-  $columnTarget real default null,
-  $columnProgress real default null,
-  $columnStartTime integer default null,
-  $columnStopTime integer default null,
-  $columnDurationType integer default null,
-  $columnLastActiveTime integer default null,
-  $columnCreateTime integer not null,
-  $columnUpdateTime integer default null)
-''';
 
   static const createIndexSql = '''
 create unique index goal_name_idx on $name(
@@ -44,6 +31,7 @@ create table $tableName (
   $columnProgress real default null,
   $columnStartTime integer default null,
   $columnStopTime integer default null,
+  $columnStatus integer default null,
   $columnDurationType integer default null,
   $columnLastActiveTime integer default null,
   $columnCreateTime integer not null,
@@ -65,9 +53,8 @@ create table $tableName (
     goal.progress = map[GoalTable.columnProgress] as num;
     goal.startTime = map[GoalTable.columnStartTime] as int;
     goal.stopTime = map[GoalTable.columnStopTime] as int;
-    var durationTypeIndex = map[GoalTable.columnDurationType];
-    if (durationTypeIndex != null)
-      goal.durationType = DurationType.values[durationTypeIndex];
+    goal.status = GoalStatus.values[map[GoalTable.columnStatus] ?? GoalStatus.none.index];
+    goal.durationType = DurationType.values[map[GoalTable.columnDurationType] ?? DurationType.none.index];
     goal.lastActiveTime = map[GoalTable.columnLastActiveTime] as int;
     goal.createTime = map[GoalTable.columnCreateTime] as int;
     goal.updateTime = map[GoalTable.columnUpdateTime] as int;
@@ -81,6 +68,7 @@ create table $tableName (
       GoalTable.columnProgress: goal.progress,
       GoalTable.columnStartTime: goal.startTime,
       GoalTable.columnStopTime: goal.stopTime,
+      GoalTable.columnStatus: goal.status?.index,
       GoalTable.columnDurationType: goal.durationType?.index,
       GoalTable.columnLastActiveTime: goal.lastActiveTime,
       GoalTable.columnCreateTime: goal.createTime,
