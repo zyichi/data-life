@@ -7,8 +7,8 @@ import 'package:data_life/models/time_types.dart';
 enum GoalStatus {
   none,
   ongoing,
-  expired,
   paused,
+  expired,
   finished,
 }
 
@@ -38,11 +38,13 @@ class Goal {
   }
 
   void updateFieldFromGoalAction() {
-    totalTimeTaken = 0;
-    lastActiveTime = 0;
-    for (var goalAction in goalActions) {
-      totalTimeTaken += goalAction.totalTimeTaken;
-      lastActiveTime = max(lastActiveTime, goalAction.lastActiveTime ?? 0);
+    if (goalActions.isNotEmpty) {
+      totalTimeTaken = 0;
+      lastActiveTime = 0;
+      for (var goalAction in goalActions) {
+        totalTimeTaken += goalAction.totalTimeTaken;
+        lastActiveTime = max(lastActiveTime, goalAction.lastActiveTime ?? 0);
+      }
     }
   }
 

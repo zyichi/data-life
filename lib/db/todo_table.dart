@@ -25,7 +25,12 @@ create table $name (
   $columnUpdateTime integer default null)
 ''';
 
-  static List<String> get initSqlList => [createSql,];
+  static const createIndexSql = '''
+create unique index todo_goal_action_idx on $name(
+  $columnGoalId, $columnGoalActionId);
+''';
+
+  static List<String> get initSqlList => [createSql, createIndexSql];
 
   static Todo fromMap(Map map) {
     final todo = Todo();

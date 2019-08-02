@@ -175,8 +175,7 @@ class _TodoListState extends State<TodoList>
         onRefresh: () {
           print('TodoList RefreshIndicator onRefresh');
           _refreshCompleter = Completer<void>();
-          // TODO: Just for help test now.
-          _todoBloc.dispatch(CreateTodayTodo());
+          // _todoBloc.dispatch(CreateTodayTodo());
           _todoListBloc.dispatch(RefreshPage());
           return _refreshCompleter.future;
         },

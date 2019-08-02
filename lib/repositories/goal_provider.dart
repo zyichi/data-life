@@ -24,7 +24,8 @@ class GoalProvider {
     List<Map> maps = await LifeDb.db.query(
       GoalTable.name,
       columns: [],
-      orderBy: '${GoalTable.columnLastActiveTime} desc',
+      orderBy:
+          '${GoalTable.columnLastActiveTime} desc, ${GoalTable.columnStatus} asc',
       limit: count,
       offset: startIndex,
     );
@@ -258,11 +259,17 @@ class GoalProvider {
   }
 
   Future<int> deleteGoalMoment(GoalMoment goalMoment) async {
+    return deleteGoalMomentViaUniqueKey(
+        goalMoment.goalId, goalMoment.goalActionId, goalMoment.momentId);
+  }
+
+  Future<int> deleteGoalMomentViaUniqueKey(
+      int goalId, int goalActionId, int momentId) async {
     return LifeDb.db.delete(
       GoalMomentTable.name,
       where:
-      "${GoalMomentTable.columnGoalId} = ? and ${GoalMomentTable.columnGoalActionId} = ? and ${GoalMomentTable.columnMomentId} = ?",
-      whereArgs: [goalMoment.goalId, goalMoment.goalActionId, goalMoment.momentId],
+          "${GoalMomentTable.columnGoalId} = ? and ${GoalMomentTable.columnGoalActionId} = ? and ${GoalMomentTable.columnMomentId} = ?",
+      whereArgs: [goalId, goalActionId, momentId],
     );
   }
 

@@ -21,6 +21,10 @@ class TodoRepository extends PageRepository<Todo> {
     return _todoProvider.getViaGoalId(goalId, rowOnly);
   }
 
+  Future<Todo> getViaUniqueIndexId(int goalId, int goalActionId, bool rowOnly) async {
+    return _todoProvider.getViaUniqueIndexId(goalId, goalActionId, rowOnly);
+  }
+
   Future<int> count() async {
     return _todoProvider.count();
   }
@@ -35,6 +39,9 @@ class TodoRepository extends PageRepository<Todo> {
 
   Future<int> delete(int id) async {
     return _todoProvider.delete(id);
+  }
+  Future<int> deleteViaUniqueId(int goalId, int goalActionId) async {
+    return _todoProvider.deleteViaUniqueId(goalId, goalActionId);
   }
   Future<int> deleteAll() async {
     return _todoProvider.deleteAll();

@@ -4,6 +4,9 @@ import 'package:data_life/models/repeat_types.dart';
 
 const maxInt = 0x7FFFFFFF;
 
+const String SP_KEY_lastTimeCreateTodayTodo = 'lastTimeCreateTodayTodo';
+const String SP_KEY_lastTimeUpdateGoalStatus = 'lastTimeUpdateGoalStatus';
+
 List<DurationType> defaultDurationList = [
   DurationType.oneDay,
   DurationType.twoDay,

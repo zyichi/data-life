@@ -385,7 +385,16 @@ class _GoalActionEditState extends State<GoalActionEdit> {
                     ],
                   );
                 },
+                autovalidate: true,
                 validator: (value) {
+                  var now = DateTime.now();
+                  var nowDate = DateTime(now.year, now.month, now.day);
+                  if (_goalAction.startTime < nowDate.millisecondsSinceEpoch) {
+                    return '开始时间必须在当前时间之后';
+                  }
+                  if (_goalAction.startTime > _goalAction.stopTime) {
+                    return '开始时间必须早于结束时间';
+                  }
                   return null;
                 },
               ),

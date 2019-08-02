@@ -73,6 +73,24 @@ class TodoProvider {
     return todoList;
   }
 
+  Future<Todo> getViaUniqueIndexId(int goalId, int goalActionId, bool rowOnly) async {
+    List<Map> maps = await LifeDb.db.query(
+      TodoTable.name,
+      columns: [],
+      where: '${TodoTable.columnGoalId} = ? and ${TodoTable.columnGoalActionId} = ?',
+      whereArgs: [goalId, goalActionId],
+    );
+    if (maps.length > 0) {
+      var todo = TodoTable.fromMap(maps.first);
+      if (!rowOnly) {
+        todo.goalAction = await _goalProvider.getGoalAction(todo.goalActionId, rowOnly);
+        todo.goal = await _goalProvider.getViaId(todo.goalId, rowOnly);
+      }
+      return todo;
+    }
+    return null;
+  }
+
   Future<int> insert(Todo todo) async {
     return LifeDb.db.insert(TodoTable.name, TodoTable.toMap(todo));
   }
@@ -99,6 +117,14 @@ class TodoProvider {
       TodoTable.name,
       where: "${TodoTable.columnId} = ?",
       whereArgs: [id],
+    );
+  }
+
+  Future<int> deleteViaUniqueId(int goalId, int goalActionId) async {
+    return LifeDb.db.delete(
+      TodoTable.name,
+      where: "${TodoTable.columnGoalId} = ? and ${TodoTable.columnGoalActionId} = ?",
+      whereArgs: [goalId, goalActionId],
     );
   }
 

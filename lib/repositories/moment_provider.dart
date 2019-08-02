@@ -125,7 +125,7 @@ class MomentProvider {
       Moment moment = MomentTable.fromMap(maps[0]);
       return moment.beginTime;
     }
-    return null;
+    return 0;
   }
 
   Future<int> getActionLastActiveTime(int actionId, int momentId) async {
@@ -142,7 +142,7 @@ class MomentProvider {
       Moment moment = MomentTable.fromMap(maps[0]);
       return moment.beginTime;
     }
-    return null;
+    return 0;
   }
 
   Future<int> getContactLastMeetTime(int contactId, int momentId) async {
@@ -159,6 +159,6 @@ class MomentProvider {
       MomentContact momentContact = MomentContactTable.fromMap(maps[0]);
       return momentContact.momentBeginTime;
     }
-    return null;
+    return 0;
   }
 }

@@ -8,6 +8,7 @@ import 'package:data_life/db/goal_action_table.dart';
 import 'package:data_life/db/contact_table.dart';
 import 'package:data_life/db/location_table.dart';
 import 'package:data_life/db/action_table.dart';
+import 'package:data_life/db/goal_moment_table.dart';
 import 'package:data_life/db/moment_contact_table.dart';
 
 class LifeDb {
@@ -40,6 +41,7 @@ class LifeDb {
         ContactTable.initSqlList +
         LocationTable.initSqlList +
         ActionTable.initSqlList +
+        GoalMomentTable.initSqlList +
         MomentContactTable.initSqlList;
     initSqlList.forEach((sql) => db.execute(sql));
   }

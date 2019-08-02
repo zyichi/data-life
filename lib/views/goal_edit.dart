@@ -115,7 +115,8 @@ class _GoalEditState extends State<GoalEdit> {
     } else {
       _title = 'Goal';
 
-      _goal.startTime = DateTime.now().millisecondsSinceEpoch;
+      var now = DateTime.now();
+      _goal.startTime = DateTime(now.year, now.month, now.day).millisecondsSinceEpoch;
       _goal.stopTime = _goal.startTime + Duration(days: 7).inMilliseconds;
 
       _goal.progress = 0.0;
@@ -368,6 +369,7 @@ class _GoalEditState extends State<GoalEdit> {
                                     _goal.startTime),
                             selectDate: (date) {
                               fieldState.didChange(null);
+                              print('Selected goal from date: $date');
                               _goal.startTime = date.millisecondsSinceEpoch;
                             },
                             enabled: !_isReadOnly,
@@ -379,6 +381,7 @@ class _GoalEditState extends State<GoalEdit> {
                                     _goal.stopTime),
                             selectDate: (date) {
                               fieldState.didChange(null);
+                              print('Selected goal to date: $date');
                               _goal.stopTime = date.millisecondsSinceEpoch;
                             },
                             enabled: !_isReadOnly,

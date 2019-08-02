@@ -28,7 +28,6 @@ import 'package:data_life/paging/page_bloc.dart';
 
 import 'package:data_life/localizations.dart';
 
-
 enum TabType {
   moments,
   goals,
@@ -51,7 +50,6 @@ String tabTypeToStr(TabType t, BuildContext context) {
       return null;
   }
 }
-
 
 class HomePage extends StatefulWidget {
   final String title;
@@ -140,6 +138,7 @@ class HomePageState extends State<HomePage>
       BlocProvider.of<PageBloc<Location>>(context).dispatch(RefreshPage());
     }
     if (state is MomentDeleted) {
+      _goalEditBloc.dispatch(MomentDeletedGoalEvent(moment: state.moment));
       Scaffold.of(context).showSnackBar(SnackBar(
         content:
             Text('Your moment ${state.moment.action.name} has been deleted'),
@@ -155,13 +154,23 @@ class HomePageState extends State<HomePage>
         ),
       ));
     }
+    if (state is MomentAdded) {
+      _goalEditBloc.dispatch(MomentAddedGoalEvent(moment: state.moment));
+    }
+    if (state is MomentUpdated) {
+      _goalEditBloc.dispatch(MomentUpdatedGoalEvent(
+          newMoment: state.newMoment, oldMoment: state.oldMoment));
+    }
     if (state is MomentEditFailed) {
       print('${state.error}');
     }
   }
 
   void _goalEditBlocListener(BuildContext context, GoalEditState state) {
-    if (state is GoalAdded || state is GoalDeleted || state is GoalUpdated) {
+    if (state is GoalAdded ||
+        state is GoalDeleted ||
+        state is GoalUpdated ||
+        state is GoalStatusUpdated) {
       BlocProvider.of<PageBloc<Goal>>(context).dispatch(RefreshPage());
     }
     if (state is GoalDeleted) {
@@ -178,6 +187,14 @@ class HomePageState extends State<HomePage>
           },
         ),
       ));
+      _todoBloc.dispatch(GoalDeletedTodoEvent(goal: state.goal));
+    }
+    if (state is GoalAdded) {
+      _todoBloc.dispatch(GoalAddedTodoEvent(goal: state.goal));
+    }
+    if (state is GoalUpdated) {
+      _todoBloc.dispatch(
+          GoalUpdatedTodoEvent(oldGoal: state.oldGoal, newGoal: state.newGoal));
     }
     if (state is GoalEditFailed) {
       print('${state.error}');
@@ -207,9 +224,12 @@ class HomePageState extends State<HomePage>
     }
   }
 
-  void _todoBlocListener(
-      BuildContext context, TodoState state) {
-    if (state is TodayTodoCreated || state is TodoDismissed || state is TodoDone) {
+  void _todoBlocListener(BuildContext context, TodoState state) {
+    if (state is TodayTodoCreated ||
+        state is TodoDismissed ||
+        state is TodoDone ||
+        state is TodoDeleted ||
+        state is TodoUpdated) {
       setState(() {
         _newTodoCount = _todoBloc.waitingTodoCount;
       });
@@ -250,33 +270,39 @@ class HomePageState extends State<HomePage>
                           Align(
                             alignment: Alignment.center,
                             child: Padding(
-                              padding: const EdgeInsets.only(left: 16, top: 0, right: 16, bottom: 0),
+                              padding: const EdgeInsets.only(
+                                  left: 16, top: 0, right: 16, bottom: 0),
                               child: Text(tabTypeToStr(tabType, context)),
                             ),
                           ),
-                          (tabType == TabType.todo && _newTodoCount > 0) ? Positioned(
-                            top: 0,
-                            right: 0,
-                            child: Container(
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(_todoCountBubbleMinWidth / 2),
-                                color: Colors.red,
-                              ),
-                              constraints: BoxConstraints(
-                                minWidth: _todoCountBubbleMinWidth,
-                                minHeight: _todoCountBubbleMinHeight,
-                              ),
-                              child: Center(
-                                child: Padding(
-                                  padding: const EdgeInsets.all(4.0),
-                                  child: Text(
-                                    _newTodoCount > 99 ? '99+' : _newTodoCount.toString(),
-                                    textAlign: TextAlign.center,
+                          (tabType == TabType.todo && _newTodoCount > 0)
+                              ? Positioned(
+                                  top: 0,
+                                  right: 0,
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(
+                                          _todoCountBubbleMinWidth / 2),
+                                      color: Colors.red,
+                                    ),
+                                    constraints: BoxConstraints(
+                                      minWidth: _todoCountBubbleMinWidth,
+                                      minHeight: _todoCountBubbleMinHeight,
+                                    ),
+                                    child: Center(
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(4.0),
+                                        child: Text(
+                                          _newTodoCount > 99
+                                              ? '99+'
+                                              : _newTodoCount.toString(),
+                                          textAlign: TextAlign.center,
+                                        ),
+                                      ),
+                                    ),
                                   ),
-                                ),
-                              ),
-                            ),
-                          ) : Container(),
+                                )
+                              : Container(),
                         ],
                       ),
                     ],

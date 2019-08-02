@@ -82,6 +82,13 @@ class TimeUtil {
     return DateTime(d.year, d.month, d.day);
   }
 
+  static DateTime todayStart(DateTime d) {
+    return DateTime(d.year, d.month, d.day);
+  }
+  static DateTime tomorrowStart(DateTime d) {
+    return DateTime(d.year, d.month, d.day).add(Duration(days: 1));
+  }
+
   static DateTime dateNow() {
     var d = DateTime.now();
     return DateTime(d.year, d.month, d.day);

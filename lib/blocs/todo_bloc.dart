@@ -1,5 +1,6 @@
 import 'package:bloc/bloc.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:data_life/repositories/goal_repository.dart';
 import 'package:data_life/repositories/todo_repository.dart';
@@ -10,6 +11,7 @@ import 'package:data_life/models/todo.dart';
 import 'package:data_life/models/repeat_types.dart';
 
 import 'package:data_life/utils/time_util.dart';
+import 'package:data_life/constants.dart';
 
 abstract class TodoEvent {}
 
@@ -27,19 +29,20 @@ class MarkTodoAsDone extends TodoEvent {
   MarkTodoAsDone({this.todo}) : assert(todo != null);
 }
 
-class DelTodoFromGoal extends TodoEvent {
+class GoalDeletedTodoEvent extends TodoEvent {
   final Goal goal;
-  DelTodoFromGoal({this.goal});
+  GoalDeletedTodoEvent({this.goal});
 }
 
-class UpdateTodoFromGoal extends TodoEvent {
-  final Goal goal;
-  UpdateTodoFromGoal({this.goal});
+class GoalUpdatedTodoEvent extends TodoEvent {
+  final Goal newGoal;
+  final Goal oldGoal;
+  GoalUpdatedTodoEvent({this.newGoal, this.oldGoal});
 }
 
-class AddTodoFromGoal extends TodoEvent {
+class GoalAddedTodoEvent extends TodoEvent {
   final Goal goal;
-  AddTodoFromGoal({this.goal});
+  GoalAddedTodoEvent({this.goal});
 }
 
 class TodoUninitialized extends TodoState {}
@@ -57,6 +60,13 @@ class TodoDismissed extends TodoState {
 class TodoDone extends TodoState {
   final Todo todo;
   TodoDone({this.todo});
+}
+
+class TodoUpdated extends TodoState {
+  final List<Todo> addedList;
+  final List<Todo> deletedList;
+  final List<Todo> updatedList;
+  TodoUpdated({this.addedList, this.updatedList, this.deletedList});
 }
 
 class TodoAdded extends TodoState {
@@ -86,21 +96,32 @@ class TodoBloc extends Bloc<TodoEvent, TodoState> {
   @override
   Stream<TodoState> mapEventToState(TodoEvent event) async* {
     DateTime now = DateTime.now();
-    DateTime todayDate = DateTime(now.year, now.month, now.day);
-    DateTime tomorrowDate =
-        DateTime(now.year, now.month, now.day).add(Duration(days: 1));
+    DateTime todayDate = TimeUtil.todayStart(now);
+    DateTime tomorrowDate = TimeUtil.tomorrowStart(now);
     if (event is CreateTodayTodo) {
       try {
         int deletedOldTodoCount =
             await todoRepository.deleteOlderThanTime(todayDate);
         print('Number of old todo deleted: $deletedOldTodoCount');
+        SharedPreferences prefs = await SharedPreferences.getInstance();
+        int lastTimeCreateTodayTodo =
+            prefs.getInt(SP_KEY_lastTimeCreateTodayTodo) ?? 0;
+        if (_isToday(lastTimeCreateTodayTodo, todayDate.millisecondsSinceEpoch,
+            tomorrowDate.millisecondsSinceEpoch)) {
+          print('Today todo already created');
+          await _updateWaitingTodoCount();
+          yield TodayTodoCreated(count: 0);
+          return;
+        }
         List<Todo> todoList = <Todo>[];
         List<Goal> goals =
             await goalRepository.getGoalViaStatus(GoalStatus.ongoing, false);
         for (Goal goal in goals) {
+          if (!_isCreateTodoForGoal(goal, now)) {
+            continue;
+          }
           for (GoalAction goalAction in goal.goalActions) {
-            if (isTodoGoalActionToday(
-                goalAction, now, todayDate, tomorrowDate)) {
+            if (isTodoGoalActionToday(goalAction, now)) {
               var todo = _newTodo(goalAction, now);
               todoList.add(todo);
               todoRepository.save(todo);
@@ -108,6 +129,8 @@ class TodoBloc extends Bloc<TodoEvent, TodoState> {
           }
         }
         await _updateWaitingTodoCount();
+        await prefs.setInt(
+            SP_KEY_lastTimeCreateTodayTodo, todayDate.millisecondsSinceEpoch);
         yield TodayTodoCreated(count: todoList.length);
       } catch (e) {
         print("Create today's todo failed: ${e.toString()}");
@@ -116,13 +139,12 @@ class TodoBloc extends Bloc<TodoEvent, TodoState> {
     }
     if (event is DismissTodo) {
       try {
-        int result = await todoRepository.dismissTodo(event.todo.id);
-        if (result == 1) {
-          print("Dismiss todo failed: not found todo");
-          yield TodoFailed();
-        }
+        Todo todo = event.todo;
+        todo.status = TodoStatus.dismiss;
+        todo.updateTime = now.millisecondsSinceEpoch;
+        await todoRepository.save(todo);
         await _updateWaitingTodoCount();
-        yield TodoDismissed(todo: event.todo);
+        yield TodoDismissed(todo: todo);
       } catch (e) {
         print("Dismiss todo failed: ${e.toString()}");
         yield TodoFailed();
@@ -130,29 +152,40 @@ class TodoBloc extends Bloc<TodoEvent, TodoState> {
     }
     if (event is MarkTodoAsDone) {
       try {
-        int result = await todoRepository.doneTodo(event.todo.id);
-        if (result == 1) {
-          print("Done todo failed: not found todo");
-          yield TodoFailed();
-        }
+        Todo todo = event.todo;
+        todo.status = TodoStatus.done;
+        todo.doneTime = now.millisecondsSinceEpoch;
+        todo.updateTime = now.millisecondsSinceEpoch;
+        await todoRepository.save(todo);
         await _updateWaitingTodoCount();
-        yield TodoDone(todo: event.todo);
+        yield TodoDone(todo: todo);
       } catch (e) {
         print("Done todo failed: ${e.toString()}");
         yield TodoFailed();
       }
     }
-    if (event is AddTodoFromGoal) {
+    if (event is GoalAddedTodoEvent) {
       try {
-        var todoList = await _addTodoFromGoal(event.goal, now, todayDate, tomorrowDate);
+        var goal = event.goal;
+        if (!_isCreateTodoForGoal(goal, now)) {
+          return;
+        }
+        var todoList = <Todo>[];
+        for (var goalAction in goal.goalActions) {
+          if (isTodoGoalActionToday(goalAction, now)) {
+            Todo todo = _newTodo(goalAction, now);
+            todoList.add(todo);
+            await todoRepository.save(todo);
+          }
+        }
         await _updateWaitingTodoCount();
-        yield TodoAdded(todoList: todoList);
+        yield TodoUpdated(addedList: todoList);
       } catch (e) {
         print("Todo bloc - process AddGoal event failed: ${e.toString()}");
         yield TodoFailed();
       }
     }
-    if (event is DelTodoFromGoal) {
+    if (event is GoalDeletedTodoEvent) {
       try {
         var todoList = await todoRepository.getViaGoalId(event.goal.id, true);
         for (var todo in todoList) {
@@ -165,21 +198,35 @@ class TodoBloc extends Bloc<TodoEvent, TodoState> {
         yield TodoFailed();
       }
     }
-    if (event is UpdateTodoFromGoal) {
+    if (event is GoalUpdatedTodoEvent) {
       try {
-        var todoList = await todoRepository.getViaGoalId(event.goal.id, true);
-        for (var todo in todoList) {
-          await todoRepository.delete(todo.id);
+        Goal newGoal = event.newGoal;
+        Goal oldGoal = event.oldGoal;
+        var deletedList = <Todo>[];
+        var addedList = <Todo>[];
+        var updatedList = <Todo>[];
+        if (oldGoal != null) {
+          for (var goalAction in oldGoal.goalActions) {
+            if (!newGoal.goalActions.contains(goalAction)) {
+              Todo todo = await todoRepository.getViaUniqueIndexId(
+                  oldGoal.id, goalAction.id, true);
+              if (todo != null) {
+                deletedList.add(todo);
+                await todoRepository.delete(todo.id);
+              }
+            }
+          }
         }
-        if (todoList.isNotEmpty) {
-          await _updateWaitingTodoCount();
-          yield TodoDeleted(todoList: todoList);
+        if (!_isCreateTodoForGoal(newGoal, now)) {
+          return;
         }
-        todoList = await _addTodoFromGoal(event.goal, now, todayDate, tomorrowDate);
-        if (todoList.isNotEmpty) {
-          await _updateWaitingTodoCount();
-          yield TodoAdded(todoList: todoList);
-        }
+        await _updateTodoFromGoal(newGoal, now, todayDate, tomorrowDate,
+            deletedList, addedList, updatedList);
+        await _updateWaitingTodoCount();
+        yield TodoUpdated(
+            addedList: addedList,
+            updatedList: updatedList,
+            deletedList: deletedList);
       } catch (e) {
         print("Todo bloc - process UpdateGoal event failed: ${e.toString()}");
         yield TodoFailed();
@@ -187,29 +234,70 @@ class TodoBloc extends Bloc<TodoEvent, TodoState> {
     }
   }
 
-  Future<List<Todo>> _addTodoFromGoal(Goal goal, DateTime now, DateTime todayDate,
-      DateTime tomorrowDate) async {
-    var todoList = <Todo>[];
+  bool _isCreateTodoForGoal(Goal goal, DateTime now) {
+    if (goal.status == GoalStatus.ongoing ||
+        goal.stopTime > now.millisecondsSinceEpoch) {
+      return true;
+    }
+    return false;
+  }
+
+  Future<void> _updateTodoFromGoal(
+      Goal goal,
+      DateTime now,
+      DateTime todayDate,
+      DateTime tomorrowDate,
+      List<Todo> deletedList,
+      List<Todo> addedList,
+      List<Todo> updatedList) async {
     for (var goalAction in goal.goalActions) {
-      if (isTodoGoalActionToday(goalAction, now, todayDate, tomorrowDate)) {
-        Todo todo = _newTodo(goalAction, now);
-        todoList.add(todo);
-        await todoRepository.save(todo);
+      Todo dbTodo = await todoRepository.getViaUniqueIndexId(
+          goal.id, goalAction.id, true);
+      if (isTodoGoalActionToday(goalAction, now)) {
+        if (dbTodo != null) {
+          if (dbTodo.status != TodoStatus.dismiss) {
+            updatedList.add(dbTodo);
+            _updateTodoStatus(dbTodo, goalAction, now);
+            await todoRepository.save(dbTodo);
+          }
+        } else {
+          Todo todo = _newTodo(goalAction, now);
+          addedList.add(todo);
+          await todoRepository.save(todo);
+        }
+      } else {
+        if (dbTodo != null) {
+          deletedList.add(dbTodo);
+          await todoRepository.delete(dbTodo.id);
+        }
       }
     }
-    return todoList;
+  }
+
+  void _updateTodoStatus(Todo todo, GoalAction goalAction, DateTime now) {
+    if (_isToday(
+        goalAction.lastActiveTime,
+        TimeUtil.todayStart(now).millisecondsSinceEpoch,
+        TimeUtil.tomorrowStart(now).millisecondsSinceEpoch)) {
+      todo.status = TodoStatus.done;
+      todo.doneTime = goalAction.lastActiveTime;
+    } else {
+      todo.status = TodoStatus.waiting;
+    }
   }
 
   Future<void> _updateWaitingTodoCount() async {
     waitingTodoCount = await todoRepository.getWaitingTodoCount();
   }
 
-  bool isTodoGoalActionToday(GoalAction goalAction, DateTime now,
-      DateTime todayDate, DateTime tomorrowDate) {
-    if (goalAction.lastActiveTime >= todayDate.millisecondsSinceEpoch &&
-        goalAction.lastActiveTime < tomorrowDate.millisecondsSinceEpoch) {
-      return false;
+  bool _isToday(int millis, int todayMillis, int tomorrowMillis) {
+    if (millis >= todayMillis && millis < tomorrowMillis) {
+      return true;
     }
+    return false;
+  }
+
+  bool isTodoGoalActionToday(GoalAction goalAction, DateTime now) {
     return isTodoGoalAction(goalAction, now);
   }
 
@@ -341,7 +429,15 @@ class TodoBloc extends Bloc<TodoEvent, TodoState> {
     todo.goalId = goalAction.goalId;
     todo.goalActionId = goalAction.id;
     todo.createTime = now.millisecondsSinceEpoch;
-    todo.status = TodoStatus.waiting;
+    if (_isToday(
+        goalAction.lastActiveTime,
+        TimeUtil.todayStart(now).millisecondsSinceEpoch,
+        TimeUtil.tomorrowStart(now).millisecondsSinceEpoch)) {
+      todo.status = TodoStatus.done;
+      todo.doneTime = goalAction.lastActiveTime;
+    } else {
+      todo.status = TodoStatus.waiting;
+    }
     return todo;
   }
 }

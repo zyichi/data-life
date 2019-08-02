@@ -47,15 +47,20 @@ class UpdateMoment extends MomentEditEvent {
 
 class MomentUninitialized extends MomentEditState {}
 
-class MomentAdded extends MomentEditState {}
+class MomentAdded extends MomentEditState {
+  final Moment moment;
+  MomentAdded({this.moment}) : assert(moment != null);
+}
 
 class MomentDeleted extends MomentEditState {
   final Moment moment;
-
   MomentDeleted({this.moment}) : assert(moment != null);
 }
-
-class MomentUpdated extends MomentEditState {}
+class MomentUpdated extends MomentEditState {
+  final Moment newMoment;
+  final Moment oldMoment;
+  MomentUpdated({this.newMoment, this.oldMoment});
+}
 
 class MomentEditFailed extends MomentEditState {
   final String error;
@@ -110,9 +115,6 @@ class MomentEditBloc extends Bloc<MomentEditEvent, MomentEditState> {
 
         await momentRepository.save(moment);
 
-        // Process goal.
-        await _updateGoalWhenAddMoment(event, now);
-
         // Process contact.
         await _updateMomentContactInfo(moment, now);
         for (Contact contact in moment.contacts) {
@@ -125,7 +127,7 @@ class MomentEditBloc extends Bloc<MomentEditEvent, MomentEditState> {
           momentContact.createTime = now;
           await momentRepository.saveMomentContact(momentContact);
         }
-        yield MomentAdded();
+        yield MomentAdded(moment: moment);
       } catch (e) {
         yield MomentEditFailed(
             error: 'Add moment ${moment.action.name} failed: ${e.toString()}');
@@ -175,8 +177,6 @@ class MomentEditBloc extends Bloc<MomentEditEvent, MomentEditState> {
 
         await momentRepository.save(newMoment);
 
-        _updateGoalWhenUpdateMoment(newMoment, oldMoment, now);
-
         // Process contact.
         _updateMomentContactInfo(newMoment, now);
         for (Contact contact in newMoment.contacts) {
@@ -212,7 +212,7 @@ class MomentEditBloc extends Bloc<MomentEditEvent, MomentEditState> {
             await contactRepository.save(contact);
           }
         }
-        yield MomentUpdated();
+        yield MomentUpdated(newMoment: newMoment, oldMoment: oldMoment);
       } catch (e) {
         yield MomentEditFailed(
             error:
@@ -241,8 +241,6 @@ class MomentEditBloc extends Bloc<MomentEditEvent, MomentEditState> {
           await contactRepository.save(contact);
         }
 
-        _updateGoalWhenDeleteMoment(moment, now);
-
         // Finally delete moment.
         await momentRepository.delete(moment);
         yield MomentDeleted(moment: moment);
@@ -252,86 +250,6 @@ class MomentEditBloc extends Bloc<MomentEditEvent, MomentEditState> {
                 'Delete moment ${moment.action.name} failed: ${e.toString()}');
       }
     }
-  }
-
-  Future<void> _updateGoalWhenAddMoment(AddMoment event, int now) async {
-    final Moment moment = event.moment;
-    if (event.todo != null) {
-      final Todo todo = event.todo;
-      todo.updateTime = now;
-      todo.status = TodoStatus.done;
-      todo.doneTime = moment.beginTime;
-      await todoRepository.save(todo);
-    }
-    List<Goal> goals =
-        await goalRepository.getGoalViaActionId(moment.action.id, true);
-    print('_updateGoalWhenAddMoment - Goals num: ${goals.length}');
-    for (var goal in goals) {
-      for (var goalAction in goal.goalActions) {
-        if (goalAction.action.id != moment.action.id) continue;
-        _updateGoalActionForMomentAdd(goalAction, moment, now);
-        await goalRepository.saveGoalAction(goalAction);
-        var goalMoment = GoalMoment();
-        goalMoment.goalId = goal.id;
-        goalMoment.goalActionId = goalAction.id;
-        goalMoment.momentId = moment.id;
-        goalMoment.createTime = now;
-        await goalRepository.saveGoalMoment(goalMoment);
-      }
-    }
-  }
-
-  Future<void> _updateGoalWhenUpdateMoment(
-      Moment newMoment, Moment oldMoment, int now) async {
-    List<Goal> goals =
-        await goalRepository.getGoalViaActionId(oldMoment.action.id, false);
-    print('_updateGoalWhenUpdateMoment - Goals num: ${goals.length}');
-    for (var goal in goals) {
-      for (var goalAction in goal.goalActions) {
-        if (goalAction.action.id != oldMoment.action.id) continue;
-        _updateGoalActionForMomentDelete(goalAction,oldMoment, now);
-        _updateGoalActionForMomentAdd(goalAction,newMoment, now);
-        await goalRepository.saveGoalAction(goalAction);
-      }
-    }
-  }
-
-  Future<void> _updateGoalWhenDeleteMoment(Moment moment, int now) async {
-    List<Goal> goals =
-        await goalRepository.getGoalViaActionId(moment.action.id, false);
-    print('_updateGoalWhenDeleteMoment - Goals num: ${goals.length}');
-    for (var goal in goals) {
-      for (var goalAction in goal.goalActions) {
-        if (goalAction.action.id != moment.action.id) continue;
-        _updateGoalActionForMomentDelete(goalAction,moment, now);
-        await goalRepository.saveGoalAction(goalAction);
-        var goalMoment = GoalMoment();
-        goalMoment.goalId = goal.id;
-        goalMoment.goalActionId = goalAction.id;
-        goalMoment.momentId = moment.id;
-        await goalRepository.deleteGoalMoment(goalMoment);
-      }
-    }
-  }
-
-  void _updateGoalActionForMomentAdd(GoalAction goalAction, Moment moment, int now) {
-    goalAction.totalTimeTaken += moment.durationInMillis();
-    goalAction.updateTime = now;
-    goalAction.lastActiveTime = moment.action.lastActiveTime;
-  }
-
-  void _updateGoalActionForMomentDelete(GoalAction goalAction, Moment moment, int now) {
-    goalAction.totalTimeTaken -= moment.durationInMillis();
-    goalAction.updateTime = now;
-    goalAction.lastActiveTime = moment.action.lastActiveTime;
-    if (goalAction.totalTimeTaken == 0) {
-      goalAction.lastActiveTime = 0;
-    }
-  }
-
-  void _updateGoal(Goal goal, int now) {
-    goal.updateTime = now;
-    goal.updateFieldFromGoalAction();
   }
 
   Future<void> _updateMomentActionInfo(Moment moment, int now) async {
@@ -347,7 +265,7 @@ class MomentEditBloc extends Bloc<MomentEditEvent, MomentEditState> {
       action.lastActiveTime = moment.beginTime;
     } else {
       action.updateTime = now;
-      action.lastActiveTime = max(action.lastActiveTime, moment.beginTime);
+      action.lastActiveTime = max(action.lastActiveTime ?? 0, moment.beginTime);
     }
   }
 
@@ -364,7 +282,7 @@ class MomentEditBloc extends Bloc<MomentEditEvent, MomentEditState> {
       location.lastVisitTime = moment.beginTime;
     } else {
       location.updateTime = now;
-      location.lastVisitTime = max(location.lastVisitTime, moment.beginTime);
+      location.lastVisitTime = max(location.lastVisitTime ?? 0, moment.beginTime);
     }
   }
 

@@ -5,7 +5,6 @@ import 'package:data_life/models/goal_moment.dart';
 
 import 'package:data_life/repositories/goal_provider.dart';
 
-
 class GoalRepository extends PageRepository<Goal> {
   final GoalProvider _goalProvider;
 
@@ -61,8 +60,10 @@ class GoalRepository extends PageRepository<Goal> {
     return _goalProvider.saveGoalAction(goalAction);
   }
 
-  Future<GoalAction> getGoalActionViaGoalAndAction(int goalId, int actionId, bool rowOnly) async {
-    return _goalProvider.getGoalActionViaGoalAndAction(goalId, actionId, rowOnly);
+  Future<GoalAction> getGoalActionViaGoalAndAction(
+      int goalId, int actionId, bool rowOnly) async {
+    return _goalProvider.getGoalActionViaGoalAndAction(
+        goalId, actionId, rowOnly);
   }
 
   Future<int> saveGoalMoment(GoalMoment goalMoment) async {
@@ -71,6 +72,12 @@ class GoalRepository extends PageRepository<Goal> {
 
   Future<int> deleteGoalMoment(GoalMoment goalMoment) async {
     return _goalProvider.deleteGoalMoment(goalMoment);
+  }
+
+  Future<int> deleteGoalMomentViaUniqueKey(
+      int goalId, int goalActionId, int momentId) async {
+    return _goalProvider.deleteGoalMomentViaUniqueKey(
+        goalId, goalActionId, momentId);
   }
 
 }

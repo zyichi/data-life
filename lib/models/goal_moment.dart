@@ -3,5 +3,6 @@ class GoalMoment {
   int goalId;
   int goalActionId;
   int momentId;
+  int momentBeginTime;
   int createTime;
 }
