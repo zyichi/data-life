@@ -32,15 +32,39 @@ class MomentProvider {
     }).toList();
     for (Moment moment in moments) {
       moment.action = await _actionProvider.getViaId(moment.actionId);
-      moment.actionId = moment.action?.id;
       moment.location = await _locationProvider.getViaId(moment.locationId);
-      moment.locationId = moment.location?.id;
       List<MomentContact> momentContacts = await getMomentContact(moment.id);
       for (MomentContact momentContact in momentContacts) {
-        var contact =
-            await _contactProvider.getViaId(momentContact.contactId);
+        var contact = await _contactProvider.getViaId(momentContact.contactId);
         if (contact != null) {
           moment.contacts.add(contact);
+        }
+      }
+    }
+    return moments;
+  }
+
+  Future<List<Moment>> getAfterTime(int timeInMillis, bool rowOnly) async {
+    List<Map> maps = await LifeDb.db.query(
+      MomentTable.name,
+      columns: [],
+      where: "${MomentTable.columnBeginTime} >= ?",
+      whereArgs: [timeInMillis],
+    );
+    var moments = maps.map((map) {
+      return MomentTable.fromMap(map);
+    }).toList();
+    if (!rowOnly) {
+      for (Moment moment in moments) {
+        moment.action = await _actionProvider.getViaId(moment.actionId);
+        moment.location = await _locationProvider.getViaId(moment.locationId);
+        List<MomentContact> momentContacts = await getMomentContact(moment.id);
+        for (MomentContact momentContact in momentContacts) {
+          var contact = await _contactProvider.getViaId(
+              momentContact.contactId);
+          if (contact != null) {
+            moment.contacts.add(contact);
+          }
         }
       }
     }
@@ -111,54 +135,22 @@ class MomentProvider {
     return 1;
   }
 
-  Future<int> getLocationLastVisitTime(int locationId, int momentId) async {
-    List<Map> maps = await LifeDb.db.query(
-      MomentTable.name,
-      columns: [],
-      where:
-          "${MomentTable.columnLocationId} = ? and ${MomentTable.columnId} != ?",
-      whereArgs: [locationId, momentId],
-      orderBy: '${MomentTable.columnBeginTime} desc',
-      limit: 1,
-    );
-    if (maps.isNotEmpty) {
-      Moment moment = MomentTable.fromMap(maps[0]);
-      return moment.beginTime;
-    }
-    return 0;
+  Future<int> getLocationLastVisitTime(
+      int locationId, int excludeMomentId) async {
+    int t = Sqflite.firstIntValue(await LifeDb.db.rawQuery(
+        'select max(${MomentTable.columnBeginTime}) from ${MomentTable.name} where ${MomentTable.columnLocationId} = $locationId and ${MomentTable.columnId} != $excludeMomentId'));
+    return t ?? 0;
   }
 
-  Future<int> getActionLastActiveTime(int actionId, int momentId) async {
-    List<Map> maps = await LifeDb.db.query(
-      MomentTable.name,
-      columns: [],
-      where:
-          "${MomentTable.columnActionId} = ? and ${MomentTable.columnId} != ?",
-      whereArgs: [actionId, momentId],
-      orderBy: '${MomentTable.columnBeginTime} desc',
-      limit: 1,
-    );
-    if (maps.isNotEmpty) {
-      Moment moment = MomentTable.fromMap(maps[0]);
-      return moment.beginTime;
-    }
-    return 0;
+  Future<int> getActionLastActiveTime(int actionId, int excludeMomentId) async {
+    int t = Sqflite.firstIntValue(await LifeDb.db.rawQuery(
+        'select max(${MomentTable.columnBeginTime}) from ${MomentTable.name} where ${MomentTable.columnActionId} = $actionId and ${MomentTable.columnId} != $excludeMomentId'));
+    return t ?? 0;
   }
 
-  Future<int> getContactLastMeetTime(int contactId, int momentId) async {
-    List<Map> maps = await LifeDb.db.query(
-      MomentContactTable.name,
-      columns: [],
-      where:
-          "${MomentContactTable.columnContactId} = ? and ${MomentContactTable.columnMomentId} != ?",
-      whereArgs: [contactId, momentId],
-      orderBy: '${MomentContactTable.columnMomentBeginTime} desc',
-      limit: 1,
-    );
-    if (maps.isNotEmpty) {
-      MomentContact momentContact = MomentContactTable.fromMap(maps[0]);
-      return momentContact.momentBeginTime;
-    }
-    return 0;
+  Future<int> getContactLastMeetTime(int contactId, int excludeMomentId) async {
+    int t = Sqflite.firstIntValue(await LifeDb.db.rawQuery(
+        'select max(${MomentContactTable.columnMomentBeginTime}) from ${MomentContactTable.name} where ${MomentContactTable.columnContactId} = $contactId and ${MomentContactTable.columnMomentId} != $excludeMomentId'));
+    return t ?? 0;
   }
 }

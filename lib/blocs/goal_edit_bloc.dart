@@ -1,6 +1,7 @@
 import 'package:meta/meta.dart';
 import 'package:bloc/bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:math';
 
 import 'package:data_life/models/goal.dart';
 import 'package:data_life/models/action.dart';
@@ -10,6 +11,7 @@ import 'package:data_life/models/goal_moment.dart';
 
 import 'package:data_life/repositories/goal_repository.dart';
 import 'package:data_life/repositories/action_repository.dart';
+import 'package:data_life/repositories/moment_repository.dart';
 
 import 'package:data_life/utils/time_util.dart';
 
@@ -65,6 +67,11 @@ class UpdateGoalAction extends GoalEditEvent {
         assert(newGoalAction != null);
 }
 
+class PauseGoal extends GoalEditEvent {
+  final Goal goal;
+  PauseGoal({@required this.goal}) : assert(goal != null);
+}
+
 class DeleteGoal extends GoalEditEvent {
   final Goal goal;
   DeleteGoal({@required this.goal}) : assert(goal != null);
@@ -82,6 +89,7 @@ class GoalNameUniqueCheck extends GoalEditEvent {
 }
 
 class GoalUninitialized extends GoalEditState {}
+
 class GoalStatusUpdated extends GoalEditState {}
 
 class GoalAdded extends GoalEditState {
@@ -127,10 +135,15 @@ class GoalEditFailed extends GoalEditState {
 class GoalEditBloc extends Bloc<GoalEditEvent, GoalEditState> {
   final GoalRepository goalRepository;
   final ActionRepository actionRepository;
+  final MomentRepository momentRepository;
 
-  GoalEditBloc({@required this.goalRepository, @required this.actionRepository})
+  GoalEditBloc(
+      {@required this.goalRepository,
+      @required this.actionRepository,
+      @required this.momentRepository})
       : assert(goalRepository != null),
-        assert(actionRepository != null);
+        assert(actionRepository != null),
+        assert(momentRepository != null);
 
   @override
   GoalEditState get initialState => GoalUninitialized();
@@ -167,20 +180,37 @@ class GoalEditBloc extends Bloc<GoalEditEvent, GoalEditState> {
             break;
         }
       }
-      await prefs.setInt(SP_KEY_lastTimeUpdateGoalStatus, todayDate.millisecondsSinceEpoch);
+      await prefs.setInt(
+          SP_KEY_lastTimeUpdateGoalStatus, todayDate.millisecondsSinceEpoch);
       yield GoalStatusUpdated();
     }
     if (event is AddGoal) {
       try {
+        var moments = await momentRepository.getAfterTime(
+            todayDate.millisecondsSinceEpoch, true);
         final goal = event.goal;
         goal.createTime = nowInMillis;
+        // Save goal first time to get goal.id
         await goalRepository.save(goal);
         for (var goalAction in goal.goalActions) {
           await _updateActionInfo(goalAction, nowInMillis);
           goalAction.goalId = goal.id;
           goalAction.createTime = nowInMillis;
+          // Save goalAction first time to get goalAction.id
           await goalRepository.saveGoalAction(goalAction);
+          var results = _getMomentOfGoalAction(moments, goalAction);
+          for (var moment in results) {
+            goalAction.lastActiveTime = max(goalAction.lastActiveTime, moment.beginTime);
+            goalAction.totalTimeTaken += moment.durationInMillis();
+            _saveGoalMoment(moment, goal, goalAction, nowInMillis);
+          }
+          // Save goalAction second time to update lastActiveTime/totalTimeTaken
+          await goalRepository.saveGoalAction(goalAction);
+          goal.totalTimeTaken += goalAction.totalTimeTaken;
+          goal.lastActiveTime = max(goal.lastActiveTime, goalAction.lastActiveTime);
         }
+        // Save goal second time to update lastActiveTime/totalTimeTaken
+        await goalRepository.save(goal);
         yield GoalAdded(goal: goal);
       } catch (e) {
         yield GoalEditFailed(
@@ -217,7 +247,7 @@ class GoalEditBloc extends Bloc<GoalEditEvent, GoalEditState> {
       try {
         await goalRepository.delete(goal);
         await goalRepository.saveDeleted(goal);
-        // TODO: delete goal moment.
+        await goalRepository.deleteGoalMomentVidGoalId(goal.id);
         for (var goalAction in goal.goalActions) {
           await goalRepository.deleteGoalAction(goalAction);
           await goalRepository.saveDeletedGoalAction(goalAction);
@@ -238,27 +268,47 @@ class GoalEditBloc extends Bloc<GoalEditEvent, GoalEditState> {
       yield GoalActionUpdated();
     }
     if (event is MomentAddedGoalEvent) {
-      var updatedGoals =
-          await _updateGoalWhenAddMoment(event.moment, nowInMillis);
-      for (Goal goal in updatedGoals) {
-        await _saveGoal(goal, nowInMillis);
-        yield GoalUpdated(oldGoal: null, newGoal: goal);
+      try {
+        var updatedGoals =
+            await _updateGoalWhenAddMoment(event.moment, nowInMillis);
+        for (Goal goal in updatedGoals) {
+          await _updateGoalFromGoalMoment(goal, nowInMillis);
+          await goalRepository.save(goal);
+          yield GoalUpdated(oldGoal: null, newGoal: goal);
+        }
+      } catch (e) {
+        print('Process MomentAddedGoalEvent failed: $e');
+        yield GoalEditFailed(error: 'Process MomentAddedGoalEvent failed: $e}');
       }
     }
     if (event is MomentUpdatedGoalEvent) {
-      var updatedGoals = await _updateGoalWhenUpdateMoment(
-          event.newMoment, event.oldMoment, nowInMillis);
-      for (Goal goal in updatedGoals) {
-        await _saveGoal(goal, nowInMillis);
-        yield GoalUpdated(oldGoal: null, newGoal: goal);
+      try {
+        var updatedGoals = await _updateGoalWhenUpdateMoment(
+            event.newMoment, event.oldMoment, nowInMillis);
+        for (Goal goal in updatedGoals) {
+          await _updateGoalFromGoalMoment(goal, nowInMillis);
+          await goalRepository.save(goal);
+          yield GoalUpdated(oldGoal: null, newGoal: goal);
+        }
+      } catch (e) {
+        print('Process MomentUpdatedGoalEvent failed: $e');
+        yield GoalEditFailed(
+            error: 'Process MomentUpdatedGoalEvent failed: $e}');
       }
     }
     if (event is MomentDeletedGoalEvent) {
-      var updatedGoals =
-          await _updateGoalWhenDeleteMoment(event.moment, nowInMillis);
-      for (Goal goal in updatedGoals) {
-        await _saveGoal(goal, nowInMillis);
-        yield GoalUpdated(oldGoal: null, newGoal: goal);
+      try {
+        var updatedGoals =
+            await _updateGoalWhenDeleteMoment(event.moment, nowInMillis);
+        for (Goal goal in updatedGoals) {
+          await _updateGoalFromGoalMoment(goal, nowInMillis);
+          await goalRepository.save(goal);
+          yield GoalUpdated(oldGoal: null, newGoal: goal);
+        }
+      } catch (e) {
+        print('Process MomentDeletedGoalEvent failed: $e');
+        yield GoalEditFailed(
+            error: 'Process MomentDeletedGoalEvent failed: $e}');
       }
     }
     if (event is GoalNameUniqueCheck) {
@@ -273,10 +323,14 @@ class GoalEditBloc extends Bloc<GoalEditEvent, GoalEditState> {
     }
   }
 
-  Future<void> _saveGoal(Goal goal, int nowInMillis) async {
-    goal.updateTime = nowInMillis;
-    goal.updateFieldFromGoalAction();
-    await goalRepository.save(goal);
+  List<Moment> _getMomentOfGoalAction(List<Moment> moments, GoalAction goalAction) {
+    var results = <Moment>[];
+    for (var moment in moments) {
+      if (moment.actionId == goalAction.actionId) {
+        results.add(moment);
+      }
+    }
+    return moments;
   }
 
   Future<List<Goal>> _updateGoalWhenAddMoment(Moment moment, int now) async {
@@ -285,24 +339,47 @@ class GoalEditBloc extends Bloc<GoalEditEvent, GoalEditState> {
         await goalRepository.getGoalViaActionId(moment.action.id, false);
     print('_updateGoalWhenAddMoment - Goals num: ${goals.length}');
     for (var goal in goals) {
-      if (moment.beginTime < goal.startTime || moment.beginTime > goal.stopTime) {
+      if (moment.beginTime < goal.startTime ||
+          moment.beginTime > goal.stopTime) {
         print('_updateGoalWhenAddMoment - Moment time not in goal duration');
         continue;
       }
       for (var goalAction in goal.goalActions) {
         if (goalAction.action.id != moment.action.id) continue;
-        _updateGoalActionForMomentAdd(goal, goalAction, moment, now);
+        await _saveGoalMoment(moment, goal, goalAction, now);
+        await _updateGoalActionFromGoalMoment(goalAction, now);
         await goalRepository.saveGoalAction(goalAction);
-        var goalMoment = GoalMoment();
-        goalMoment.goalId = goal.id;
-        goalMoment.goalActionId = goalAction.id;
-        goalMoment.momentId = moment.id;
-        goalMoment.createTime = now;
-        await goalRepository.saveGoalMoment(goalMoment);
         updatedGoals.add(goal);
       }
     }
     return updatedGoals.toList();
+  }
+
+  Future<void> _saveGoalMoment(
+      Moment moment, Goal goal, GoalAction goalAction, int now) async {
+    var goalMoment = GoalMoment();
+    goalMoment.goalId = goal.id;
+    goalMoment.goalActionId = goalAction.id;
+    goalMoment.momentId = moment.id;
+    goalMoment.momentDuration = moment.durationInMillis();
+    goalMoment.momentBeginTime = moment.beginTime;
+    goalMoment.createTime = now;
+    await goalRepository.saveGoalMoment(goalMoment);
+  }
+
+  Future<void> _updateGoalActionFromGoalMoment(
+      GoalAction goalAction, int now) async {
+    goalAction.lastActiveTime = await goalRepository
+        .getGoalActionLastActiveTime(goalAction.goalId, goalAction.id);
+    goalAction.totalTimeTaken = await goalRepository
+        .getGoalActionTotalTimeTaken(goalAction.goalId, goalAction.id);
+    goalAction.updateTime = now;
+  }
+
+  Future<void> _updateGoalFromGoalMoment(Goal goal, int now) async {
+    goal.lastActiveTime = await goalRepository.getGoalLastActiveTime(goal.id);
+    goal.totalTimeTaken = await goalRepository.getGoalTotalTimeTaken(goal.id);
+    goal.updateTime = now;
   }
 
   Future<List<Goal>> _updateGoalWhenUpdateMoment(
@@ -314,8 +391,10 @@ class GoalEditBloc extends Bloc<GoalEditEvent, GoalEditState> {
     for (var goal in goals) {
       for (var goalAction in goal.goalActions) {
         if (goalAction.action.id != oldMoment.action.id) continue;
-        _updateGoalActionForMomentDelete(goal, goalAction, oldMoment, now);
-        _updateGoalActionForMomentAdd(goal, goalAction, newMoment, now);
+        await goalRepository.deleteGoalMomentViaUniqueKey(
+            goal.id, goalAction.id, oldMoment.id);
+        await _saveGoalMoment(newMoment, goal, goalAction, now);
+        await _updateGoalActionFromGoalMoment(goalAction, now);
         await goalRepository.saveGoalAction(goalAction);
         updatedGoals.add(goal);
       }
@@ -331,38 +410,14 @@ class GoalEditBloc extends Bloc<GoalEditEvent, GoalEditState> {
     for (var goal in goals) {
       for (var goalAction in goal.goalActions) {
         if (goalAction.action.id != moment.action.id) continue;
-        _updateGoalActionForMomentDelete(goal, goalAction, moment, now);
+        await goalRepository.deleteGoalMomentViaUniqueKey(
+            goal.id, goalAction.id, moment.id);
+        await _updateGoalActionFromGoalMoment(goalAction, now);
         await goalRepository.saveGoalAction(goalAction);
-        await goalRepository.deleteGoalMomentViaUniqueKey(goal.id, goalAction.id, moment.id);
         updatedGoals.add(goal);
       }
     }
     return updatedGoals.toList();
-  }
-
-  void _updateGoalActionForMomentAdd(
-      Goal goal, GoalAction goalAction, Moment moment, int now) {
-    if (moment.beginTime >= goal.startTime && moment.beginTime < goal.stopTime) {
-      goalAction.totalTimeTaken += moment.durationInMillis();
-      goalAction.updateTime = now;
-      goalAction.lastActiveTime = moment.beginTime;
-    }
-  }
-
-  void _updateGoalActionForMomentDelete(
-      Goal goal, GoalAction goalAction, Moment moment, int now) {
-    if (moment.beginTime >= goal.startTime && moment.beginTime < goal.stopTime) {
-      goalAction.totalTimeTaken -= moment.durationInMillis();
-      goalAction.updateTime = now;
-      if (moment.action.lastActiveTime >= goal.startTime && moment.action.lastActiveTime < goal.stopTime) {
-        goalAction.lastActiveTime = moment.action.lastActiveTime;
-      } else {
-        goalAction.lastActiveTime = 0;
-      }
-      if (goalAction.totalTimeTaken == 0) {
-        goalAction.lastActiveTime = 0;
-      }
-    }
   }
 
   Future<void> _updateGoalActionInfo(GoalAction goalAction, int now) async {

@@ -193,6 +193,7 @@ class HomePageState extends State<HomePage>
       _todoBloc.dispatch(GoalAddedTodoEvent(goal: state.goal));
     }
     if (state is GoalUpdated) {
+      print('Goal updated, dispatch GoalUpdatedTodoEvent');
       _todoBloc.dispatch(
           GoalUpdatedTodoEvent(oldGoal: state.oldGoal, newGoal: state.newGoal));
     }

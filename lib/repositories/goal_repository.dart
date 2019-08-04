@@ -74,10 +74,29 @@ class GoalRepository extends PageRepository<Goal> {
     return _goalProvider.deleteGoalMoment(goalMoment);
   }
 
+  Future<int> deleteGoalMomentVidGoalId(int goalId) async {
+    throw(UnsupportedError('Not implemented'));
+  }
+
   Future<int> deleteGoalMomentViaUniqueKey(
       int goalId, int goalActionId, int momentId) async {
     return _goalProvider.deleteGoalMomentViaUniqueKey(
         goalId, goalActionId, momentId);
   }
 
+  Future<int> getGoalLastActiveTime(int goalId) async {
+    return _goalProvider.getGoalLastActiveTime(goalId);
+  }
+
+  Future<int> getGoalActionLastActiveTime(int goalId, int goalActionId) async {
+    return _goalProvider.getGoalActionLastActiveTime(goalId, goalActionId);
+  }
+
+  Future<int> getGoalTotalTimeTaken(int goalId) async {
+    return _goalProvider.getGoalTotalTimeTaken(goalId);
+  }
+
+  Future<int> getGoalActionTotalTimeTaken(int goalId, int goalActionId) async {
+    return _goalProvider.getGoalActionTotalTimeTaken(goalId, goalActionId);
+  }
 }

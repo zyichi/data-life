@@ -100,9 +100,7 @@ class TodoBloc extends Bloc<TodoEvent, TodoState> {
     DateTime tomorrowDate = TimeUtil.tomorrowStart(now);
     if (event is CreateTodayTodo) {
       try {
-        int deletedOldTodoCount =
-            await todoRepository.deleteOlderThanTime(todayDate);
-        print('Number of old todo deleted: $deletedOldTodoCount');
+        await todoRepository.deleteOlderThanTime(todayDate);
         SharedPreferences prefs = await SharedPreferences.getInstance();
         int lastTimeCreateTodayTodo =
             prefs.getInt(SP_KEY_lastTimeCreateTodayTodo) ?? 0;
@@ -200,6 +198,7 @@ class TodoBloc extends Bloc<TodoEvent, TodoState> {
     }
     if (event is GoalUpdatedTodoEvent) {
       try {
+        print('Goal updated, update todo');
         Goal newGoal = event.newGoal;
         Goal oldGoal = event.oldGoal;
         var deletedList = <Todo>[];

@@ -20,6 +20,10 @@ class MomentRepository extends PageRepository<Moment> {
     return _momentProvider.get(startIndex: startIndex, count: count);
   }
 
+  Future<List<Moment>> getAfterTime(int timeInMillis, bool rowOnly) async {
+    return _momentProvider.getAfterTime(timeInMillis, rowOnly);
+  }
+
   Future<int> save(Moment moment) async {
     return _momentProvider.save(moment);
   }

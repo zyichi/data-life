@@ -49,7 +49,7 @@ class _TodoListItem extends StatelessWidget {
                       children: <Widget>[
                         Expanded(
                           child: Text(
-                            todo.goal.name,
+                            todo.goal.name ?? '',
                             style: Theme.of(context).textTheme.title,
                             overflow: TextOverflow.ellipsis,
                             softWrap: false,
@@ -100,7 +100,7 @@ class _TodoListItem extends StatelessWidget {
                   : Padding(
                       padding: const EdgeInsets.all(8),
                       child: Text(
-                        'Done on ${DateFormat(DateFormat.HOUR_MINUTE).format(DateTime.now())}',
+                        'Done on ${DateFormat(DateFormat.HOUR_MINUTE).format(DateTime.fromMillisecondsSinceEpoch(todo.doneTime))}',
                         style: Theme.of(context)
                             .textTheme
                             .button

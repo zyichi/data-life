@@ -7,9 +7,9 @@ import 'package:data_life/models/time_types.dart';
 enum GoalStatus {
   none,
   ongoing,
-  paused,
-  expired,
   finished,
+  expired,
+  paused,
 }
 
 
@@ -38,6 +38,7 @@ class Goal {
   }
 
   void updateFieldFromGoalAction() {
+    /*
     if (goalActions.isNotEmpty) {
       totalTimeTaken = 0;
       lastActiveTime = 0;
@@ -46,6 +47,7 @@ class Goal {
         lastActiveTime = max(lastActiveTime, goalAction.lastActiveTime ?? 0);
       }
     }
+    */
   }
 
   static Goal copyCreate(Goal goal) {

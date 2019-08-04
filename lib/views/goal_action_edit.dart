@@ -353,84 +353,103 @@ class _GoalActionEditState extends State<GoalActionEdit> {
           key: _formKey,
           onWillPop: _onWillPop,
           child: ListView(
-            padding: EdgeInsets.all(16.0),
+            padding: EdgeInsets.symmetric(vertical: 16),
             children: <Widget>[
-              _createActionNameFormField(),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: _createActionNameFormField(),
+              ),
               Divider(),
               SizedBox(height: 16),
-              FormField(
-                builder: (fieldState) {
-                  return Column(
-                    children: <Widget>[
-                      DateTimePickerFormField(
-                        labelText: 'From',
-                        initialDateTime:
-                        DateTime.fromMillisecondsSinceEpoch(_goalAction.startTime),
-                        selectDateTime: (time) {
-                          _goalAction.startTime = time.millisecondsSinceEpoch;
-                          fieldState.didChange(null);
-                        },
-                        enabled: !_isReadOnly,
-                      ),
-                      DateTimePickerFormField(
-                        labelText: 'To',
-                        initialDateTime:
-                        DateTime.fromMillisecondsSinceEpoch(_goalAction.stopTime),
-                        selectDateTime: (time) {
-                          _goalAction.stopTime = time.millisecondsSinceEpoch;
-                          fieldState.didChange(null);
-                        },
-                        enabled: !_isReadOnly,
-                      ),
-                    ],
-                  );
-                },
-                autovalidate: true,
-                validator: (value) {
-                  var now = DateTime.now();
-                  var nowDate = DateTime(now.year, now.month, now.day);
-                  if (_goalAction.startTime < nowDate.millisecondsSinceEpoch) {
-                    return '开始时间必须在当前时间之后';
-                  }
-                  if (_goalAction.startTime > _goalAction.stopTime) {
-                    return '开始时间必须早于结束时间';
-                  }
-                  return null;
-                },
-              ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: <Widget>[
-                  LabelFormField(
-                    label: 'Repeat',
-                  ),
-                  InkWell(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 8),
-                      child: Text(
-                        _repeatText,
-                        style: Theme.of(context).textTheme.subhead,
-                      ),
-                    ),
-                    onTap: _isReadOnly
-                        ? null
-                        : () async {
-                            _customRepeat = await Navigator.push(
-                                context,
-                                PageTransition(
-                                  child: RepeatPage(
-                                    goalAction: _goalAction,
-                                    customRepeat: _customRepeat,
-                                  ),
-                                  type: PageTransitionType.rightToLeft,
-                                ));
-                            setState(() {
-                              _repeatText = TypeToStr.repeatToReadableText(
-                                  _goalAction.getRepeat(), context);
-                            });
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: FormField(
+                  builder: (fieldState) {
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: <Widget>[
+                        DateTimePickerFormField(
+                          labelText: 'From',
+                          initialDateTime:
+                          DateTime.fromMillisecondsSinceEpoch(_goalAction.startTime),
+                          selectDateTime: (time) {
+                            _goalAction.startTime = time.millisecondsSinceEpoch;
+                            fieldState.didChange(null);
                           },
-                  )
-                ],
+                          enabled: !_isReadOnly,
+                        ),
+                        DateTimePickerFormField(
+                          labelText: 'To',
+                          initialDateTime:
+                          DateTime.fromMillisecondsSinceEpoch(_goalAction.stopTime),
+                          selectDateTime: (time) {
+                            _goalAction.stopTime = time.millisecondsSinceEpoch;
+                            fieldState.didChange(null);
+                          },
+                          enabled: !_isReadOnly,
+                        ),
+                        FormFieldError(
+                          errorText: fieldState.errorText,
+                        )
+                      ],
+                    );
+                  },
+                  autovalidate: true,
+                  validator: (value) {
+                    if (_isReadOnly) {
+                      return null;
+                    }
+                    var now = DateTime.now();
+                    var nowDate = DateTime(now.year, now.month, now.day);
+                    if (_goalAction.startTime < nowDate.millisecondsSinceEpoch) {
+                      return '开始时间必须在当前时间之后';
+                    }
+                    if (_goalAction.startTime > _goalAction.stopTime) {
+                      return '开始时间必须早于结束时间';
+                    }
+                    return null;
+                  },
+                ),
+              ),
+              SizedBox(height: 8),
+              Divider(),
+              SizedBox(height: 16),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: <Widget>[
+                    LabelFormField(
+                      label: 'Repeat',
+                    ),
+                    InkWell(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 8),
+                        child: Text(
+                          _repeatText,
+                          style: Theme.of(context).textTheme.subhead,
+                        ),
+                      ),
+                      onTap: _isReadOnly
+                          ? null
+                          : () async {
+                              _customRepeat = await Navigator.push(
+                                  context,
+                                  PageTransition(
+                                    child: RepeatPage(
+                                      goalAction: _goalAction,
+                                      customRepeat: _customRepeat,
+                                    ),
+                                    type: PageTransitionType.rightToLeft,
+                                  ));
+                              setState(() {
+                                _repeatText = TypeToStr.repeatToReadableText(
+                                    _goalAction.getRepeat(), context);
+                              });
+                            },
+                    )
+                  ],
+                ),
               ),
             ],
           ),

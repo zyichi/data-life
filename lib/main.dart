@@ -105,6 +105,7 @@ class _MyAppState extends State<MyApp> {
     _goalEditBloc = GoalEditBloc(
       goalRepository: _goalRepository,
       actionRepository: _actionRepository,
+      momentRepository: _momentRepository,
     );
 
     _todoBloc = TodoBloc(

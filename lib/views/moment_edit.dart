@@ -549,7 +549,7 @@ class _MomentEditState extends State<MomentEdit> {
     return Text(
       'Mark to-do ${widget.todo.goalAction.action.name} as done',
       style: TextStyle(
-        color: Theme.of(context).accentColor,
+        color: Theme.of(context).primaryColorDark,
       ),
     );
   }
@@ -590,7 +590,7 @@ class _MomentEditState extends State<MomentEdit> {
           key: _formKey,
           onWillPop: _onWillPop,
           child: ListView(
-            padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 16),
+            padding: const EdgeInsets.symmetric(vertical: 16,),
             children: <Widget>[
               widget.todo != null
                   ? Align(
@@ -602,17 +602,26 @@ class _MomentEditState extends State<MomentEdit> {
                   ? Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: <Widget>[
-                        _createActionNameFormField(),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          child: _createActionNameFormField(),
+                        ),
                         Divider(),
                       ],
                     )
                   : Container(),
-              _createLocationField(),
-              Divider(),
-              _createPeopleFormField(),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: _createLocationField(),
+              ),
               Divider(),
               Padding(
-                padding: EdgeInsets.only(top: 16, bottom: 16.0),
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: _createPeopleFormField(),
+              ),
+              Divider(),
+              Padding(
+                padding: EdgeInsets.only(left: 16, top: 16, right: 16, bottom: 16),
                 child: FormField(
                   builder: (fieldState) {
                     return Column(
@@ -646,7 +655,6 @@ class _MomentEditState extends State<MomentEdit> {
                   },
                   autovalidate: true,
                   validator: (value) {
-                    print('Moment time validator');
                     // If to-do is not null, we need to limit time to today.
                     var now = DateTime.now();
                     if (widget.todo != null) {
@@ -667,11 +675,20 @@ class _MomentEditState extends State<MomentEdit> {
                 ),
               ),
               Divider(),
-              _createExpendFormField(),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: _createExpendFormField(),
+              ),
               Divider(),
-              _createSentimentFormField(),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: _createSentimentFormField(),
+              ),
               Divider(),
-              _createFeelingsFormField(),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: _createFeelingsFormField(),
+              ),
             ],
           ),
         ),

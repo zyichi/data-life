@@ -67,10 +67,10 @@ class PageBloc<Item> extends Bloc<PageEvent, PageState> {
   @override
   Stream<PageState> mapEventToState(PageEvent event) async* {
     if (event is RefreshPage) {
-      print('${logStr()} mapEventToState RefreshPage');
+      // print('${logStr()} mapEventToState RefreshPage');
       yield PageLoading();
       _total = await pageRepository.count();
-      print('${logStr()} mapEventToState RefreshPage: total is $_total');
+      // print('${logStr()} mapEventToState RefreshPage: total is $_total');
       if (_total == 0) {
         // print('${logStr()} mapEventToState RefreshPage: total is 0');
         yield PageLoaded<Item>(PageList<Item>([], 0));
@@ -89,7 +89,7 @@ class PageBloc<Item> extends Bloc<PageEvent, PageState> {
       _handleIndexes(indexes);
     }
     if (event is FetchPage) {
-      print('${logStr()} mapEventToState FetchPage');
+      // print('${logStr()} mapEventToState FetchPage');
       try {
         final pageNumber = event.pageNumber;
         final items = await pageRepository.get(
@@ -123,7 +123,7 @@ class PageBloc<Item> extends Bloc<PageEvent, PageState> {
   }
 
   void _handleIndexes(List<int> indexes) async {
-    print('${logStr()} PageBloc handleIndexes: $indexes');
+    // print('${logStr()} PageBloc handleIndexes: $indexes');
     int startIndex = indexes.fold(maxInt, min);
     int endIndex = indexes.fold(-1, max);
     int startPageNumber = startIndex ~/ Page.pageSize;
@@ -135,7 +135,7 @@ class PageBloc<Item> extends Bloc<PageEvent, PageState> {
 
       _pagesBeingRequested.add(i);
 
-      print('${logStr()} PageBloc handleIndexes dispatch FetchPage for page $i');
+      // print('${logStr()} PageBloc handleIndexes dispatch FetchPage for page $i');
       dispatch(FetchPage(pageNumber: i));
     }
   }

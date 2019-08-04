@@ -61,7 +61,7 @@ class _GoalListItem extends StatelessWidget {
 
   Widget _createLastActiveTimeWidget(BuildContext context) {
     String s;
-    if (goal.lastActiveTime == null) {
+    if (goal.lastActiveTime == 0 || goal.lastActiveTime == null) {
       s = '无';
     } else {
       s = TimeUtil.dateStringFromMillis(goal.lastActiveTime) +

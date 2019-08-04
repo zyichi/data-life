@@ -9,6 +9,7 @@ class GoalMomentTable {
   static const columnGoalActionId = 'actionId';
   static const columnMomentId = 'momentId';
   static const columnMomentBeginTime = 'momentBeginTime';
+  static const columnMomentDuration = 'momentDuration';
   static const columnCreateTime = 'createTime';
 
   static const createIndexSql = '''
@@ -24,6 +25,7 @@ create table $tableName (
   $columnGoalActionId integer not null,
   $columnMomentId integer not null,
   $columnMomentBeginTime integer not null,
+  $columnMomentDuration integer not null,
   $columnCreateTime integer not null)
 ''';
   }
@@ -40,6 +42,7 @@ create table $tableName (
     goalMoment.goalActionId = map[GoalMomentTable.columnGoalActionId] as int;
     goalMoment.momentId = map[GoalMomentTable.columnMomentId] as int;
     goalMoment.momentBeginTime = map[GoalMomentTable.columnMomentBeginTime] as int;
+    goalMoment.momentDuration = map[GoalMomentTable.columnMomentDuration] as int;
     goalMoment.createTime = map[GoalMomentTable.columnCreateTime] as int;
     return goalMoment;
   }
@@ -50,6 +53,7 @@ create table $tableName (
       GoalMomentTable.columnGoalActionId: goalMoment.goalActionId,
       GoalMomentTable.columnMomentId: goalMoment.momentId,
       GoalMomentTable.columnMomentBeginTime: goalMoment.momentBeginTime,
+      GoalMomentTable.columnMomentDuration: goalMoment.momentDuration,
       GoalMomentTable.columnCreateTime: goalMoment.createTime,
     };
     if (goalMoment.id != null) {

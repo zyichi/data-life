@@ -318,101 +318,115 @@ class _GoalEditState extends State<GoalEdit> {
             key: _formKey,
             onWillPop: _onWillPop,
             child: Padding(
-              padding: const EdgeInsets.only(
-                  left: 16, top: 16, bottom: 16, right: 16),
+              padding: const EdgeInsets.symmetric(vertical: 16),
               child: ListView(
                 children: <Widget>[
-                  UniqueCheckFormField(
-                    initialValue: _goal.name,
-                    focusNode: _nameFocusNode,
-                    textStyle: Theme.of(context)
-                        .textTheme
-                        .subhead
-                        .copyWith(fontSize: 24),
-                    validator: (String text, bool isUnique) {
-                      if (text.isEmpty) {
-                        return 'Goal name can not empty';
-                      }
-                      if (!isUnique && text != widget.goal?.name) {
-                        return 'Goal name already exist';
-                      }
-                      return null;
-                    },
-                    textChanged: _titleChanged,
-                    hintText: 'Enter goal name',
-                    uniqueCheckCallback: (String text) {
-                      return _goalEditBloc.goalNameUniqueCheck(text);
-                    },
-                    enabled: !_isReadOnly,
-                    autofocus: _isNewGoal,
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: UniqueCheckFormField(
+                      initialValue: _goal.name,
+                      focusNode: _nameFocusNode,
+                      textStyle: Theme.of(context)
+                          .textTheme
+                          .subhead
+                          .copyWith(fontSize: 24),
+                      validator: (String text, bool isUnique) {
+                        if (text.isEmpty) {
+                          return 'Goal name can not empty';
+                        }
+                        if (!isUnique && text != widget.goal?.name) {
+                          return 'Goal name already exist';
+                        }
+                        return null;
+                      },
+                      textChanged: _titleChanged,
+                      hintText: 'Enter goal name',
+                      uniqueCheckCallback: (String text) {
+                        return _goalEditBloc.goalNameUniqueCheck(text);
+                      },
+                      enabled: !_isReadOnly,
+                      autofocus: _isNewGoal,
+                    ),
                   ),
                   Divider(),
-                  ProgressTarget(
-                    padding: EdgeInsets.symmetric(vertical: 8),
-                    progressChanged: _progressChanged,
-                    targetChanged: _targetChanged,
-                    initialProgress: _goal.progress,
-                    initialTarget: _goal.target,
-                    enabled: !_isReadOnly,
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: ProgressTarget(
+                      padding: EdgeInsets.symmetric(vertical: 8),
+                      progressChanged: _progressChanged,
+                      targetChanged: _targetChanged,
+                      initialProgress: _goal.progress,
+                      initialTarget: _goal.target,
+                      enabled: !_isReadOnly,
+                    ),
                   ),
                   Divider(),
                   SizedBox(height: 8),
-                  FormField(
-                    builder: (FormFieldState fieldState) {
-                      return Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: <Widget>[
-                          DatePickerFormField(
-                            labelText: 'From',
-                            initialDateTime:
-                                DateTime.fromMillisecondsSinceEpoch(
-                                    _goal.startTime),
-                            selectDate: (date) {
-                              fieldState.didChange(null);
-                              print('Selected goal from date: $date');
-                              _goal.startTime = date.millisecondsSinceEpoch;
-                            },
-                            enabled: !_isReadOnly,
-                          ),
-                          DatePickerFormField(
-                            labelText: 'To',
-                            initialDateTime:
-                                DateTime.fromMillisecondsSinceEpoch(
-                                    _goal.stopTime),
-                            selectDate: (date) {
-                              fieldState.didChange(null);
-                              print('Selected goal to date: $date');
-                              _goal.stopTime = date.millisecondsSinceEpoch;
-                            },
-                            enabled: !_isReadOnly,
-                          ),
-                          FormFieldError(
-                            errorText: fieldState.errorText,
-                          )
-                        ],
-                      );
-                    },
-                    autovalidate: true,
-                    validator: (value) {
-                      var now = DateTime.now();
-                      var nowDate = DateTime(now.year, now.month, now.day);
-                      if (_goal.startTime < nowDate.millisecondsSinceEpoch) {
-                        return '开始时间必须在当前时间之后';
-                      }
-                      if (_goal.stopTime - _goal.startTime <
-                          Duration(days: 3).inMilliseconds) {
-                        return '时长必须大于三天';
-                      }
-                      if (_goal.startTime > _goal.stopTime) {
-                        return '开始时间必须早于结束时间';
-                      }
-                      return null;
-                    },
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: FormField(
+                      builder: (FormFieldState fieldState) {
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: <Widget>[
+                            DatePickerFormField(
+                              labelText: 'From',
+                              initialDateTime:
+                                  DateTime.fromMillisecondsSinceEpoch(
+                                      _goal.startTime),
+                              selectDate: (date) {
+                                fieldState.didChange(null);
+                                print('Selected goal from date: $date');
+                                _goal.startTime = date.millisecondsSinceEpoch;
+                              },
+                              enabled: !_isReadOnly,
+                            ),
+                            DatePickerFormField(
+                              labelText: 'To',
+                              initialDateTime:
+                                  DateTime.fromMillisecondsSinceEpoch(
+                                      _goal.stopTime),
+                              selectDate: (date) {
+                                fieldState.didChange(null);
+                                print('Selected goal to date: $date');
+                                _goal.stopTime = date.millisecondsSinceEpoch;
+                              },
+                              enabled: !_isReadOnly,
+                            ),
+                            FormFieldError(
+                              errorText: fieldState.errorText,
+                            )
+                          ],
+                        );
+                      },
+                      autovalidate: true,
+                      validator: (value) {
+                        if (_isReadOnly) {
+                          return null;
+                        }
+                        var now = DateTime.now();
+                        var nowDate = DateTime(now.year, now.month, now.day);
+                        if (_goal.startTime < nowDate.millisecondsSinceEpoch) {
+                          return '开始时间必须在当前时间之后';
+                        }
+                        if (_goal.stopTime - _goal.startTime <
+                            Duration(days: 3).inMilliseconds) {
+                          return '时长必须大于三天';
+                        }
+                        if (_goal.startTime > _goal.stopTime) {
+                          return '开始时间必须早于结束时间';
+                        }
+                        return null;
+                      },
+                    ),
                   ),
                   SizedBox(height: 8),
                   Divider(),
                   SizedBox(height: 8),
-                  _createGoalActionWidget(),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: _createGoalActionWidget(),
+                  ),
                 ],
               ),
             ),

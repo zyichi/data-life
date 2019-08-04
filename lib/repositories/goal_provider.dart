@@ -34,6 +34,7 @@ class GoalProvider {
     }).toList();
     for (Goal goal in goals) {
       goal.goalActions = await getGoalActionOfGoal(goal.id, false);
+      print('Goal totalTimeTaken: ${goal.totalTimeTaken}');
       goal.updateFieldFromGoalAction();
     }
     return goals;
@@ -290,5 +291,29 @@ class GoalProvider {
       return goalAction;
     }
     return null;
+  }
+
+  Future<int> getGoalLastActiveTime(int goalId) async {
+    int t = Sqflite.firstIntValue(await LifeDb.db.rawQuery(
+        'select max(${GoalMomentTable.columnMomentBeginTime}) from ${GoalMomentTable.name} where ${GoalMomentTable.columnGoalId} = $goalId'));
+    return t ?? 0;
+  }
+
+  Future<int> getGoalActionLastActiveTime(int goalId, int goalActionId) async {
+    int t = Sqflite.firstIntValue(await LifeDb.db.rawQuery(
+        'select max(${GoalMomentTable.columnMomentBeginTime}) from ${GoalMomentTable.name} where ${GoalMomentTable.columnGoalId} = $goalId and ${GoalMomentTable.columnGoalActionId} = $goalActionId'));
+    return t ?? 0;
+  }
+
+  Future<int> getGoalTotalTimeTaken(int goalId) async {
+    int t = Sqflite.firstIntValue(await LifeDb.db.rawQuery(
+        'select sum(${GoalMomentTable.columnMomentDuration}) from ${GoalMomentTable.name} where ${GoalMomentTable.columnGoalId} = $goalId'));
+    return t ?? 0;
+  }
+
+  Future<int> getGoalActionTotalTimeTaken(int goalId, int goalActionId) async {
+    int t = Sqflite.firstIntValue(await LifeDb.db.rawQuery(
+        'select sum(${GoalMomentTable.columnMomentDuration}) from ${GoalMomentTable.name} where ${GoalMomentTable.columnGoalId} = $goalId and ${GoalMomentTable.columnGoalActionId} = $goalActionId'));
+    return t ?? 0;
   }
 }

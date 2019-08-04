@@ -67,6 +67,31 @@ class _MyBottomSheetState extends State<MyBottomSheet> {
                 );
               },
             ),
+            InkWell(
+              child: Padding(
+                padding: const EdgeInsets.only(
+                    left: 16, top: 16, right: 16, bottom: 16),
+                child: Row(
+                  children: <Widget>[
+                    Icon(Icons.accessibility_new),
+                    SizedBox(width: 16),
+                    Text('Actions'),
+                  ],
+                ),
+              ),
+              onTap: () {
+                /*
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (BuildContext context) => ActionPage(),
+                    fullscreenDialog: true,
+                    settings: RouteSettings(name: ActionPage.routeName),
+                  ),
+                );
+                */
+              },
+            ),
             Divider(),
             InkWell(
               child: Padding(
