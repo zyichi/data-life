@@ -41,7 +41,6 @@ class LifeDb {
         ContactTable.initSqlList +
         LocationTable.initSqlList +
         ActionTable.initSqlList +
-        GoalMomentTable.initSqlList +
         MomentContactTable.initSqlList;
     initSqlList.forEach((sql) => db.execute(sql));
   }

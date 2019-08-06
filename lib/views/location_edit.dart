@@ -7,7 +7,7 @@ import 'package:data_life/views/labeled_text_form_field.dart';
 import 'package:data_life/views/common_dialog.dart';
 
 import 'package:data_life/utils/time_util.dart';
-import 'package:data_life/blocs/location_edit_bloc.dart';
+import 'package:data_life/blocs/location_bloc.dart';
 
 class LocationEdit extends StatefulWidget {
   final Location location;
@@ -23,7 +23,7 @@ class _LocationEditState extends State<LocationEdit> {
   bool _isNameUnique = true;
   final _formKey = GlobalKey<FormState>();
   Location _location;
-  LocationEditBloc _locationEditBloc;
+  LocationBloc _locationBloc;
   FocusNode _nameFocusNode;
   TextEditingController _nameController;
   TextEditingController _addressController;
@@ -39,7 +39,7 @@ class _LocationEditState extends State<LocationEdit> {
 
     _location = Location.copyCreate(widget.location);
 
-    _locationEditBloc = BlocProvider.of<LocationEditBloc>(context);
+    _locationBloc = BlocProvider.of<LocationBloc>(context);
 
     _nameFocusNode = FocusNode();
     _nameController = TextEditingController(text: _location.name);
@@ -53,7 +53,7 @@ class _LocationEditState extends State<LocationEdit> {
     _nameController.addListener(() {
       String newName = _nameController.text;
       if (newName.isNotEmpty && newName != widget.location.name) {
-        _locationEditBloc
+        _locationBloc
             .dispatch(LocationNameUniqueCheck(name: _nameController.text));
       }
     });
@@ -74,8 +74,8 @@ class _LocationEditState extends State<LocationEdit> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocListener<LocationEditBloc, LocationEditState>(
-      bloc: _locationEditBloc,
+    return BlocListener<LocationBloc, LocationState>(
+      bloc: _locationBloc,
       listener: (context, state) {
         if (state is LocationNameUniqueCheckResult) {
           if (state.text == _nameController.text) {
@@ -84,7 +84,7 @@ class _LocationEditState extends State<LocationEdit> {
             });
           }
         }
-        if (state is LocationEditFailed) {
+        if (state is LocationFailed) {
           print('Location edit bloc failed state: ${state.error}');
         }
       },
@@ -221,7 +221,7 @@ class _LocationEditState extends State<LocationEdit> {
 
   void _editLocation() {
     _updateLocationFromForm();
-    _locationEditBloc.dispatch(
+    _locationBloc.dispatch(
         UpdateLocation(newLocation: _location, oldLocation: widget.location));
   }
 
@@ -242,6 +242,7 @@ class _LocationEditState extends State<LocationEdit> {
             if (!_isNameUnique) {
               return 'Location name already exist';
             }
+            return null;
           },
           decoration: InputDecoration(
             border: InputBorder.none,

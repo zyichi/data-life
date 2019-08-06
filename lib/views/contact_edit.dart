@@ -8,7 +8,7 @@ import 'package:data_life/views/date_time_picker_form_field.dart';
 import 'package:data_life/views/common_dialog.dart';
 
 import 'package:data_life/utils/time_util.dart';
-import 'package:data_life/blocs/contact_edit_bloc.dart';
+import 'package:data_life/blocs/contact_bloc.dart';
 
 class ContactEdit extends StatefulWidget {
   final Contact contact;
@@ -24,7 +24,7 @@ class _ContactEditState extends State<ContactEdit> {
   bool _isNameUnique = true;
   final _formKey = GlobalKey<FormState>();
   Contact _contact;
-  ContactEditBloc _contactEditBloc;
+  ContactBloc _contactEditBloc;
   FocusNode _nameFocusNode;
   TextEditingController _nameController;
   TextEditingController _nicknameController;
@@ -39,7 +39,7 @@ class _ContactEditState extends State<ContactEdit> {
 
     _contact = Contact.copyCreate(widget.contact);
 
-    _contactEditBloc = BlocProvider.of<ContactEditBloc>(context);
+    _contactEditBloc = BlocProvider.of<ContactBloc>(context);
 
     _nameFocusNode = FocusNode();
     _nameController = TextEditingController(text: _contact.name);
@@ -48,7 +48,7 @@ class _ContactEditState extends State<ContactEdit> {
     _phoneNumberController = TextEditingController(text: _contact.phoneNumber);
     _qqController = TextEditingController(text: _contact.qqId);
     _firstMeetLocationController =
-        TextEditingController(text: _contact.firstMeetLocation);
+        TextEditingController(text: _contact.location?.address ?? '');
 
     _nameController.addListener(() {
       String newName = _nameController.text;
@@ -75,7 +75,7 @@ class _ContactEditState extends State<ContactEdit> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocListener<ContactEditBloc, ContactEditState>(
+    return BlocListener<ContactBloc, ContactState>(
       bloc: _contactEditBloc,
       listener: (context, state) {
         if (state is ContactNameUniqueCheckResult) {
@@ -85,7 +85,7 @@ class _ContactEditState extends State<ContactEdit> {
             });
           }
         }
-        if (state is ContactEditFailed) {
+        if (state is ContactFailed) {
           print('Contact edit bloc failed state: ${state.error}');
         }
       },
@@ -242,7 +242,7 @@ class _ContactEditState extends State<ContactEdit> {
     _contact.weChatId = _weChatController.text;
     _contact.phoneNumber = _phoneNumberController.text;
     _contact.qqId = _qqController.text;
-    _contact.firstMeetLocation = _firstMeetLocationController.text;
+    _contact.firstMeetLocation = -1;
   }
 
   void _editContact() {
@@ -268,6 +268,7 @@ class _ContactEditState extends State<ContactEdit> {
             if (!_isNameUnique) {
               return 'Contact name already exist';
             }
+            return null;
           },
           decoration: InputDecoration(
             border: InputBorder.none,

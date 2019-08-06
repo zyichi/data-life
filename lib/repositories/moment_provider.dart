@@ -136,21 +136,55 @@ class MomentProvider {
   }
 
   Future<int> getLocationLastVisitTime(
-      int locationId, int excludeMomentId) async {
+      int locationId) async {
     int t = Sqflite.firstIntValue(await LifeDb.db.rawQuery(
-        'select max(${MomentTable.columnBeginTime}) from ${MomentTable.name} where ${MomentTable.columnLocationId} = $locationId and ${MomentTable.columnId} != $excludeMomentId'));
+        'select max(${MomentTable.columnBeginTime}) from ${MomentTable.name} where ${MomentTable.columnLocationId} = $locationId'));
     return t ?? 0;
   }
 
-  Future<int> getActionLastActiveTime(int actionId, int excludeMomentId) async {
+  Future<int> getLocationTotalTimeStay(
+      int locationId) async {
     int t = Sqflite.firstIntValue(await LifeDb.db.rawQuery(
-        'select max(${MomentTable.columnBeginTime}) from ${MomentTable.name} where ${MomentTable.columnActionId} = $actionId and ${MomentTable.columnId} != $excludeMomentId'));
+        'select sum(${MomentTable.columnDuration}) from ${MomentTable.name} where ${MomentTable.columnLocationId} = $locationId'));
     return t ?? 0;
   }
 
-  Future<int> getContactLastMeetTime(int contactId, int excludeMomentId) async {
+  Future<int> getActionLastActiveTime(int actionId) async {
     int t = Sqflite.firstIntValue(await LifeDb.db.rawQuery(
-        'select max(${MomentContactTable.columnMomentBeginTime}) from ${MomentContactTable.name} where ${MomentContactTable.columnContactId} = $contactId and ${MomentContactTable.columnMomentId} != $excludeMomentId'));
+        'select max(${MomentTable.columnBeginTime}) from ${MomentTable.name} where ${MomentTable.columnActionId} = $actionId'));
     return t ?? 0;
   }
+
+  Future<int> getContactLastMeetTime(int contactId) async {
+    int t = Sqflite.firstIntValue(await LifeDb.db.rawQuery(
+        'select max(${MomentContactTable.columnMomentBeginTime}) from ${MomentContactTable.name} where ${MomentContactTable.columnContactId} = $contactId'));
+    return t ?? 0;
+  }
+
+  Future<int> getContactTotalTimeTogether(int contactId) async {
+    int t = Sqflite.firstIntValue(await LifeDb.db.rawQuery(
+        'select sum(${MomentContactTable.columnMomentDuration}) from ${MomentContactTable.name} where ${MomentContactTable.columnContactId} = $contactId'));
+    return t ?? 0;
+  }
+
+  Future<int> getActionLastActiveTimeBetweenTime(
+      int actionId, int startTime, int stopTime) async {
+    int t = Sqflite.firstIntValue(await LifeDb.db.rawQuery(
+        'select max(${MomentTable.columnBeginTime}) from ${MomentTable.name} where ${MomentTable.columnActionId} = $actionId and ${MomentTable.columnBeginTime} >= $startTime and ${MomentTable.columnBeginTime} < $stopTime'));
+    return t ?? 0;
+  }
+
+  Future<int> getActionTotalTimeTakenBetweenTime(
+      int actionId, int startTime, int stopTime) async {
+    int t = Sqflite.firstIntValue(await LifeDb.db.rawQuery(
+        'select sum(${MomentTable.columnDuration}) from ${MomentTable.name} where ${MomentTable.columnActionId} = $actionId and ${MomentTable.columnBeginTime} >= $startTime and ${MomentTable.columnBeginTime} < $stopTime'));
+    return t ?? 0;
+  }
+
+  Future<int> getActionTotalTimeTaken(int actionId) async {
+    int t = Sqflite.firstIntValue(await LifeDb.db.rawQuery(
+        'select sum(${MomentTable.columnDuration}) from ${MomentTable.name} where ${MomentTable.columnActionId} = $actionId'));
+    return t ?? 0;
+  }
+
 }

@@ -14,6 +14,12 @@ class MyAction extends Equatable {
   @override
   List get props => [name];
 
+  static MyAction copyCreate(MyAction a) {
+    var action = MyAction();
+    action.copy(a);
+    return action;
+  }
+
   void copy(MyAction a) {
     id = a.id;
     name = a.name;

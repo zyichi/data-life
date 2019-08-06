@@ -34,8 +34,6 @@ class GoalProvider {
     }).toList();
     for (Goal goal in goals) {
       goal.goalActions = await getGoalActionOfGoal(goal.id, false);
-      print('Goal totalTimeTaken: ${goal.totalTimeTaken}');
-      goal.updateFieldFromGoalAction();
     }
     return goals;
   }
@@ -50,7 +48,6 @@ class GoalProvider {
     }).toList();
     for (Goal goal in goals) {
       goal.goalActions = await getGoalActionOfGoal(goal.id, false);
-      goal.updateFieldFromGoalAction();
     }
     return goals;
   }
@@ -68,7 +65,6 @@ class GoalProvider {
     for (Goal goal in goals) {
       if (!rowOnly) {
         goal.goalActions = await getGoalActionOfGoal(goal.id, false);
-        goal.updateFieldFromGoalAction();
       }
     }
     return goals;

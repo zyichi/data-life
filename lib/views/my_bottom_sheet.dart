@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:data_life/views/contact_page.dart';
 import 'package:data_life/views/location_page.dart';
+import 'package:data_life/views/action_page.dart';
 
 import 'package:data_life/blocs/theme_bloc.dart';
 
@@ -80,7 +81,6 @@ class _MyBottomSheetState extends State<MyBottomSheet> {
                 ),
               ),
               onTap: () {
-                /*
                 Navigator.push(
                   context,
                   MaterialPageRoute(
@@ -89,7 +89,6 @@ class _MyBottomSheetState extends State<MyBottomSheet> {
                     settings: RouteSettings(name: ActionPage.routeName),
                   ),
                 );
-                */
               },
             ),
             Divider(),

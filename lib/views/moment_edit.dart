@@ -17,7 +17,7 @@ import 'package:data_life/models/todo.dart';
 
 import 'package:data_life/localizations.dart';
 
-import 'package:data_life/blocs/moment_edit_bloc.dart';
+import 'package:data_life/blocs/moment_bloc.dart';
 
 class MomentEdit extends StatefulWidget {
   final Moment moment;
@@ -57,13 +57,13 @@ class _MomentEditState extends State<MomentEdit> {
   final _costController = TextEditingController();
   final _feelingsController = TextEditingController();
 
-  MomentEditBloc _momentEditBloc;
+  MomentBloc _momentEditBloc;
 
   @override
   void initState() {
     super.initState();
 
-    _momentEditBloc = BlocProvider.of<MomentEditBloc>(context);
+    _momentEditBloc = BlocProvider.of<MomentBloc>(context);
 
     if (widget.moment != null) {
       _isReadOnly = true;
@@ -190,6 +190,7 @@ class _MomentEditState extends State<MomentEdit> {
   }
 
   void _updateMomentFromForm() {
+    _moment.duration = _moment.durationInMillis();
     _moment.cost = parseCost(_costController.text);
     _moment.details = _feelingsController.text;
     if (_moment.action == null) {
@@ -620,8 +621,9 @@ class _MomentEditState extends State<MomentEdit> {
                 child: _createPeopleFormField(),
               ),
               Divider(),
+              SizedBox(height: 8),
               Padding(
-                padding: EdgeInsets.only(left: 16, top: 16, right: 16, bottom: 16),
+                padding: EdgeInsets.symmetric(horizontal: 16),
                 child: FormField(
                   builder: (fieldState) {
                     return Column(
@@ -674,6 +676,7 @@ class _MomentEditState extends State<MomentEdit> {
                   },
                 ),
               ),
+              SizedBox(height: 8),
               Divider(),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),

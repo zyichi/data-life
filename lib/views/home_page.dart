@@ -16,13 +16,15 @@ import 'package:data_life/models/moment.dart';
 import 'package:data_life/models/goal.dart';
 import 'package:data_life/models/contact.dart';
 import 'package:data_life/models/location.dart';
+import 'package:data_life/models/action.dart';
 import 'package:data_life/models/todo.dart';
 
-import 'package:data_life/blocs/moment_edit_bloc.dart';
-import 'package:data_life/blocs/goal_edit_bloc.dart';
-import 'package:data_life/blocs/contact_edit_bloc.dart';
-import 'package:data_life/blocs/location_edit_bloc.dart';
+import 'package:data_life/blocs/moment_bloc.dart';
+import 'package:data_life/blocs/goal_bloc.dart';
+import 'package:data_life/blocs/contact_bloc.dart';
+import 'package:data_life/blocs/location_bloc.dart';
 import 'package:data_life/blocs/todo_bloc.dart';
+import 'package:data_life/blocs/action_bloc.dart';
 
 import 'package:data_life/paging/page_bloc.dart';
 
@@ -66,10 +68,11 @@ class HomePageState extends State<HomePage>
     with SingleTickerProviderStateMixin {
   TabController _tabController;
 
-  MomentEditBloc _momentEditBloc;
-  GoalEditBloc _goalEditBloc;
-  ContactEditBloc _contactEditBloc;
-  LocationEditBloc _locationEditBloc;
+  MomentBloc _momentBloc;
+  GoalBloc _goalBloc;
+  ContactBloc _contactBloc;
+  LocationBloc _locationBloc;
+  ActionBloc _actionBloc;
   TodoBloc _todoBloc;
 
   var _androidApp = MethodChannel("android_app");
@@ -84,10 +87,11 @@ class HomePageState extends State<HomePage>
 
     super.initState();
 
-    _momentEditBloc = BlocProvider.of<MomentEditBloc>(context);
-    _contactEditBloc = BlocProvider.of<ContactEditBloc>(context);
-    _locationEditBloc = BlocProvider.of<LocationEditBloc>(context);
-    _goalEditBloc = BlocProvider.of<GoalEditBloc>(context);
+    _momentBloc = BlocProvider.of<MomentBloc>(context);
+    _contactBloc = BlocProvider.of<ContactBloc>(context);
+    _locationBloc = BlocProvider.of<LocationBloc>(context);
+    _goalBloc = BlocProvider.of<GoalBloc>(context);
+    _actionBloc = BlocProvider.of<ActionBloc>(context);
     _todoBloc = BlocProvider.of<TodoBloc>(context);
 
     _tabController = TabController(length: tabTypeList.length, vsync: this);
@@ -129,7 +133,7 @@ class HomePageState extends State<HomePage>
     return const UnderlineTabIndicator();
   }
 
-  void _momentEditBlocListener(BuildContext context, MomentEditState state) {
+  void _momentBlocListener(BuildContext context, MomentState state) {
     if (state is MomentAdded ||
         state is MomentDeleted ||
         state is MomentUpdated) {
@@ -138,7 +142,7 @@ class HomePageState extends State<HomePage>
       BlocProvider.of<PageBloc<Location>>(context).dispatch(RefreshPage());
     }
     if (state is MomentDeleted) {
-      _goalEditBloc.dispatch(MomentDeletedGoalEvent(moment: state.moment));
+      _goalBloc.dispatch(MomentDeletedGoalEvent(moment: state.moment));
       Scaffold.of(context).showSnackBar(SnackBar(
         content:
             Text('Your moment ${state.moment.action.name} has been deleted'),
@@ -149,24 +153,24 @@ class HomePageState extends State<HomePage>
             // We add back the deleted moment as new moment, so moment.id must
             // set to null.
             state.moment.id = null;
-            _momentEditBloc.dispatch(AddMoment(moment: state.moment));
+            _momentBloc.dispatch(AddMoment(moment: state.moment));
           },
         ),
       ));
     }
     if (state is MomentAdded) {
-      _goalEditBloc.dispatch(MomentAddedGoalEvent(moment: state.moment));
+      _goalBloc.dispatch(MomentAddedGoalEvent(moment: state.moment));
     }
     if (state is MomentUpdated) {
-      _goalEditBloc.dispatch(MomentUpdatedGoalEvent(
+      _goalBloc.dispatch(MomentUpdatedGoalEvent(
           newMoment: state.newMoment, oldMoment: state.oldMoment));
     }
-    if (state is MomentEditFailed) {
+    if (state is MomentFailed) {
       print('${state.error}');
     }
   }
 
-  void _goalEditBlocListener(BuildContext context, GoalEditState state) {
+  void _goalBlocListener(BuildContext context, GoalState state) {
     if (state is GoalAdded ||
         state is GoalDeleted ||
         state is GoalUpdated ||
@@ -183,7 +187,7 @@ class HomePageState extends State<HomePage>
             // We add back the deleted goal as new goal, so goal.id must
             // set to null.
             state.goal.id = null;
-            _goalEditBloc.dispatch(AddGoal(goal: state.goal));
+            _goalBloc.dispatch(AddGoal(goal: state.goal));
           },
         ),
       ));
@@ -197,30 +201,44 @@ class HomePageState extends State<HomePage>
       _todoBloc.dispatch(
           GoalUpdatedTodoEvent(oldGoal: state.oldGoal, newGoal: state.newGoal));
     }
-    if (state is GoalEditFailed) {
+    if (state is GoalFailed) {
       print('${state.error}');
     }
   }
 
-  void _contactEditBlocListener(BuildContext context, ContactEditState state) {
+  void _contactBlocListener(BuildContext context, ContactState state) {
     if (state is ContactUpdated) {
       BlocProvider.of<PageBloc<Moment>>(context).dispatch(RefreshPage());
       BlocProvider.of<PageBloc<Contact>>(context).dispatch(RefreshPage());
       BlocProvider.of<PageBloc<Location>>(context).dispatch(RefreshPage());
     }
-    if (state is ContactEditFailed) {
+    if (state is ContactFailed) {
       print('${state.error}');
     }
   }
 
-  void _locationEditBlocListener(
-      BuildContext context, LocationEditState state) {
+  void _locationBlocListener(
+      BuildContext context, LocationState state) {
     if (state is LocationUpdated) {
       BlocProvider.of<PageBloc<Moment>>(context).dispatch(RefreshPage());
       BlocProvider.of<PageBloc<Contact>>(context).dispatch(RefreshPage());
       BlocProvider.of<PageBloc<Location>>(context).dispatch(RefreshPage());
     }
-    if (state is LocationEditFailed) {
+    if (state is LocationFailed) {
+      print('${state.error}');
+    }
+  }
+
+  void _actionBlocListener(
+      BuildContext context, ActionState state) {
+    if (state is ActionUpdated) {
+      BlocProvider.of<PageBloc<Moment>>(context).dispatch(RefreshPage());
+      BlocProvider.of<PageBloc<Contact>>(context).dispatch(RefreshPage());
+      BlocProvider.of<PageBloc<Location>>(context).dispatch(RefreshPage());
+      BlocProvider.of<PageBloc<MyAction>>(context).dispatch(RefreshPage());
+      BlocProvider.of<PageBloc<Goal>>(context).dispatch(RefreshPage());
+    }
+    if (state is ActionFailed) {
       print('${state.error}');
     }
   }
@@ -314,25 +332,29 @@ class HomePageState extends State<HomePage>
           ),
           body: MultiBlocListener(
             listeners: [
-              BlocListener<MomentEditBloc, MomentEditState>(
-                bloc: _momentEditBloc,
-                listener: _momentEditBlocListener,
+              BlocListener<MomentBloc, MomentState>(
+                bloc: _momentBloc,
+                listener: _momentBlocListener,
               ),
               BlocListener<TodoBloc, TodoState>(
                 bloc: _todoBloc,
                 listener: _todoBlocListener,
               ),
-              BlocListener<GoalEditBloc, GoalEditState>(
-                bloc: _goalEditBloc,
-                listener: _goalEditBlocListener,
+              BlocListener<GoalBloc, GoalState>(
+                bloc: _goalBloc,
+                listener: _goalBlocListener,
               ),
-              BlocListener<ContactEditBloc, ContactEditState>(
-                bloc: _contactEditBloc,
-                listener: _contactEditBlocListener,
+              BlocListener<ContactBloc, ContactState>(
+                bloc: _contactBloc,
+                listener: _contactBlocListener,
               ),
-              BlocListener<LocationEditBloc, LocationEditState>(
-                bloc: _locationEditBloc,
-                listener: _locationEditBlocListener,
+              BlocListener<LocationBloc, LocationState>(
+                bloc: _locationBloc,
+                listener: _locationBlocListener,
+              ),
+              BlocListener<ActionBloc, ActionState>(
+                bloc: _actionBloc,
+                listener: _actionBlocListener,
               ),
             ],
             child: TabBarView(

@@ -15,7 +15,7 @@ import 'package:data_life/models/goal_action.dart';
 import 'package:data_life/models/time_types.dart';
 import 'package:data_life/models/repeat_types.dart';
 
-import 'package:data_life/blocs/goal_edit_bloc.dart';
+import 'package:data_life/blocs/goal_bloc.dart';
 
 import 'package:data_life/localizations.dart';
 import 'package:data_life/utils/time_util.dart';
@@ -137,7 +137,7 @@ class _GoalActionEditState extends State<GoalActionEdit> {
   final FocusNode _actionNameFocusNode = FocusNode();
   final FocusNode _progressFocusNode = FocusNode();
   final TextEditingController _actionNameController = TextEditingController();
-  GoalEditBloc _goalEditBloc;
+  GoalBloc _goalEditBloc;
   bool _autoValidateActionName = false;
   String _repeatText;
   Repeat _customRepeat;
@@ -174,7 +174,7 @@ class _GoalActionEditState extends State<GoalActionEdit> {
   void initState() {
     super.initState();
 
-    _goalEditBloc = BlocProvider.of<GoalEditBloc>(context);
+    _goalEditBloc = BlocProvider.of<GoalBloc>(context);
 
     if (widget.goalAction != null) {
       _isReadOnly = true;

@@ -19,13 +19,14 @@ import 'package:data_life/repositories/location_repository.dart';
 import 'package:data_life/repositories/action_provider.dart';
 import 'package:data_life/repositories/action_repository.dart';
 
-import 'package:data_life/blocs/moment_edit_bloc.dart';
-import 'package:data_life/blocs/contact_edit_bloc.dart';
-import 'package:data_life/blocs/location_edit_bloc.dart';
-import 'package:data_life/blocs/goal_edit_bloc.dart';
+import 'package:data_life/blocs/moment_bloc.dart';
+import 'package:data_life/blocs/contact_bloc.dart';
+import 'package:data_life/blocs/location_bloc.dart';
+import 'package:data_life/blocs/goal_bloc.dart';
 import 'package:data_life/blocs/db_bloc.dart';
 import 'package:data_life/blocs/todo_bloc.dart';
 import 'package:data_life/blocs/theme_bloc.dart';
+import 'package:data_life/blocs/action_bloc.dart';
 
 import 'package:data_life/paging/page_bloc.dart';
 
@@ -34,6 +35,7 @@ import 'package:data_life/models/goal.dart';
 import 'package:data_life/models/contact.dart';
 import 'package:data_life/models/location.dart';
 import 'package:data_life/models/todo.dart';
+import 'package:data_life/models/action.dart';
 
 import 'localizations.dart';
 
@@ -64,12 +66,14 @@ class _MyAppState extends State<MyApp> {
   PageBloc<Todo> _todoListBloc;
   PageBloc<Contact> _contactListBloc;
   PageBloc<Location> _locationListBloc;
+  PageBloc<MyAction> _actionListBloc;
 
-  MomentEditBloc _momentEditBloc;
-  ContactEditBloc _contactEditBloc;
-  LocationEditBloc _locationEditBloc;
-  GoalEditBloc _goalEditBloc;
+  MomentBloc _momentBloc;
+  ContactBloc _contactBloc;
+  LocationBloc _locationBloc;
+  GoalBloc _goalBloc;
   TodoBloc _todoBloc;
+  ActionBloc _actionBloc;
 
   @override
   void initState() {
@@ -87,8 +91,9 @@ class _MyAppState extends State<MyApp> {
     _todoListBloc = PageBloc<Todo>(pageRepository: _todoRepository);
     _contactListBloc = PageBloc<Contact>(pageRepository: _contactRepository);
     _locationListBloc = PageBloc<Location>(pageRepository: _locationRepository);
+    _actionListBloc = PageBloc<MyAction>(pageRepository: _actionRepository);
 
-    _momentEditBloc = MomentEditBloc(
+    _momentBloc = MomentBloc(
       momentRepository: _momentRepository,
       actionRepository: _actionRepository,
       locationRepository: _locationRepository,
@@ -96,18 +101,18 @@ class _MyAppState extends State<MyApp> {
       todoRepository: _todoRepository,
       goalRepository: _goalRepository,
     );
-    _contactEditBloc = ContactEditBloc(
+    _contactBloc = ContactBloc(
       locationRepository: _locationRepository,
       contactRepository: _contactRepository,
     );
-    _locationEditBloc =
-        LocationEditBloc(locationRepository: _locationRepository);
-    _goalEditBloc = GoalEditBloc(
+    _locationBloc =
+        LocationBloc(locationRepository: _locationRepository);
+    _goalBloc = GoalBloc(
       goalRepository: _goalRepository,
       actionRepository: _actionRepository,
       momentRepository: _momentRepository,
     );
-
+    _actionBloc = ActionBloc(actionRepository: _actionRepository);
     _todoBloc = TodoBloc(
       todoRepository: _todoRepository,
       goalRepository: _goalRepository,
@@ -123,15 +128,17 @@ class _MyAppState extends State<MyApp> {
         BlocProvider<DbBloc>(builder: (BuildContext context) => _dbBloc),
         BlocProvider<TodoBloc>(builder: (BuildContext context) => _todoBloc),
         BlocProvider<ThemeBloc>(builder: (BuildContext context) => _themeBloc),
-        BlocProvider<MomentEditBloc>(builder: (BuildContext context) => _momentEditBloc),
-        BlocProvider<GoalEditBloc>(builder: (BuildContext context) => _goalEditBloc),
-        BlocProvider<ContactEditBloc>(builder: (BuildContext context) => _contactEditBloc),
-        BlocProvider<LocationEditBloc>(builder: (BuildContext context) => _locationEditBloc),
+        BlocProvider<MomentBloc>(builder: (BuildContext context) => _momentBloc),
+        BlocProvider<GoalBloc>(builder: (BuildContext context) => _goalBloc),
+        BlocProvider<ContactBloc>(builder: (BuildContext context) => _contactBloc),
+        BlocProvider<LocationBloc>(builder: (BuildContext context) => _locationBloc),
+        BlocProvider<ActionBloc>(builder: (BuildContext context) => _actionBloc),
         BlocProvider<PageBloc<Moment>>(builder: (BuildContext context) => _momentListBloc),
         BlocProvider<PageBloc<Goal>>(builder: (BuildContext context) => _goalListBloc),
         BlocProvider<PageBloc<Todo>>(builder: (BuildContext context) => _todoListBloc),
         BlocProvider<PageBloc<Contact>>(builder: (BuildContext context) => _contactListBloc),
         BlocProvider<PageBloc<Location>>(builder: (BuildContext context) => _locationListBloc),
+        BlocProvider<PageBloc<MyAction>>(builder: (BuildContext context) => _actionListBloc),
       ],
       child: BlocBuilder(
         bloc: _themeBloc,
@@ -156,7 +163,7 @@ class _MyAppState extends State<MyApp> {
                 }
                 if (state is DbOpen) {
                   _todoBloc.dispatch(CreateTodayTodo());
-                  _goalEditBloc.dispatch(UpdateGoalStatus());
+                  _goalBloc.dispatch(UpdateGoalStatus());
                   return HomePage(title: 'home');
                 }
                 return null;

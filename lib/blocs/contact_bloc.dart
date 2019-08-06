@@ -1,17 +1,16 @@
 import 'package:meta/meta.dart';
 import 'package:bloc/bloc.dart';
 
-import 'package:data_life/models/location.dart';
 import 'package:data_life/models/contact.dart';
 
 import 'package:data_life/repositories/location_repository.dart';
 import 'package:data_life/repositories/contact_repository.dart';
 
-abstract class ContactEditEvent {}
+abstract class ContactEvent {}
 
-abstract class ContactEditState {}
+abstract class ContactState {}
 
-class UpdateContact extends ContactEditEvent {
+class UpdateContact extends ContactEvent {
   final Contact oldContact;
   final Contact newContact;
 
@@ -20,18 +19,18 @@ class UpdateContact extends ContactEditEvent {
         assert(newContact != null);
 }
 
-class ContactNameUniqueCheck extends ContactEditEvent {
+class ContactNameUniqueCheck extends ContactEvent {
   final String name;
 
   ContactNameUniqueCheck({this.name})
       : assert(name != null);
 }
 
-class ContactUninitialized extends ContactEditState {}
+class ContactUninitialized extends ContactState {}
 
-class ContactUpdated extends ContactEditState {}
+class ContactUpdated extends ContactState {}
 
-class ContactNameUniqueCheckResult extends ContactEditState {
+class ContactNameUniqueCheckResult extends ContactState {
   final bool isUnique;
   final String text;
 
@@ -40,26 +39,26 @@ class ContactNameUniqueCheckResult extends ContactEditState {
         assert(text != null);
 }
 
-class ContactEditFailed extends ContactEditState {
+class ContactFailed extends ContactState {
   final String error;
 
-  ContactEditFailed({this.error}) : assert(error != null);
+  ContactFailed({this.error}) : assert(error != null);
 }
 
-class ContactEditBloc extends Bloc<ContactEditEvent, ContactEditState> {
+class ContactBloc extends Bloc<ContactEvent, ContactState> {
   final LocationRepository locationRepository;
   final ContactRepository contactRepository;
 
-  ContactEditBloc(
+  ContactBloc(
       {@required this.locationRepository, @required this.contactRepository})
       : assert(contactRepository != null),
         assert(locationRepository != null);
 
   @override
-  ContactEditState get initialState => ContactUninitialized();
+  ContactState get initialState => ContactUninitialized();
 
   @override
-  Stream<ContactEditState> mapEventToState(ContactEditEvent event) async* {
+  Stream<ContactState> mapEventToState(ContactEvent event) async* {
     final now = DateTime.now().millisecondsSinceEpoch;
     if (event is UpdateContact) {
       final oldContact = event.oldContact;
@@ -69,7 +68,7 @@ class ContactEditBloc extends Bloc<ContactEditEvent, ContactEditState> {
         contactRepository.save(newContact);
         yield ContactUpdated();
       } catch (e) {
-        yield ContactEditFailed(
+        yield ContactFailed(
             error: 'Update contact ${oldContact.name} failed: ${e.toString()}');
       }
     }
@@ -78,7 +77,7 @@ class ContactEditBloc extends Bloc<ContactEditEvent, ContactEditState> {
         Contact contact = await contactRepository.getViaName(event.name);
         yield ContactNameUniqueCheckResult(isUnique: contact == null, text: event.name);
       } catch (e) {
-        yield ContactEditFailed(
+        yield ContactFailed(
             error: 'Check if contact name unique failed: ${e.toString()}');
       }
     }

@@ -38,16 +38,14 @@ class Goal {
   }
 
   void updateFieldFromGoalAction() {
-    /*
     if (goalActions.isNotEmpty) {
       totalTimeTaken = 0;
       lastActiveTime = 0;
       for (var goalAction in goalActions) {
         totalTimeTaken += goalAction.totalTimeTaken;
-        lastActiveTime = max(lastActiveTime, goalAction.lastActiveTime ?? 0);
+        lastActiveTime = max(lastActiveTime, goalAction.lastActiveTime);
       }
     }
-    */
   }
 
   static Goal copyCreate(Goal goal) {

@@ -19,6 +19,7 @@ class Moment {
   Sentiment sentiment;
   int beginTime;
   int endTime;
+  int duration;
   num cost;
   String details;
   int createTime;
@@ -82,6 +83,7 @@ class Moment {
     if (sentiment != moment.sentiment) return false;
     if (beginTime != moment.beginTime) return false;
     if (endTime != moment.endTime) return false;
+    if (duration != moment.duration) return false;
     if (cost != moment.cost) return false;
     if ((details ?? '') != (moment.details ?? '')) return false;
     if (createTime != moment.createTime) return false;
@@ -115,6 +117,7 @@ class Moment {
     sentiment = moment.sentiment;
     beginTime = moment.beginTime;
     endTime = moment.endTime;
+    duration = moment.duration;
     cost = moment.cost;
     details = moment.details;
     createTime = moment.createTime;

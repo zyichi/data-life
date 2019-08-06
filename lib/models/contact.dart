@@ -1,5 +1,7 @@
 import 'package:equatable/equatable.dart';
 
+import 'package:data_life/models/location.dart';
+
 
 class Contact extends Equatable {
   Contact();
@@ -10,14 +12,16 @@ class Contact extends Equatable {
   String knowVia;
   int firstKnowTime;
   int firstMeetTime;
-  String firstMeetLocation;
+  int firstMeetLocation;
   int totalTimeTogether = 0;
-  int lastMeetTime;
+  int lastMeetTime = 0;
   String weChatId;
   String phoneNumber;
   String qqId;
   int createTime;
   int updateTime;
+
+  Location location;
 
   @override
   List get props => [name];
@@ -43,6 +47,8 @@ class Contact extends Equatable {
     qqId = contact.qqId;
     createTime = contact.createTime;
     updateTime = contact.updateTime;
+
+    location = contact.location;
   }
 
   bool isSameWith(Contact contact) {
@@ -55,7 +61,7 @@ class Contact extends Equatable {
     if ((knowVia ?? '') != (contact.knowVia ?? '')) return false;
     if (firstKnowTime != contact.firstKnowTime) return false;
     if (firstMeetTime != contact.firstMeetTime) return false;
-    if ((firstMeetLocation ?? '') != (contact.firstMeetLocation ?? '')) return false;
+    if (firstMeetLocation != contact.firstMeetLocation) return false;
     if (totalTimeTogether != contact.totalTimeTogether) return false;
     if (lastMeetTime != contact.lastMeetTime) return false;
     if ((weChatId ?? '') != (contact.weChatId ?? '')) return false;

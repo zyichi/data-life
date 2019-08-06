@@ -9,6 +9,7 @@ class MomentTable {
   static const columnSentiment = 'sentiment';
   static const columnBeginTime = 'beginTime';
   static const columnEndTime = 'endTime';
+  static const columnDuration = 'duration';
   static const columnCost = 'cost';
   static const columnDetails = 'details';
   static const columnCreateTime = 'createTime';
@@ -22,6 +23,7 @@ create table $name (
   $columnSentiment integer not null,
   $columnBeginTime integer not null,
   $columnEndTime integer not null,
+  $columnDuration integer not null,
   $columnCost real default 0.0,
   $columnDetails text default null,
   $columnCreateTime integer not null,
@@ -38,6 +40,7 @@ create table $name (
     moment.sentiment = Sentiment.values[map[MomentTable.columnSentiment]];
     moment.beginTime = map[MomentTable.columnBeginTime] as int;
     moment.endTime = map[MomentTable.columnEndTime] as int;
+    moment.duration = map[MomentTable.columnDuration] as int;
     moment.cost = map[MomentTable.columnCost] as num;
     moment.details= map[MomentTable.columnDetails] as String;
     moment.createTime = map[MomentTable.columnCreateTime] as int;
@@ -52,6 +55,7 @@ create table $name (
       MomentTable.columnSentiment: moment.sentiment.index,
       MomentTable.columnBeginTime: moment.beginTime,
       MomentTable.columnEndTime: moment.endTime,
+      MomentTable.columnDuration: moment.duration,
       MomentTable.columnCost: moment.cost,
       MomentTable.columnDetails: moment.details,
       MomentTable.columnCreateTime: moment.createTime,

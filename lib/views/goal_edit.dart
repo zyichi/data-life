@@ -15,7 +15,7 @@ import 'package:data_life/views/common_dialog.dart';
 import 'package:data_life/views/date_picker_form_field.dart';
 import 'package:data_life/views/type_to_str.dart';
 
-import 'package:data_life/blocs/goal_edit_bloc.dart';
+import 'package:data_life/blocs/goal_bloc.dart';
 
 void _showGoalActionEditPage(
     BuildContext context, Goal goal, GoalAction goalAction, bool readOnly) {
@@ -92,7 +92,7 @@ class GoalEdit extends StatefulWidget {
 class _GoalEditState extends State<GoalEdit> {
   bool _isReadOnly = false;
   final Goal _goal = Goal();
-  GoalEditBloc _goalEditBloc;
+  GoalBloc _goalBloc;
 
   final _formKey = GlobalKey<FormState>();
 
@@ -123,7 +123,7 @@ class _GoalEditState extends State<GoalEdit> {
       _goal.target = 100.0;
     }
 
-    _goalEditBloc = BlocProvider.of<GoalEditBloc>(context);
+    _goalBloc = BlocProvider.of<GoalBloc>(context);
   }
 
   @override
@@ -235,7 +235,7 @@ class _GoalEditState extends State<GoalEdit> {
   void _editGoal() {
     _updateGoalFromForm();
     if (_isNewGoal) {
-      _goalEditBloc.dispatch(
+      _goalBloc.dispatch(
         AddGoal(goal: _goal),
       );
     } else {
@@ -243,7 +243,7 @@ class _GoalEditState extends State<GoalEdit> {
         print('Same goal content, not need to update');
         return;
       }
-      _goalEditBloc.dispatch(UpdateGoal(
+      _goalBloc.dispatch(UpdateGoal(
         oldGoal: widget.goal,
         newGoal: _goal,
       ));
@@ -251,7 +251,7 @@ class _GoalEditState extends State<GoalEdit> {
   }
 
   void _deleteGoal() {
-    _goalEditBloc.dispatch(DeleteGoal(goal: widget.goal));
+    _goalBloc.dispatch(DeleteGoal(goal: widget.goal));
   }
 
   @override
@@ -304,8 +304,8 @@ class _GoalEditState extends State<GoalEdit> {
       body: SafeArea(
         top: false,
         bottom: false,
-        child: BlocListener<GoalEditBloc, GoalEditState>(
-          bloc: _goalEditBloc,
+        child: BlocListener<GoalBloc, GoalState>(
+          bloc: _goalBloc,
           listener: (context, state) {
             if (state is GoalActionAdded ||
                 state is GoalActionDeleted ||
@@ -342,7 +342,7 @@ class _GoalEditState extends State<GoalEdit> {
                       textChanged: _titleChanged,
                       hintText: 'Enter goal name',
                       uniqueCheckCallback: (String text) {
-                        return _goalEditBloc.goalNameUniqueCheck(text);
+                        return _goalBloc.goalNameUniqueCheck(text);
                       },
                       enabled: !_isReadOnly,
                       autofocus: _isNewGoal,

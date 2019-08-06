@@ -4,7 +4,6 @@ import 'package:data_life/models/moment_contact.dart';
 
 import 'package:data_life/repositories/moment_provider.dart';
 
-
 class MomentRepository extends PageRepository<Moment> {
   final MomentProvider _momentProvider;
 
@@ -44,16 +43,39 @@ class MomentRepository extends PageRepository<Moment> {
     return _momentProvider.deleteMomentContact(momentId, contactId);
   }
 
-  Future<int> getLocationLastVisitTime(int locationId, int excludeMomentId) async {
-    return _momentProvider.getLocationLastVisitTime(locationId, excludeMomentId);
+  Future<int> getLocationLastVisitTime(int locationId) async {
+    return _momentProvider.getLocationLastVisitTime(locationId);
   }
 
-  Future<int> getActionLastActiveTime(int actionId, int excludeMomentId) async {
-    return _momentProvider.getActionLastActiveTime(actionId, excludeMomentId);
+  Future<int> getLocationTotalTimeStay(int locationId) async {
+    return _momentProvider.getLocationTotalTimeStay(locationId);
   }
 
-  Future<int> getContactLastMeetTime(int contactId, int excludeMomentId) async {
-    return _momentProvider.getContactLastMeetTime(contactId, excludeMomentId);
+  Future<int> getActionLastActiveTime(int actionId) async {
+    return _momentProvider.getActionLastActiveTime(actionId);
   }
 
+  Future<int> getContactLastMeetTime(int contactId) async {
+    return _momentProvider.getContactLastMeetTime(contactId);
+  }
+
+  Future<int> getContactTotalTimeTogether(int contactId) async {
+    return _momentProvider.getContactTotalTimeTogether(contactId);
+  }
+
+  Future<int> getActionLastActiveTimeBetweenTime(
+      int actionId, int startTime, int stopTime) async {
+    return _momentProvider.getActionLastActiveTimeBetweenTime(
+        actionId, startTime, stopTime);
+  }
+
+  Future<int> getActionTotalTimeTakenBetweenTime(
+      int actionId, int startTime, int stopTime) async {
+    return _momentProvider.getActionTotalTimeTakenBetweenTime(
+        actionId, startTime, stopTime);
+  }
+
+  Future<int> getActionTotalTimeTaken(int actionId) async {
+    return _momentProvider.getActionTotalTimeTaken(actionId);
+  }
 }

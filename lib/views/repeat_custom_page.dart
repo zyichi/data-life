@@ -340,7 +340,7 @@ class _RepeatCustomPageState extends State<RepeatCustomPage> {
     return Container();
   }
 
-  Future<bool> _onWillPop() async {
+  void _updateRepeat() {
     if (_repeat.every == RepeatEvery.day) {
       _repeat.onList = [];
     }
@@ -360,11 +360,16 @@ class _RepeatCustomPageState extends State<RepeatCustomPage> {
       _repeat.onList = _yearRepeatOnList;
     }
     _repeat.onList.sort();
+  }
+
+  Future<bool> _onWillPop() async {
+    _updateRepeat();
     widget.goalAction.setRepeat(_repeat);
     return true;
   }
 
   String _createRepeatReadableText() {
+    _updateRepeat();
     return TypeToStr.repeatToReadableText(_repeat, context);
   }
 

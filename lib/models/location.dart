@@ -11,7 +11,7 @@ class Location {
   String province;
   String country;
   int totalTimeStay = 0;
-  int lastVisitTime;
+  int lastVisitTime = 0;
   int createTime;
   int updateTime;
 

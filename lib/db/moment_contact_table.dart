@@ -9,6 +9,7 @@ class MomentContactTable {
   static const columnContactId = 'contactId';
   // This field is add for easy fetch Contact.lastMeetTime;
   static const columnMomentBeginTime = 'momentBeginTime';
+  static const columnMomentDuration = 'momentDuration';
   static const columnCreateTime = 'createTime';
 
   static const createSql = '''
@@ -17,6 +18,7 @@ create table $name (
   $columnMomentId integer not null,
   $columnContactId integer not null,
   $columnMomentBeginTime integer not null,
+  $columnMomentDuration integer not null,
   $columnCreateTime integer not null)
 ''';
 
@@ -33,6 +35,7 @@ create unique index moment_contact_idx on $name(
     momentContact.momentId = map[MomentContactTable.columnMomentId] as int;
     momentContact.contactId = map[MomentContactTable.columnContactId] as int;
     momentContact.momentBeginTime = map[MomentContactTable.columnMomentBeginTime] as int;
+    momentContact.momentDuration = map[MomentContactTable.columnMomentDuration] as int;
     momentContact.createTime = map[MomentContactTable.columnCreateTime] as int;
     return momentContact;
   }
@@ -42,6 +45,7 @@ create unique index moment_contact_idx on $name(
       MomentContactTable.columnMomentId: momentContact.momentId,
       MomentContactTable.columnContactId: momentContact.contactId,
       MomentContactTable.columnMomentBeginTime: momentContact.momentBeginTime,
+      MomentContactTable.columnMomentDuration: momentContact.momentDuration,
       MomentContactTable.columnCreateTime: momentContact.createTime,
     };
     if (momentContact.id != null) {

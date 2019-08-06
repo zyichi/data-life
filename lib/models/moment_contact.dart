@@ -3,5 +3,6 @@ class MomentContact {
   int momentId;
   int contactId;
   int momentBeginTime;
+  int momentDuration;
   int createTime;
 }

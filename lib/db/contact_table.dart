@@ -26,7 +26,7 @@ create table $name (
   $columnKnowVia text default null,
   $columnFirstKnowTime integer default 0,
   $columnFirstMeetTime integer default 0,
-  $columnFirstMeetLocation text default null,
+  $columnFirstMeetLocation integer default null,
   $columnTotalTimeTogether integer default 0,
   $columnLastMeetTime integer default 0,
   $columnWeChatId text default null,
@@ -51,7 +51,7 @@ create unique index contact_name_idx on $name(
     contact.knowVia = map[ContactTable.columnKnowVia] as String;
     contact.firstKnowTime = map[ContactTable.columnFirstKnowTime] as int;
     contact.firstMeetTime = map[ContactTable.columnFirstMeetTime] as int;
-    contact.firstMeetLocation = map[ContactTable.columnFirstMeetLocation] as String;
+    contact.firstMeetLocation = map[ContactTable.columnFirstMeetLocation] as int;
     contact.totalTimeTogether = map[ContactTable.columnTotalTimeTogether] as int;
     contact.lastMeetTime = map[ContactTable.columnLastMeetTime] as int;
     contact.weChatId = map[ContactTable.columnWeChatId] as String;

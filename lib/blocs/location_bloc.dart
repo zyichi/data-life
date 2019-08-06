@@ -5,11 +5,11 @@ import 'package:data_life/models/location.dart';
 
 import 'package:data_life/repositories/location_repository.dart';
 
-abstract class LocationEditEvent {}
+abstract class LocationEvent {}
 
-abstract class LocationEditState {}
+abstract class LocationState {}
 
-class UpdateLocation extends LocationEditEvent {
+class UpdateLocation extends LocationEvent {
   final Location oldLocation;
   final Location newLocation;
 
@@ -18,17 +18,17 @@ class UpdateLocation extends LocationEditEvent {
         assert(newLocation != null);
 }
 
-class LocationNameUniqueCheck extends LocationEditEvent {
+class LocationNameUniqueCheck extends LocationEvent {
   final String name;
 
   LocationNameUniqueCheck({this.name}) : assert(name != null);
 }
 
-class LocationUninitialized extends LocationEditState {}
+class LocationUninitialized extends LocationState {}
 
-class LocationUpdated extends LocationEditState {}
+class LocationUpdated extends LocationState {}
 
-class LocationNameUniqueCheckResult extends LocationEditState {
+class LocationNameUniqueCheckResult extends LocationState {
   final bool isUnique;
   final String text;
 
@@ -37,23 +37,23 @@ class LocationNameUniqueCheckResult extends LocationEditState {
         assert(text != null);
 }
 
-class LocationEditFailed extends LocationEditState {
+class LocationFailed extends LocationState {
   final String error;
 
-  LocationEditFailed({this.error}) : assert(error != null);
+  LocationFailed({this.error}) : assert(error != null);
 }
 
-class LocationEditBloc extends Bloc<LocationEditEvent, LocationEditState> {
+class LocationBloc extends Bloc<LocationEvent, LocationState> {
   final LocationRepository locationRepository;
 
-  LocationEditBloc({@required this.locationRepository})
+  LocationBloc({@required this.locationRepository})
       : assert(locationRepository != null);
 
   @override
-  LocationEditState get initialState => LocationUninitialized();
+  LocationState get initialState => LocationUninitialized();
 
   @override
-  Stream<LocationEditState> mapEventToState(LocationEditEvent event) async* {
+  Stream<LocationState> mapEventToState(LocationEvent event) async* {
     final now = DateTime.now().millisecondsSinceEpoch;
     if (event is UpdateLocation) {
       final oldLocation = event.oldLocation;
@@ -63,7 +63,7 @@ class LocationEditBloc extends Bloc<LocationEditEvent, LocationEditState> {
         locationRepository.save(newLocation);
         yield LocationUpdated();
       } catch (e) {
-        yield LocationEditFailed(
+        yield LocationFailed(
             error:
                 'Update location ${oldLocation.name} failed: ${e.toString()}');
       }
@@ -75,7 +75,7 @@ class LocationEditBloc extends Bloc<LocationEditEvent, LocationEditState> {
         yield LocationNameUniqueCheckResult(
             isUnique: location == null, text: event.name);
       } catch (e) {
-        yield LocationEditFailed(
+        yield LocationFailed(
             error: 'Check if location name unique failed: ${e.toString()}');
       }
     }
