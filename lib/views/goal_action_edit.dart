@@ -18,7 +18,7 @@ import 'package:data_life/models/repeat_types.dart';
 import 'package:data_life/blocs/goal_bloc.dart';
 
 import 'package:data_life/localizations.dart';
-import 'package:data_life/utils/time_util.dart';
+
 
 final howOftenOptions = [
   HowOften.notRepeat,
@@ -285,12 +285,10 @@ class _GoalActionEditState extends State<GoalActionEdit> {
           return null;
         }
         if (value.isEmpty) {
-          print('here 1');
           return 'Please enter action';
         }
         for (var goalAction in widget.goal.goalActions) {
           if (goalAction.action.name == value) {
-            print('here 2 ${goalAction.action.name}:$value');
             return 'Action already exist in goal';
           }
         }

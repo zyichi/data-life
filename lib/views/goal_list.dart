@@ -7,9 +7,11 @@ import 'package:data_life/paging/page_list.dart';
 
 import 'package:data_life/models/goal.dart';
 
+import 'package:data_life/views/type_to_str.dart';
 import 'package:data_life/views/goal_edit.dart';
 
 import 'package:data_life/utils/time_util.dart';
+
 
 class _GoalListItem extends StatelessWidget {
   final Goal goal;
@@ -48,7 +50,8 @@ class _GoalListItem extends StatelessWidget {
                 style:
                     Theme.of(context).textTheme.title,
               ),
-              SizedBox(height: 4),
+              SizedBox(height: 8),
+              Text('状态: ${TypeToStr.goalStatusToStr(goal.status, context)}'),
               _createLastActiveTimeWidget(context),
               SizedBox(height: 8),
               _createTotalTimeTakenWidget(context),

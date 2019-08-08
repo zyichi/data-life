@@ -31,26 +31,13 @@ class ThemeState extends Equatable {
 
 
 class ThemeBloc extends Bloc<ThemeEvent, ThemeState> {
-  final ThemeData _XprivacyTheme = ThemeData(
-    primarySwatch: Colors.grey,
-    primaryColor: Colors.purple[200],
-    accentColor: Colors.deepOrange[200],
-    // canvasColor: Colors.white,
-    scaffoldBackgroundColor: Color(0x121212),
-  );
   final ThemeData _privacyTheme = ThemeData.dark().copyWith(
   );
   final ThemeData _defaultTheme = ThemeData.light().copyWith(
     primaryColorLight: Colors.green[200],
     primaryColorDark: Colors.green[700],
     primaryColor: Colors.green[500],
-    accentColor: Colors.deepOrange[500],
-    scaffoldBackgroundColor: Colors.white,
-  );
-  final ThemeData _XdefaultTheme = ThemeData(
-    primarySwatch: Colors.green,
-    primaryColor: Colors.green[500],
-    accentColor: Colors.deepOrange[500],
+    accentColor: Colors.purple[500],
     scaffoldBackgroundColor: Colors.white,
   );
   final Color _color = Colors.grey;

@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:data_life/models/time_types.dart';
 import 'package:data_life/models/repeat_types.dart';
 import 'package:data_life/models/goal_action.dart';
+import 'package:data_life/models/goal.dart';
 
 import 'package:data_life/utils/time_util.dart';
 
@@ -166,5 +167,21 @@ class TypeToStr {
       default:
         return null;
     }
+  }
+
+  static String goalStatusToStr(GoalStatus status, BuildContext context) {
+    switch (status) {
+      case GoalStatus.none:
+        return '无';
+      case GoalStatus.ongoing:
+        return '进行中';
+      case GoalStatus.finished:
+        return '完成';
+      case GoalStatus.expired:
+        return '过期';
+      case GoalStatus.paused:
+        return '暂停';
+    }
+    return 'Unknown';
   }
 }
