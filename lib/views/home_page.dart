@@ -11,6 +11,9 @@ import 'package:data_life/views/goal_list.dart';
 import 'package:data_life/views/todo_list.dart';
 import 'package:data_life/views/moment_edit.dart';
 import 'package:data_life/views/my_bottom_sheet.dart';
+import 'package:data_life/views/action_page.dart';
+import 'package:data_life/views/location_page.dart';
+import 'package:data_life/views/contact_page.dart';
 
 import 'package:data_life/models/moment.dart';
 import 'package:data_life/models/goal.dart';
@@ -80,11 +83,12 @@ class HomePageState extends State<HomePage>
   var _newTodoCount = 0;
   final double _todoCountBubbleMinWidth = 24;
   final double _todoCountBubbleMinHeight = 24;
+  int _selectedNavigationIndex;
+  List<Widget> _pages;
+  List<String> _names;
 
   @override
   void initState() {
-    print('HomePage.initState');
-
     super.initState();
 
     _momentBloc = BlocProvider.of<MomentBloc>(context);
@@ -94,13 +98,31 @@ class HomePageState extends State<HomePage>
     _actionBloc = BlocProvider.of<ActionBloc>(context);
     _todoBloc = BlocProvider.of<TodoBloc>(context);
 
-    _tabController = TabController(length: tabTypeList.length, vsync: this);
+    _pages = <Widget>[
+      MomentList(name: 'moment'),
+      GoalList(name: 'goal'),
+      TodoList(name: 'todo'),
+      Center(child: Text('Me')),
+    ];
+    _tabController = TabController(length: _pages.length, vsync: this);
+    _tabController.addListener(() {
+      if (_tabController.indexIsChanging) return;
+      setState(() {
+        _selectedNavigationIndex = _tabController.index;
+      });
+    });
+    _names = <String>[
+      'Moment',
+      'Goal',
+      'Notification',
+      'Me',
+    ];
+    _selectedNavigationIndex = 0;
   }
 
   @override
   void dispose() {
-    print('HomePage.dispose');
-
+    _tabController.dispose();
     super.dispose();
   }
 
@@ -217,8 +239,7 @@ class HomePageState extends State<HomePage>
     }
   }
 
-  void _locationBlocListener(
-      BuildContext context, LocationState state) {
+  void _locationBlocListener(BuildContext context, LocationState state) {
     if (state is LocationUpdated) {
       BlocProvider.of<PageBloc<Moment>>(context).dispatch(RefreshPage());
       BlocProvider.of<PageBloc<Contact>>(context).dispatch(RefreshPage());
@@ -229,8 +250,7 @@ class HomePageState extends State<HomePage>
     }
   }
 
-  void _actionBlocListener(
-      BuildContext context, ActionState state) {
+  void _actionBlocListener(BuildContext context, ActionState state) {
     if (state is ActionUpdated) {
       BlocProvider.of<PageBloc<Moment>>(context).dispatch(RefreshPage());
       BlocProvider.of<PageBloc<Contact>>(context).dispatch(RefreshPage());
@@ -258,7 +278,6 @@ class HomePageState extends State<HomePage>
 
   @override
   Widget build(BuildContext context) {
-    print('HomePage.build');
     return WillPopScope(
       onWillPop: () {
         if (Platform.isAndroid) {
@@ -275,7 +294,78 @@ class HomePageState extends State<HomePage>
       child: Material(
         child: Scaffold(
           appBar: AppBar(
-            title: _createHomeSearchBar(),
+            title: Text(_names.elementAt(_selectedNavigationIndex)),
+            centerTitle: false,
+            actions: <Widget>[
+              IconButton(
+                icon: Icon(Icons.search),
+                onPressed: () {},
+              ),
+              PopupMenuButton<String>(
+                icon: Icon(Icons.more_vert),
+                onSelected: (value) {
+                  if (value == 'contact') {
+                    Navigator.push(
+                        context,
+                        PageTransition(
+                          child: ContactPage(),
+                          type: PageTransitionType.rightToLeft,
+                        ));
+                  }
+                  if (value == 'location') {
+                    Navigator.push(
+                        context,
+                        PageTransition(
+                          child: LocationPage(),
+                          type: PageTransitionType.rightToLeft,
+                        ));
+                  }
+                  if (value == 'action') {
+                    Navigator.push(
+                        context,
+                        PageTransition(
+                          child: ActionPage(),
+                          type: PageTransitionType.rightToLeft,
+                        ));
+                  }
+                },
+                itemBuilder: (context) {
+                  return [
+                    PopupMenuItem<String>(
+                      value: 'contact',
+                      child: Row(
+                        children: <Widget>[
+                          Icon(Icons.people),
+                          SizedBox(width: 16),
+                          Text('Contacts'),
+                        ],
+                      ),
+                    ),
+                    PopupMenuItem<String>(
+                      value: 'location',
+                      child: Row(
+                        children: <Widget>[
+                          Icon(Icons.place),
+                          SizedBox(width: 16),
+                          Text('Location'),
+                        ],
+                      ),
+                    ),
+                    PopupMenuItem<String>(
+                      value: 'action',
+                      child: Row(
+                        children: <Widget>[
+                          Icon(Icons.accessibility_new),
+                          SizedBox(width: 16),
+                          Text('Actions'),
+                        ],
+                      ),
+                    ),
+                  ];
+                },
+              ),
+            ],
+            /*
             bottom: TabBar(
               indicator: _getIndicator(),
               controller: _tabController,
@@ -312,8 +402,8 @@ class HomePageState extends State<HomePage>
                                       child: Padding(
                                         padding: const EdgeInsets.all(4.0),
                                         child: Text(
-                                          _newTodoCount > 99
-                                              ? '99+'
+                                          _newTodoCount > 9
+                                              ? '9+'
                                               : _newTodoCount.toString(),
                                           textAlign: TextAlign.center,
                                         ),
@@ -329,6 +419,7 @@ class HomePageState extends State<HomePage>
                 );
               }).toList(growable: false),
             ),
+            */
           ),
           body: MultiBlocListener(
             listeners: [
@@ -358,6 +449,11 @@ class HomePageState extends State<HomePage>
               ),
             ],
             child: TabBarView(
+              children: _pages,
+              controller: _tabController,
+            ),
+            /*
+            child: TabBarView(
               controller: _tabController,
               children: tabTypeList.map((tabType) {
                 String text = tabTypeToStr(tabType, context);
@@ -374,11 +470,41 @@ class HomePageState extends State<HomePage>
                 }
               }).toList(growable: false),
             ),
+            */
           ),
-          bottomNavigationBar: _BottomBar(),
+          bottomNavigationBar: BottomNavigationBar(
+            items: <BottomNavigationBarItem>[
+              BottomNavigationBarItem(
+                icon: Icon(Icons.event_note),
+                title: Text(_names[0]),
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.flag),
+                title: Text(_names[1]),
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.notifications),
+                title: Text(_names[2]),
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.person),
+                title: Text(_names[3]),
+              ),
+            ],
+            currentIndex: _selectedNavigationIndex,
+            onTap: _onNavigationItemTapped,
+            type: BottomNavigationBarType.fixed,
+          ),
         ),
       ),
     );
+  }
+
+  void _onNavigationItemTapped(int index) {
+    setState(() {
+      _selectedNavigationIndex = index;
+    });
+    _tabController.animateTo(index);
   }
 }
 
