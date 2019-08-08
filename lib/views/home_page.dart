@@ -69,8 +69,6 @@ class HomePage extends StatefulWidget {
 
 class HomePageState extends State<HomePage>
     with SingleTickerProviderStateMixin {
-  TabController _tabController;
-
   MomentBloc _momentBloc;
   GoalBloc _goalBloc;
   ContactBloc _contactBloc;
@@ -104,13 +102,6 @@ class HomePageState extends State<HomePage>
       TodoList(name: 'todo'),
       Center(child: Text('Me')),
     ];
-    _tabController = TabController(length: _pages.length, vsync: this);
-    _tabController.addListener(() {
-      if (_tabController.indexIsChanging) return;
-      setState(() {
-        _selectedNavigationIndex = _tabController.index;
-      });
-    });
     _names = <String>[
       'Moment',
       'Goal',
@@ -122,7 +113,6 @@ class HomePageState extends State<HomePage>
 
   @override
   void dispose() {
-    _tabController.dispose();
     super.dispose();
   }
 
@@ -448,10 +438,7 @@ class HomePageState extends State<HomePage>
                 listener: _actionBlocListener,
               ),
             ],
-            child: TabBarView(
-              children: _pages,
-              controller: _tabController,
-            ),
+            child: _pages.elementAt(_selectedNavigationIndex),
             /*
             child: TabBarView(
               controller: _tabController,
@@ -504,7 +491,6 @@ class HomePageState extends State<HomePage>
     setState(() {
       _selectedNavigationIndex = index;
     });
-    _tabController.animateTo(index);
   }
 }
 
