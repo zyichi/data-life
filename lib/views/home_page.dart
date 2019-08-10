@@ -4,16 +4,14 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter/services.dart';
 import 'package:page_transition/page_transition.dart';
 
-import 'package:data_life/views/goal_edit.dart';
-import 'package:data_life/views/search_page.dart';
 import 'package:data_life/views/moment_list.dart';
 import 'package:data_life/views/goal_list.dart';
 import 'package:data_life/views/todo_list.dart';
-import 'package:data_life/views/moment_edit.dart';
-import 'package:data_life/views/my_bottom_sheet.dart';
 import 'package:data_life/views/action_page.dart';
 import 'package:data_life/views/location_page.dart';
 import 'package:data_life/views/contact_page.dart';
+import 'package:data_life/views/goal_edit.dart';
+import 'package:data_life/views/moment_edit.dart';
 
 import 'package:data_life/models/moment.dart';
 import 'package:data_life/models/goal.dart';
@@ -56,6 +54,15 @@ String tabTypeToStr(TabType t, BuildContext context) {
   }
 }
 
+class _Tab {
+  final String label;
+  final IconData fabIconData;
+  final VoidCallback fabOnPressed;
+  final Widget view;
+
+  _Tab({this.view, this.label, this.fabIconData, this.fabOnPressed});
+}
+
 class HomePage extends StatefulWidget {
   final String title;
 
@@ -79,11 +86,8 @@ class HomePageState extends State<HomePage>
   var _androidApp = MethodChannel("android_app");
 
   var _newTodoCount = 0;
-  final double _todoCountBubbleMinWidth = 24;
-  final double _todoCountBubbleMinHeight = 24;
   int _selectedNavigationIndex;
-  List<Widget> _pages;
-  List<String> _names;
+  List<_Tab> _tabs;
 
   @override
   void initState() {
@@ -96,17 +100,27 @@ class HomePageState extends State<HomePage>
     _actionBloc = BlocProvider.of<ActionBloc>(context);
     _todoBloc = BlocProvider.of<TodoBloc>(context);
 
-    _pages = <Widget>[
-      MomentList(name: 'moment'),
-      GoalList(name: 'goal'),
-      TodoList(name: 'todo'),
-      Center(child: Text('Me')),
-    ];
-    _names = <String>[
-      'Moment',
-      'Goal',
-      'Notification',
-      'Me',
+    _tabs = <_Tab>[
+      _Tab(
+          view: MomentList(name: 'moment'),
+          fabIconData: Icons.event,
+          fabOnPressed: _momentFabOnPressed,
+          label: 'Moment'),
+      _Tab(
+          view: GoalList(name: 'goal'),
+          fabIconData: Icons.outlined_flag,
+          fabOnPressed: _goalFabOnPressed,
+          label: 'Goal'),
+      _Tab(
+          view: TodoList(name: 'todo'),
+          fabIconData: null,
+          fabOnPressed: null,
+          label: 'Notification'),
+      _Tab(
+          view: Center(child: Text('Me')),
+          fabIconData: null,
+          fabOnPressed: null,
+          label: 'Me'),
     ];
     _selectedNavigationIndex = 0;
   }
@@ -114,35 +128,6 @@ class HomePageState extends State<HomePage>
   @override
   void dispose() {
     super.dispose();
-  }
-
-  Widget _createHomeSearchBar() {
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.all(
-          Radius.circular(4.0),
-        ),
-      ),
-      child: TapOnlyTextField(
-        hintText: 'Search life',
-        borderRadius: BorderRadius.all(Radius.circular(8)),
-        onTap: () {
-          Navigator.push(
-            context,
-            PageTransition(
-              child: SearchPage(),
-              type: PageTransitionType.fade,
-              duration: Duration(microseconds: 300),
-              // alignment: Alignment.topCenter,
-            ),
-          );
-        },
-      ),
-    );
-  }
-
-  Decoration _getIndicator() {
-    return const UnderlineTabIndicator();
   }
 
   void _momentBlocListener(BuildContext context, MomentState state) {
@@ -284,7 +269,7 @@ class HomePageState extends State<HomePage>
       child: Material(
         child: Scaffold(
           appBar: AppBar(
-            title: Text(_names.elementAt(_selectedNavigationIndex)),
+            title: Text(_tabs.elementAt(_selectedNavigationIndex).label),
             centerTitle: false,
             actions: <Widget>[
               IconButton(
@@ -355,61 +340,6 @@ class HomePageState extends State<HomePage>
                 },
               ),
             ],
-            /*
-            bottom: TabBar(
-              indicator: _getIndicator(),
-              controller: _tabController,
-              tabs: tabTypeList.map((tabType) {
-                return Tab(
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Stack(
-                        children: [
-                          Align(
-                            alignment: Alignment.center,
-                            child: Padding(
-                              padding: const EdgeInsets.only(
-                                  left: 16, top: 0, right: 16, bottom: 0),
-                              child: Text(tabTypeToStr(tabType, context)),
-                            ),
-                          ),
-                          (tabType == TabType.todo && _newTodoCount > 0)
-                              ? Positioned(
-                                  top: 0,
-                                  right: 0,
-                                  child: Container(
-                                    decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(
-                                          _todoCountBubbleMinWidth / 2),
-                                      color: Colors.red,
-                                    ),
-                                    constraints: BoxConstraints(
-                                      minWidth: _todoCountBubbleMinWidth,
-                                      minHeight: _todoCountBubbleMinHeight,
-                                    ),
-                                    child: Center(
-                                      child: Padding(
-                                        padding: const EdgeInsets.all(4.0),
-                                        child: Text(
-                                          _newTodoCount > 9
-                                              ? '9+'
-                                              : _newTodoCount.toString(),
-                                          textAlign: TextAlign.center,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                )
-                              : Container(),
-                        ],
-                      ),
-                    ],
-                  ),
-                );
-              }).toList(growable: false),
-            ),
-            */
           ),
           body: MultiBlocListener(
             listeners: [
@@ -438,108 +368,59 @@ class HomePageState extends State<HomePage>
                 listener: _actionBlocListener,
               ),
             ],
-            child: _pages.elementAt(_selectedNavigationIndex),
-            /*
-            child: TabBarView(
-              controller: _tabController,
-              children: tabTypeList.map((tabType) {
-                String text = tabTypeToStr(tabType, context);
-                print('Create tab view for $text');
-                switch (tabType) {
-                  case TabType.moments:
-                    return MomentList(name: text);
-                  case TabType.goals:
-                    return GoalList(name: text);
-                  case TabType.todo:
-                    return TodoList(name: text);
-                  default:
-                    return null;
-                }
-              }).toList(growable: false),
-            ),
-            */
+            child: _tabs.elementAt(_selectedNavigationIndex).view,
           ),
           bottomNavigationBar: BottomNavigationBar(
             items: <BottomNavigationBarItem>[
               BottomNavigationBarItem(
                 icon: Icon(Icons.event_note),
-                title: Text(_names[0]),
+                title: Text(_tabs.elementAt(0).label),
               ),
               BottomNavigationBarItem(
                 icon: Icon(Icons.flag),
-                title: Text(_names[1]),
+                title: Text(_tabs.elementAt(1).label),
               ),
               BottomNavigationBarItem(
-                icon: Icon(Icons.notifications),
-                title: Text(_names[2]),
+                icon: Row(
+                  children: <Widget>[
+                    Spacer(),
+                    Stack(
+                      children: <Widget>[
+                        Container(
+                          width: 40,
+                          child: Icon(
+                            Icons.notifications,
+                          ),
+                        ),
+                        Positioned(
+                          top: 0,
+                          right: 0,
+                          child: _createTodoBadge(_newTodoCount),
+                        ),
+                      ],
+                    ),
+                    Spacer(),
+                  ],
+                ),
+                title: Text(_tabs.elementAt(2).label),
               ),
               BottomNavigationBarItem(
                 icon: Icon(Icons.person),
-                title: Text(_names[3]),
+                title: Text(_tabs.elementAt(3).label),
               ),
             ],
             currentIndex: _selectedNavigationIndex,
             onTap: _onNavigationItemTapped,
             type: BottomNavigationBarType.fixed,
           ),
+          floatingActionButton:
+              _createFloatingActionButton(_selectedNavigationIndex),
         ),
       ),
     );
   }
 
-  void _onNavigationItemTapped(int index) {
-    setState(() {
-      _selectedNavigationIndex = index;
-    });
-  }
-}
-
-class TapOnlyTextField extends StatelessWidget {
-  final VoidCallback onTap;
-  final String hintText;
-  final BorderRadius borderRadius;
-
-  const TapOnlyTextField({
-    Key key,
-    this.onTap,
-    this.hintText,
-    this.borderRadius = BorderRadius.zero,
-  }) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      borderRadius: borderRadius,
-      child: InkWell(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8.0),
-          child: Container(
-            color: Colors.transparent,
-            child: IgnorePointer(
-              child: TextField(
-                decoration: InputDecoration(
-                  border: InputBorder.none,
-                  hintText: hintText,
-                ),
-              ),
-            ),
-          ),
-        ),
-        onTap: onTap,
-      ),
-    );
-  }
-}
-
-class _BottomBar extends StatefulWidget {
-  @override
-  _BottomBarState createState() {
-    return new _BottomBarState();
-  }
-}
-
-class _BottomBarState extends State<_BottomBar> {
-  void addMomentOnTap() {
+  void _momentFabOnPressed() {
     Navigator.push(
         context,
         MaterialPageRoute(
@@ -548,47 +429,61 @@ class _BottomBarState extends State<_BottomBar> {
         ));
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      elevation: 16.0,
-      child: Padding(
-        padding:
-            const EdgeInsets.only(left: 8.0, top: 4.0, right: 8.0, bottom: 8.0),
-        child: Row(
-          children: <Widget>[
-            Expanded(
-              child: TapOnlyTextField(
-                onTap: addMomentOnTap,
-                hintText: 'Add moment',
-              ),
-            ),
-            IconButton(
-              icon: Icon(Icons.outlined_flag),
-              onPressed: () async {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (BuildContext context) => GoalEdit(),
-                    fullscreenDialog: true,
-                    settings: RouteSettings(name: GoalEdit.routeName),
-                  ),
-                );
-              },
-            ),
-            IconButton(
-              icon: Icon(Icons.menu),
-              onPressed: () {
-                showModalBottomSheet(
-                  context: context,
-                  builder: (BuildContext context) {
-                    return MyBottomSheet();
-                  },
-                );
-              },
-            ),
-          ],
+  void _goalFabOnPressed() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (BuildContext context) => GoalEdit(),
+        fullscreenDialog: true,
+        settings: RouteSettings(name: GoalEdit.routeName),
+      ),
+    );
+  }
+
+  Widget _createFloatingActionButton(int index) {
+    _Tab tab = _tabs.elementAt(index);
+    if (tab.fabIconData == null) return Container();
+    return FloatingActionButton(
+      child: Icon(tab.fabIconData),
+      onPressed: tab.fabOnPressed,
+      mini: false,
+      backgroundColor: Colors.lightGreen,
+    );
+  }
+
+  void _onNavigationItemTapped(int index) {
+    setState(() {
+      _selectedNavigationIndex = index;
+    });
+  }
+
+  Widget _createTodoBadge(int count) {
+    if (count == 0) return Container();
+    if (count < 10) {
+      return Container(
+        width: 16,
+        height: 16,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: Colors.red,
         ),
+        child: Center(
+          child: Text(
+            count.toString(),
+            style: TextStyle(
+              fontSize: 12,
+              color: Colors.white,
+            ),
+          ),
+        ),
+      );
+    }
+    return Container(
+      width: 12,
+      height: 12,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: Colors.red,
       ),
     );
   }

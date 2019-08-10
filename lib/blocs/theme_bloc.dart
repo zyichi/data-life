@@ -37,7 +37,7 @@ class ThemeBloc extends Bloc<ThemeEvent, ThemeState> {
     primaryColorLight: Colors.green[200],
     primaryColorDark: Colors.green[700],
     primaryColor: Colors.green[500],
-    accentColor: Colors.purple[500],
+    accentColor: Colors.deepOrange,
     scaffoldBackgroundColor: Colors.white,
   );
   final Color _color = Colors.grey;
