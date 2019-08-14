@@ -116,7 +116,6 @@ class _MomentListState extends State<MomentList>
 
   @override
   void initState() {
-    print('MomentList.initState');
     super.initState();
 
     _momentListBloc = BlocProvider.of<PageBloc<Moment>>(context);
@@ -125,7 +124,6 @@ class _MomentListState extends State<MomentList>
 
   @override
   void dispose() {
-    print('MomentList.dispose');
     super.dispose();
   }
 
@@ -134,7 +132,6 @@ class _MomentListState extends State<MomentList>
 
   @override
   Widget build(BuildContext context) {
-    print('MomentList.build');
     super.build(context);
     return Padding(
       padding: const EdgeInsets.only(left: 0, top: 8, right: 0, bottom: 8),

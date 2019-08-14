@@ -106,7 +106,6 @@ class TodoBloc extends Bloc<TodoEvent, TodoState> {
             prefs.getInt(SP_KEY_lastTimeCreateTodayTodo) ?? 0;
         if (_isToday(lastTimeCreateTodayTodo, todayDate.millisecondsSinceEpoch,
             tomorrowDate.millisecondsSinceEpoch)) {
-          print('Today todo already created');
           await _updateWaitingTodoCount();
           yield TodayTodoCreated(count: 0);
           return;
@@ -198,7 +197,6 @@ class TodoBloc extends Bloc<TodoEvent, TodoState> {
     }
     if (event is GoalUpdatedTodoEvent) {
       try {
-        print('Goal updated, update todo');
         Goal newGoal = event.newGoal;
         Goal oldGoal = event.oldGoal;
         var deletedList = <Todo>[];

@@ -140,7 +140,6 @@ class _TodoListState extends State<TodoList>
 
   @override
   void initState() {
-    print('TodoList.initState');
     super.initState();
 
     _todoListBloc = BlocProvider.of<PageBloc<Todo>>(context);
@@ -150,7 +149,6 @@ class _TodoListState extends State<TodoList>
 
   @override
   void dispose() {
-    print('TodoList.dispose');
     super.dispose();
   }
 
@@ -159,21 +157,17 @@ class _TodoListState extends State<TodoList>
 
   @override
   Widget build(BuildContext context) {
-    print('TodoList.build');
     super.build(context);
     return BlocListener(
       bloc: _todoListBloc,
       listener: (context, state) {
-        print('TodoList TodoBloc listener');
         if (state is PageLoaded || state is PageError) {
-          print('TodoList RefreshIndicator complete');
           _refreshCompleter?.complete();
           _refreshCompleter = null;
         }
       },
       child: RefreshIndicator(
         onRefresh: () {
-          print('TodoList RefreshIndicator onRefresh');
           _refreshCompleter = Completer<void>();
           // _todoBloc.dispatch(CreateTodayTodo());
           _todoListBloc.dispatch(RefreshPage());

@@ -106,7 +106,6 @@ class _GoalListState extends State<GoalList>
 
   @override
   void initState() {
-    print('GoalList.initState');
     super.initState();
 
     _goalListBloc = BlocProvider.of<PageBloc<Goal>>(context);
@@ -115,7 +114,6 @@ class _GoalListState extends State<GoalList>
 
   @override
   void dispose() {
-    print('GoalList.dispose');
     super.dispose();
   }
 
@@ -124,7 +122,6 @@ class _GoalListState extends State<GoalList>
 
   @override
   Widget build(BuildContext context) {
-    print('GoalList.build');
     super.build(context);
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),

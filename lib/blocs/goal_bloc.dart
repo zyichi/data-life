@@ -191,7 +191,6 @@ class GoalBloc extends Bloc<GoalEvent, GoalState> {
           prefs.getInt(SP_KEY_lastTimeUpdateGoalStatus) ?? 0;
       if (lastTimeUpdateGoalStatus >= todayDate.millisecondsSinceEpoch &&
           lastTimeUpdateGoalStatus < tomorrowDate.millisecondsSinceEpoch) {
-        print('Goal status update already run for today');
         return;
       }
       var goals = await goalRepository.getAllGoals();

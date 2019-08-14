@@ -111,26 +111,28 @@ class _LoginPageState extends State<LoginPage> {
             ),
             controller: _phoneNumberController,
           ),
-          TextField(
-            decoration: InputDecoration(
-              hintText: '请输入验证码',
-              prefixIcon: Icon(Icons.sms),
-              border: UnderlineInputBorder(),
-              labelText: '请输入验证码',
-              suffixIcon: GestureDetector(
-                child: FlatButton(
-                  padding: EdgeInsets.symmetric(horizontal: 0),
-                  child: Text('获取验证码',
-                    style: TextStyle(color: Theme.of(context).primaryColor),
+          Row(
+            children: <Widget>[
+              Expanded(
+                child: TextField(
+                  decoration: InputDecoration(
+                    hintText: '请输入验证码',
+                    prefixIcon: Icon(Icons.sms),
+                    border: UnderlineInputBorder(),
+                    labelText: '请输入验证码',
                   ),
-                  onPressed: null,
+                  controller: _smsCodeController,
                 ),
-                onTap: () {
-                  print('onTap');
-                },
               ),
-            ),
-            controller: _smsCodeController,
+              RaisedButton(
+                elevation: 0,
+                color: Theme.of(context).primaryColor,
+                child: Text('获取验证码',
+                  style: TextStyle(color: Colors.white),
+                ),
+                onPressed: _phoneNumber.isEmpty ? null : () {},
+              )
+            ],
           ),
           SizedBox(height: 16),
           RaisedButton(
@@ -144,6 +146,7 @@ class _LoginPageState extends State<LoginPage> {
           ),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: <Widget>[
               GestureDetector(
                 behavior: HitTestBehavior.opaque,
@@ -187,10 +190,6 @@ class _LoginPageState extends State<LoginPage> {
               prefixIcon: Icon(Icons.vpn_key),
               border: UnderlineInputBorder(),
               labelText: '密码',
-              suffix: GestureDetector(
-                child: Text('忘记密码？'),
-                onTap: () {},
-              ),
             ),
             controller: _passwordController,
           ),
@@ -246,7 +245,7 @@ class _LoginPageState extends State<LoginPage> {
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 8),
         child: Text(
-          '需要帮助？',
+          '忘记密码？',
           style: TextStyle(
             color: Theme.of(context).textTheme.caption.color,
           ),
@@ -282,9 +281,7 @@ class _LoginPageState extends State<LoginPage> {
           ),
         ],
       ),
-      onTap: () {
-
-      },
+      onTap: () {},
     );
   }
 }
