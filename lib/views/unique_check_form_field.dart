@@ -27,7 +27,7 @@ class UniqueCheckFormField extends StatefulWidget {
     this.textChanged,
     this.validator,
     this.uniqueCheckCallback,
-    this.enabled,
+    this.enabled = true,
     this.autofocus = false,
   })  : assert(textChanged != null),
         assert(uniqueCheckCallback != null),

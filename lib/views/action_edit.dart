@@ -61,38 +61,40 @@ class _ActionEditState extends State<ActionEdit> {
                 ),
         ],
       ),
-      body: Form(
-        key: _formKey,
-        onWillPop: _onWillPop,
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              LabelFormField(
-                label: 'Name',
-              ),
-              UniqueCheckFormField(
-                initialValue: _action.name,
-                focusNode: _nameFocusNode,
-                autofocus: false,
-                enabled: !_isReadOnly,
-                hintText: 'Enter action name',
-                validator: (String text, bool isUnique) {
-                  if (text.isEmpty) {
-                    return 'Action name can not empty';
-                  }
-                  if (!isUnique && text != widget.action?.name) {
-                    return 'Action name already exist';
-                  }
-                  return null;
-                },
-                uniqueCheckCallback: (String text) async {
-                  return _actionBloc.actionNameUniqueCheck(text);
-                },
-                textChanged: _actionNameChanged,
-              ),
-            ],
+      body: AbsorbPointer(
+        absorbing: _isReadOnly,
+        child: Form(
+          key: _formKey,
+          onWillPop: _onWillPop,
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                LabelFormField(
+                  label: 'Name',
+                ),
+                UniqueCheckFormField(
+                  initialValue: _action.name,
+                  focusNode: _nameFocusNode,
+                  autofocus: false,
+                  hintText: 'Enter action name',
+                  validator: (String text, bool isUnique) {
+                    if (text.isEmpty) {
+                      return 'Action name can not empty';
+                    }
+                    if (!isUnique && text != widget.action?.name) {
+                      return 'Action name already exist';
+                    }
+                    return null;
+                  },
+                  uniqueCheckCallback: (String text) async {
+                    return _actionBloc.actionNameUniqueCheck(text);
+                  },
+                  textChanged: _actionNameChanged,
+                ),
+              ],
+            ),
           ),
         ),
       ),

@@ -113,76 +113,73 @@ class _LocationEditState extends State<LocationEdit> {
                   ),
           ],
         ),
-        body: Form(
-          key: _formKey,
-          onWillPop: _onWillPop,
-          child: ListView(
-            padding: EdgeInsets.symmetric(vertical: 16, horizontal: 16),
-            children: <Widget>[
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  _createNameField(context),
-                  SizedBox(height: 4.0),
-                  LabeledTextFormField(
-                    labelText: 'Address',
-                    controller: _addressController,
-                    maxLines: null,
-                    enabled: !_isReadOnly,
-                  ),
-                  LabeledTextFormField(
-                    labelText: '最近停留 (不可修改)',
-                    controller: TextEditingController(
-                        text: _getLastVisitTimeString(context)),
-                    enabled: false,
-                  ),
-                  SizedBox(height: 4.0),
-                  LabeledTextFormField(
-                    labelText: '总共停留 (不可修改)',
-                    controller: TextEditingController(
-                        text: TimeUtil.formatMillisToDHM(
-                            _location.totalTimeStay, context)),
-                    enabled: false,
-                  ),
-                  Divider(),
-                  SizedBox(height: 8.0),
-                  LabeledTextFormField(
-                    labelText: 'Country',
-                    hintText: 'Enter country',
-                    controller: _countryController,
-                    enabled: !_isReadOnly,
-                  ),
-                  SizedBox(height: 4.0),
-                  LabeledTextFormField(
-                    labelText: 'Province',
-                    hintText: 'Enter province',
-                    controller: _provinceController,
-                    enabled: !_isReadOnly,
-                  ),
-                  SizedBox(height: 4.0),
-                  LabeledTextFormField(
-                    labelText: 'City',
-                    hintText: 'Enter city',
-                    controller: _cityController,
-                    enabled: !_isReadOnly,
-                  ),
-                  SizedBox(height: 4.0),
-                  LabeledTextFormField(
-                    labelText: 'District',
-                    hintText: 'Enter district',
-                    controller: _districtController,
-                    enabled: !_isReadOnly,
-                  ),
-                  SizedBox(height: 4.0),
-                  LabeledTextFormField(
-                    labelText: 'Township',
-                    hintText: 'Enter township',
-                    controller: _townshipController,
-                    enabled: !_isReadOnly,
-                  ),
-                ],
-              )
-            ],
+        body: AbsorbPointer(
+          absorbing: _isReadOnly,
+          child: Form(
+            key: _formKey,
+            onWillPop: _onWillPop,
+            child: ListView(
+              padding: EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+              children: <Widget>[
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    _createNameField(context),
+                    SizedBox(height: 4.0),
+                    LabeledTextFormField(
+                      labelText: 'Address',
+                      controller: _addressController,
+                      maxLines: null,
+                    ),
+                    LabeledTextFormField(
+                      labelText: '最近停留 (不可修改)',
+                      controller: TextEditingController(
+                          text: _getLastVisitTimeString(context)),
+                      enabled: false,
+                    ),
+                    SizedBox(height: 4.0),
+                    LabeledTextFormField(
+                      labelText: '总共停留 (不可修改)',
+                      controller: TextEditingController(
+                          text: TimeUtil.formatMillisToDHM(
+                              _location.totalTimeStay, context)),
+                      enabled: false,
+                    ),
+                    Divider(),
+                    SizedBox(height: 8.0),
+                    LabeledTextFormField(
+                      labelText: 'Country',
+                      hintText: 'Enter country',
+                      controller: _countryController,
+                    ),
+                    SizedBox(height: 4.0),
+                    LabeledTextFormField(
+                      labelText: 'Province',
+                      hintText: 'Enter province',
+                      controller: _provinceController,
+                    ),
+                    SizedBox(height: 4.0),
+                    LabeledTextFormField(
+                      labelText: 'City',
+                      hintText: 'Enter city',
+                      controller: _cityController,
+                    ),
+                    SizedBox(height: 4.0),
+                    LabeledTextFormField(
+                      labelText: 'District',
+                      hintText: 'Enter district',
+                      controller: _districtController,
+                    ),
+                    SizedBox(height: 4.0),
+                    LabeledTextFormField(
+                      labelText: 'Township',
+                      hintText: 'Enter township',
+                      controller: _townshipController,
+                    ),
+                  ],
+                )
+              ],
+            ),
           ),
         ),
       ),
@@ -249,7 +246,6 @@ class _LocationEditState extends State<LocationEdit> {
             hintText: 'Enter name',
             isDense: true,
           ),
-          enabled: !_isReadOnly,
           autovalidate: true,
         ),
       ],

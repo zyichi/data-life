@@ -114,96 +114,92 @@ class _ContactEditState extends State<ContactEdit> {
                   ),
           ],
         ),
-        body: Form(
-          key: _formKey,
-          onWillPop: _onWillPop,
-          child: ListView(
-            padding: EdgeInsets.symmetric(vertical: 16, horizontal: 16),
-            children: <Widget>[
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  _createNameField(context),
-                  SizedBox(height: 4.0),
-                  LabeledTextFormField(
-                    labelText: 'Nickanme',
-                    hintText: 'Enter nickname',
-                    controller: _nicknameController,
-                    enabled: !_isReadOnly,
-                  ),
-                  SizedBox(height: 4.0),
-                  LabeledTextFormField(
-                    labelText: '最近见面 (不可修改)',
-                    controller: TextEditingController(
-                        text: _getLastMeetTimeString(context)),
-                    enabled: false,
-                  ),
-                  SizedBox(height: 4.0),
-                  LabeledTextFormField(
-                    labelText: '共呆一起 (不可修改)',
-                    controller: TextEditingController(
-                        text: TimeUtil.formatMillisToDHM(
-                            _contact.totalTimeTogether, context)),
-                    enabled: false,
-                  ),
-                  Divider(),
-                  SizedBox(height: 8.0),
-                  LabeledTextFormField(
-                    labelText: 'WeChat',
-                    hintText: 'Enter WeChat',
-                    controller: _weChatController,
-                    enabled: !_isReadOnly,
-                  ),
-                  SizedBox(height: 4.0),
-                  LabeledTextFormField(
-                    labelText: 'Phone number',
-                    hintText: 'Enter phone number',
-                    controller: _phoneNumberController,
-                    enabled: !_isReadOnly,
-                  ),
-                  SizedBox(height: 4.0),
-                  LabeledTextFormField(
-                    labelText: 'QQ',
-                    hintText: 'Enter QQ',
-                    controller: _qqController,
-                    enabled: !_isReadOnly,
-                  ),
-                  Divider(),
-                  SizedBox(height: 8.0),
-                  DateTimePickerFormField(
-                    labelText: 'First meet time',
-                    initialDateTime: DateTime.fromMillisecondsSinceEpoch(
-                        _contact.firstMeetTime),
-                    selectDateTime: (value) {
-                      setState(() {
-                        _contact.firstMeetTime = value.millisecondsSinceEpoch;
-                      });
-                    },
-                    enabled: !_isReadOnly,
-                  ),
-                  SizedBox(height: 4.0),
-                  DateTimePickerFormField(
-                    labelText: 'First known time',
-                    initialDateTime: DateTime.fromMillisecondsSinceEpoch(
-                        _contact.firstKnowTime),
-                    selectDateTime: (value) {
-                      setState(() {
-                        _contact.firstKnowTime = value.millisecondsSinceEpoch;
-                      });
-                    },
-                    enabled: !_isReadOnly,
-                  ),
-                  SizedBox(height: 4.0),
-                  LabeledTextFormField(
-                    labelText: 'First meet location',
-                    hintText: 'Enter first meet location',
-                    controller: _firstMeetLocationController,
-                    maxLines: null,
-                    enabled: !_isReadOnly,
-                  ),
-                ],
-              )
-            ],
+        body: AbsorbPointer(
+          absorbing: _isReadOnly,
+          child: Form(
+            key: _formKey,
+            onWillPop: _onWillPop,
+            child: ListView(
+              padding: EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+              children: <Widget>[
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    _createNameField(context),
+                    SizedBox(height: 4.0),
+                    LabeledTextFormField(
+                      labelText: 'Nickanme',
+                      hintText: 'Enter nickname',
+                      controller: _nicknameController,
+                    ),
+                    SizedBox(height: 4.0),
+                    LabeledTextFormField(
+                      labelText: '最近见面 (不可修改)',
+                      controller: TextEditingController(
+                          text: _getLastMeetTimeString(context)),
+                      enabled: false,
+                    ),
+                    SizedBox(height: 4.0),
+                    LabeledTextFormField(
+                      labelText: '共呆一起 (不可修改)',
+                      controller: TextEditingController(
+                          text: TimeUtil.formatMillisToDHM(
+                              _contact.totalTimeTogether, context)),
+                      enabled: false,
+                    ),
+                    Divider(),
+                    SizedBox(height: 8.0),
+                    LabeledTextFormField(
+                      labelText: 'WeChat',
+                      hintText: 'Enter WeChat',
+                      controller: _weChatController,
+                    ),
+                    SizedBox(height: 4.0),
+                    LabeledTextFormField(
+                      labelText: 'Phone number',
+                      hintText: 'Enter phone number',
+                      controller: _phoneNumberController,
+                    ),
+                    SizedBox(height: 4.0),
+                    LabeledTextFormField(
+                      labelText: 'QQ',
+                      hintText: 'Enter QQ',
+                      controller: _qqController,
+                    ),
+                    Divider(),
+                    SizedBox(height: 8.0),
+                    DateTimePickerFormField(
+                      labelText: 'First meet time',
+                      initialDateTime: DateTime.fromMillisecondsSinceEpoch(
+                          _contact.firstMeetTime),
+                      selectDateTime: (value) {
+                        setState(() {
+                          _contact.firstMeetTime = value.millisecondsSinceEpoch;
+                        });
+                      },
+                    ),
+                    SizedBox(height: 4.0),
+                    DateTimePickerFormField(
+                      labelText: 'First known time',
+                      initialDateTime: DateTime.fromMillisecondsSinceEpoch(
+                          _contact.firstKnowTime),
+                      selectDateTime: (value) {
+                        setState(() {
+                          _contact.firstKnowTime = value.millisecondsSinceEpoch;
+                        });
+                      },
+                    ),
+                    SizedBox(height: 4.0),
+                    LabeledTextFormField(
+                      labelText: 'First meet location',
+                      hintText: 'Enter first meet location',
+                      controller: _firstMeetLocationController,
+                      maxLines: null,
+                    ),
+                  ],
+                )
+              ],
+            ),
           ),
         ),
       ),
@@ -275,7 +271,6 @@ class _ContactEditState extends State<ContactEdit> {
             hintText: 'Enter name',
             isDense: true,
           ),
-          enabled: !_isReadOnly,
           autovalidate: true,
         ),
       ],

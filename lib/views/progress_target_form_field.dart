@@ -21,7 +21,7 @@ class ProgressTarget extends StatefulWidget {
     this.initialProgress,
     this.initialTarget,
     this.padding = EdgeInsets.zero,
-    this.enabled,
+    this.enabled = true,
   });
 
   @override
