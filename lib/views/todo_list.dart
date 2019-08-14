@@ -183,9 +183,7 @@ class _TodoListState extends State<TodoList>
           bloc: _todoListBloc,
           builder: (context, state) {
             if (state is PageUninitialized) {
-              return Center(
-                child: Text('No results'),
-              );
+              return _createEmptyResults();
             }
             if (state is PageLoading) {
               return Center(
@@ -194,6 +192,9 @@ class _TodoListState extends State<TodoList>
             }
             if (state is PageLoaded<Todo>) {
               PageList pagedList = state.pageList;
+              if (pagedList.total == 0) {
+                return _createEmptyResults();
+              }
               return ListView.separated(
                 key: PageStorageKey<String>(widget.name),
                 separatorBuilder: (context, index) {
@@ -205,7 +206,6 @@ class _TodoListState extends State<TodoList>
                   if (todo == null) {
                     _todoListBloc.getItem(index);
                   }
-                  // todo.status = TodoStatus.done;
                   return _TodoListItem(
                     todo: todo,
                     todoBloc: _todoBloc,
@@ -221,6 +221,14 @@ class _TodoListState extends State<TodoList>
             return null;
           },
         ),
+      ),
+    );
+  }
+
+  Widget _createEmptyResults() {
+    return Center(
+      child: Text('No tasks',
+        style: Theme.of(context).textTheme.display2,
       ),
     );
   }

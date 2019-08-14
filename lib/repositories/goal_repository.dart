@@ -24,12 +24,12 @@ class GoalRepository extends PageRepository<Goal> {
     return _goalProvider.getAllGoals();
   }
 
-  Future<List<Goal>> getGoalViaStatus(GoalStatus status, bool rowOnly) async {
-    return _goalProvider.getGoalViaStatus(status.index, rowOnly);
+  Future<List<Goal>> getViaStatus(GoalStatus status, bool rowOnly) async {
+    return _goalProvider.getViaStatus(status.index, rowOnly);
   }
 
-  Future<List<Goal>> getGoalViaActionId(int actionId, bool rowOnly) async {
-    return _goalProvider.getGoalViaActionId(actionId, rowOnly);
+  Future<List<Goal>> getViaActionId(int actionId, bool rowOnly) async {
+    return _goalProvider.getViaActionId(actionId, rowOnly);
   }
 
   Future<Goal> getViaName(String name) async {
@@ -99,4 +99,9 @@ class GoalRepository extends PageRepository<Goal> {
   Future<int> getGoalActionTotalTimeTaken(int goalId, int goalActionId) async {
     return _goalProvider.getGoalActionTotalTimeTaken(goalId, goalActionId);
   }
+
+  Future<int> setStatus(int id, GoalStatus status) async {
+    return _goalProvider.setStatus(id, status.index);
+  }
+
 }

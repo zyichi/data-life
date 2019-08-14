@@ -67,8 +67,30 @@ class UpdateGoalAction extends GoalEvent {
 }
 
 class PauseGoal extends GoalEvent {
-  final Goal goal;
-  PauseGoal({@required this.goal}) : assert(goal != null);
+  final Goal oldGoal;
+  final Goal newGoal;
+
+  PauseGoal({@required this.oldGoal, @required this.newGoal})
+      : assert(oldGoal != null),
+      assert(newGoal != null);
+}
+
+class ResumeGoal extends GoalEvent {
+  final Goal oldGoal;
+  final Goal newGoal;
+
+  ResumeGoal({@required this.oldGoal, @required this.newGoal})
+      : assert(oldGoal != null),
+        assert(newGoal != null);
+}
+
+class FinishGoal extends GoalEvent {
+  final Goal oldGoal;
+  final Goal newGoal;
+
+  FinishGoal({@required this.oldGoal, @required this.newGoal})
+      : assert(oldGoal != null),
+        assert(newGoal != null);
 }
 
 class DeleteGoal extends GoalEvent {
@@ -105,6 +127,16 @@ class GoalUpdated extends GoalState {
 class GoalDeleted extends GoalState {
   final Goal goal;
   GoalDeleted({@required this.goal}) : assert(goal != null);
+}
+class GoalPaused extends GoalState {
+  final Goal newGoal;
+  final Goal oldGoal;
+  GoalPaused({this.newGoal, this.oldGoal});
+}
+class GoalResumed extends GoalState {
+  final Goal newGoal;
+  final Goal oldGoal;
+  GoalResumed({this.newGoal, this.oldGoal});
 }
 
 class GoalActionAdded extends GoalState {}
@@ -215,6 +247,39 @@ class GoalBloc extends Bloc<GoalEvent, GoalState> {
             error: 'Update goal ${goal.name} failed: ${e.toString()}');
       }
     }
+    if (event is PauseGoal) {
+      final oldGoal = event.oldGoal;
+      final newGoal = event.newGoal;
+      try {
+        await goalRepository.setStatus(newGoal.id, GoalStatus.paused);
+        yield GoalUpdated(oldGoal: oldGoal, newGoal: newGoal);
+      } catch (e) {
+        yield GoalFailed(
+            error: 'Pause ${oldGoal.name} failed: ${e.toString()}');
+      }
+    }
+    if (event is ResumeGoal) {
+      final oldGoal = event.oldGoal;
+      final newGoal = event.newGoal;
+      try {
+        await goalRepository.setStatus(newGoal.id, GoalStatus.ongoing);
+        yield GoalUpdated(oldGoal: oldGoal, newGoal: newGoal);
+      } catch (e) {
+        yield GoalFailed(
+            error: 'Resume ${oldGoal.name} failed: ${e.toString()}');
+      }
+    }
+    if (event is FinishGoal) {
+      final oldGoal = event.oldGoal;
+      final newGoal = event.newGoal;
+      try {
+        await goalRepository.setStatus(newGoal.id, GoalStatus.finished);
+        yield GoalUpdated(oldGoal: oldGoal, newGoal: newGoal);
+      } catch (e) {
+        yield GoalFailed(
+            error: 'Resume ${oldGoal.name} failed: ${e.toString()}');
+      }
+    }
     if (event is DeleteGoalAction) {
       yield GoalActionDeleted(goalAction: event.goalAction);
     }
@@ -228,7 +293,7 @@ class GoalBloc extends Bloc<GoalEvent, GoalState> {
       try {
         var moment = event.moment;
         List<Goal> goals =
-            await goalRepository.getGoalViaActionId(moment.action.id, false);
+            await goalRepository.getViaActionId(moment.action.id, false);
         for (var goal in goals) {
           await _updateGoalWhenAddMoment(goal, moment, nowInMillis);
           yield GoalUpdated(oldGoal: null, newGoal: goal);
@@ -243,7 +308,7 @@ class GoalBloc extends Bloc<GoalEvent, GoalState> {
         var oldMoment = event.oldMoment;
         var newMoment = event.newMoment;
         List<Goal> goals =
-        await goalRepository.getGoalViaActionId(oldMoment.action.id, false);
+        await goalRepository.getViaActionId(oldMoment.action.id, false);
         for (var goal in goals) {
           await _updateGoalWhenDeleteMoment(goal, oldMoment, nowInMillis);
           await _updateGoalWhenAddMoment(goal, newMoment, nowInMillis);
@@ -258,7 +323,7 @@ class GoalBloc extends Bloc<GoalEvent, GoalState> {
       try {
         var moment = event.moment;
         List<Goal> goals =
-        await goalRepository.getGoalViaActionId(moment.action.id, false);
+        await goalRepository.getViaActionId(moment.action.id, false);
         for (var goal in goals) {
           await _updateGoalWhenDeleteMoment(goal, moment, nowInMillis);
           yield GoalUpdated(oldGoal: null, newGoal: goal);

@@ -113,7 +113,7 @@ class TodoBloc extends Bloc<TodoEvent, TodoState> {
         }
         List<Todo> todoList = <Todo>[];
         List<Goal> goals =
-            await goalRepository.getGoalViaStatus(GoalStatus.ongoing, false);
+            await goalRepository.getViaStatus(GoalStatus.ongoing, false);
         for (Goal goal in goals) {
           if (!_isCreateTodoForGoal(goal, now)) {
             continue;

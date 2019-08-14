@@ -5,7 +5,7 @@ import 'package:amap/amap.dart';
 import 'package:data_life/models/location.dart';
 import 'package:data_life/repositories/location_repository.dart';
 import 'package:data_life/repositories/location_provider.dart';
-import 'package:data_life/views/my_color.dart';
+
 
 enum _LocationType {
   TypeMyLocation,
@@ -15,10 +15,11 @@ enum _LocationType {
 }
 
 class _SuggestionItem {
+  final String keyword;
   final Location location;
   final _LocationType locationType;
   IconData iconData;
-  _SuggestionItem(this.location, this.locationType, this.iconData);
+  _SuggestionItem(this.keyword, this.location, this.locationType, this.iconData);
 }
 
 class LocationTextField extends StatefulWidget {
@@ -27,13 +28,15 @@ class LocationTextField extends StatefulWidget {
   final TextEditingController addressController;
   final bool enabled;
   final FocusNode focusNode;
+  final SuggestionsBoxController suggestionsBoxController;
 
   LocationTextField(
       {this.locationChanged,
       this.location,
       this.addressController,
       this.enabled,
-      this.focusNode});
+      this.focusNode,
+      this.suggestionsBoxController});
 
   @override
   _LocationTextFieldState createState() => _LocationTextFieldState();
@@ -47,6 +50,7 @@ class _LocationTextFieldState extends State<LocationTextField> {
   LocationRepository _locationRepository =
       LocationRepository(LocationProvider());
   TextEditingController _addressController;
+  String _currentKeyword;
 
   @override
   void initState() {
@@ -176,52 +180,57 @@ class _LocationTextFieldState extends State<LocationTextField> {
   }
 
   Future<List<_SuggestionItem>> _getSuggestion(String pattern) async {
-    if (_aMapLocation == null) {
-      _aMapLocation = await AMap().onLocationChanged.first;
-      if (_aMapLocation != null) {
-        _aMapReGeocodeAddress = await AMap().reGeocodeSearch(
-          latitude: _aMapLocation.latitude,
-          longitude: _aMapLocation.longitude,
-          radius: 300,
-        );
+    try {
+      if (_aMapLocation == null) {
+        _aMapLocation = await AMap().onLocationChanged.first;
+        if (_aMapLocation != null) {
+          _aMapReGeocodeAddress = await AMap().reGeocodeSearch(
+            latitude: _aMapLocation.latitude,
+            longitude: _aMapLocation.longitude,
+            radius: 300,
+          );
+        }
       }
-    }
-    List<_SuggestionItem> locationList = <_SuggestionItem>[];
-    var recentLocationList = await _recentLocation(pattern);
-    if (pattern.isEmpty) {
-      // Return nearby POI.
-      if (_aMapReGeocodeAddress != null) {
-        var myLocation = _myLocation(_aMapReGeocodeAddress);
-        locationList.add(_SuggestionItem(
-            myLocation, _LocationType.TypeMyLocation, Icons.my_location));
-      }
-      locationList.addAll(recentLocationList.map((l) {
-        return _SuggestionItem(l, _LocationType.TypeHistory, Icons.history);
-      }));
-      if (_aMapReGeocodeAddress != null) {
-        var nearbyLocationList = _nearbyLocation(_aMapReGeocodeAddress);
-        locationList.addAll(nearbyLocationList.map((l) {
-          return _SuggestionItem(l, _LocationType.TypeNearby, Icons.near_me);
+      List<_SuggestionItem> locationList = <_SuggestionItem>[];
+      var recentLocationList = await _recentLocation(pattern);
+      if (pattern.isEmpty) {
+        // Return nearby POI.
+        if (_aMapReGeocodeAddress != null) {
+          var myLocation = _myLocation(_aMapReGeocodeAddress);
+          locationList.add(_SuggestionItem(
+              pattern, myLocation, _LocationType.TypeMyLocation, Icons.my_location));
+        }
+        locationList.addAll(recentLocationList.map((l) {
+          return _SuggestionItem(pattern, l, _LocationType.TypeHistory, Icons.history);
+        }));
+        if (_aMapReGeocodeAddress != null) {
+          var nearbyLocationList = _nearbyLocation(_aMapReGeocodeAddress);
+          locationList.addAll(nearbyLocationList.map((l) {
+            return _SuggestionItem(pattern, l, _LocationType.TypeNearby, Icons.near_me);
+          }));
+        }
+      } else {
+        locationList.addAll(recentLocationList.map((l) {
+          return _SuggestionItem(pattern, l, _LocationType.TypeHistory, Icons.history);
+        }));
+        var locationTips = await _locationTips(pattern);
+        locationList.addAll(locationTips.map((l) {
+          return _SuggestionItem(pattern, l, _LocationType.TypeTip, Icons.near_me);
         }));
       }
-    } else {
-      locationList.addAll(recentLocationList.map((l) {
-        return _SuggestionItem(l, _LocationType.TypeHistory, Icons.history);
-      }));
-      var locationTips = await _locationTips(pattern);
-      locationList.addAll(locationTips.map((l) {
-        return _SuggestionItem(l, _LocationType.TypeTip, Icons.near_me);
-      }));
+      return locationList;
+    } catch (e) {
+      print('Get location suggestion failed: ${e.toString()}');
+      return <_SuggestionItem>[];
     }
-    return locationList;
   }
 
   @override
   Widget build(BuildContext context) {
     return TypeAheadFormField(
+      suggestionsBoxController: widget.suggestionsBoxController,
       textFieldConfiguration: TextFieldConfiguration(
         autocorrect: false,
-        autofocus: widget.enabled,
         enabled: widget.enabled,
         focusNode: _addressFocusNode,
         controller: _addressController,
@@ -240,6 +249,7 @@ class _LocationTextFieldState extends State<LocationTextField> {
       hideOnEmpty: true,
       hideOnLoading: true,
       onSuggestionSelected: (_SuggestionItem suggest) {
+        if (!mounted) return;
         Location location = suggest.location;
         setState(() {
           _addressController.text = location.name;
@@ -285,8 +295,15 @@ class _LocationTextFieldState extends State<LocationTextField> {
           ),
         );
       },
-      suggestionsCallback: (String pattern) {
-        return _getSuggestion(pattern);
+      suggestionsCallback: (String pattern) async {
+        _currentKeyword = pattern;
+        List<_SuggestionItem> result = await _getSuggestion(pattern);
+        // TODO: do we really need this?
+        if (result.isNotEmpty && result.elementAt(0).keyword == _currentKeyword) {
+          return result;
+        } else {
+          return <_SuggestionItem>[];
+        }
       },
     );
   }

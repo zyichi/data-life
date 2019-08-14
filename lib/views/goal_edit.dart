@@ -111,12 +111,13 @@ class _GoalEditState extends State<GoalEdit> {
       for (var goalAction in widget.goal.goalActions) {
         _goal.goalActions.add(GoalAction.copeCreate(goalAction));
       }
-      _title = _goal.name;
-    } else {
       _title = 'Goal';
+    } else {
+      _title = 'New Goal';
 
       var now = DateTime.now();
-      _goal.startTime = DateTime(now.year, now.month, now.day).millisecondsSinceEpoch;
+      _goal.startTime =
+          DateTime(now.year, now.month, now.day).millisecondsSinceEpoch;
       _goal.stopTime = _goal.startTime + Duration(days: 7).inMilliseconds;
 
       _goal.progress = 0.0;
@@ -129,6 +130,215 @@ class _GoalEditState extends State<GoalEdit> {
   @override
   void dispose() {
     super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(_title),
+        centerTitle: true,
+        actions: <Widget>[
+          _createEditAction(),
+          _createActionMenu(),
+        ],
+      ),
+      body: SafeArea(
+        top: false,
+        bottom: false,
+        child: BlocListener<GoalBloc, GoalState>(
+          bloc: _goalBloc,
+          listener: (context, state) {
+            if (state is GoalActionAdded ||
+                state is GoalActionDeleted ||
+                state is GoalActionUpdated) {
+              print('Goal action added/deleted/updated');
+              setState(() {});
+            }
+          },
+          child: Form(
+            key: _formKey,
+            onWillPop: _onWillPop,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              child: ListView(
+                children: <Widget>[
+                  _getGoalStatus(),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: UniqueCheckFormField(
+                      initialValue: _goal.name,
+                      focusNode: _nameFocusNode,
+                      textStyle: Theme.of(context)
+                          .textTheme
+                          .subhead
+                          .copyWith(fontSize: 24),
+                      validator: (String text, bool isUnique) {
+                        if (text.isEmpty) {
+                          return 'Goal name can not empty';
+                        }
+                        if (!isUnique && text != widget.goal?.name) {
+                          return 'Goal name already exist';
+                        }
+                        return null;
+                      },
+                      textChanged: _nameChanged,
+                      hintText: 'Enter goal name',
+                      uniqueCheckCallback: (String text) {
+                        return _goalBloc.goalNameUniqueCheck(text);
+                      },
+                      enabled: !_isReadOnly,
+                      autofocus: _isNewGoal,
+                    ),
+                  ),
+                  Divider(),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: ProgressTarget(
+                      padding: EdgeInsets.symmetric(vertical: 8),
+                      progressChanged: _progressChanged,
+                      targetChanged: _targetChanged,
+                      initialProgress: _goal.progress,
+                      initialTarget: _goal.target,
+                      enabled: !_isReadOnly,
+                    ),
+                  ),
+                  Divider(),
+                  SizedBox(height: 8),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: FormField(
+                      builder: (FormFieldState fieldState) {
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: <Widget>[
+                            DatePickerFormField(
+                              labelText: 'From',
+                              initialDateTime:
+                                  DateTime.fromMillisecondsSinceEpoch(
+                                      _goal.startTime),
+                              selectDate: (date) {
+                                fieldState.didChange(null);
+                                print('Selected goal from date: $date');
+                                _goal.startTime = date.millisecondsSinceEpoch;
+                              },
+                              enabled: !_isReadOnly,
+                            ),
+                            DatePickerFormField(
+                              labelText: 'To',
+                              initialDateTime:
+                                  DateTime.fromMillisecondsSinceEpoch(
+                                      _goal.stopTime),
+                              selectDate: (date) {
+                                fieldState.didChange(null);
+                                print('Selected goal to date: $date');
+                                _goal.stopTime = date.millisecondsSinceEpoch;
+                              },
+                              enabled: !_isReadOnly,
+                            ),
+                            FormFieldError(
+                              errorText: fieldState.errorText,
+                            )
+                          ],
+                        );
+                      },
+                      autovalidate: true,
+                      validator: (value) {
+                        if (_isReadOnly) {
+                          return null;
+                        }
+                        var now = DateTime.now();
+                        var nowDate = DateTime(now.year, now.month, now.day);
+                        if (_isNewGoal) {
+                          if (_goal.startTime <
+                              nowDate.millisecondsSinceEpoch) {
+                            return '开始时间必须在当前时间之后';
+                          }
+                        }
+                        if (_goal.stopTime - _goal.startTime <
+                            Duration(days: 3).inMilliseconds) {
+                          return '时长必须大于三天';
+                        }
+                        if (_goal.startTime > _goal.stopTime) {
+                          return '开始时间必须早于结束时间';
+                        }
+                        return null;
+                      },
+                    ),
+                  ),
+                  SizedBox(height: 8),
+                  Divider(),
+                  SizedBox(height: 8),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: _createGoalActionWidget(),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Color _captionColor() {
+    return Theme.of(context).textTheme.caption.color;
+  }
+
+  Widget _createFinishMenuItem() {
+    return Row(
+      children: <Widget>[
+        Icon(
+          Icons.done,
+          color: _captionColor(),
+        ),
+        SizedBox(width: 16),
+        Text(
+          'Finish goal',
+          style: TextStyle(
+            color: _captionColor(),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _createPauseResumeMenuItem() {
+    if (_goal.status == GoalStatus.paused) {
+      return Row(
+        children: <Widget>[
+          Icon(
+            Icons.play_arrow,
+            color: _captionColor(),
+          ),
+          SizedBox(width: 16),
+          Text(
+            'Resume goal',
+            style: TextStyle(
+              color: _captionColor(),
+            ),
+          ),
+        ],
+      );
+    } else if (_goal.status == GoalStatus.ongoing) {
+      return Row(
+        children: <Widget>[
+          Icon(
+            Icons.pause,
+            color: _captionColor(),
+          ),
+          SizedBox(width: 16),
+          Text(
+            'Pause goal',
+            style: TextStyle(
+              color: _captionColor(),
+            ),
+          ),
+        ],
+      );
+    }
+    return null;
   }
 
   bool get _isNewGoal => widget.goal == null;
@@ -161,17 +371,8 @@ class _GoalEditState extends State<GoalEdit> {
         context, 'Are you sure you want to discard your changes to the goal?');
   }
 
-  void _titleChanged(String text) {
+  void _nameChanged(String text) {
     _goal.name = text;
-    if (_goal.name.isNotEmpty) {
-      setState(() {
-        _title = _goal.name;
-      });
-    } else {
-      setState(() {
-        _title = widget.goal?.name ?? 'Goal';
-      });
-    }
   }
 
   void _targetChanged(num value) {
@@ -250,189 +451,117 @@ class _GoalEditState extends State<GoalEdit> {
     }
   }
 
-  void _deleteGoal() {
-    _goalBloc.dispatch(DeleteGoal(goal: widget.goal));
+  void _pauseGoal() {
+    setState(() {
+      _goal.status = GoalStatus.paused;
+    });
+    _goalBloc.dispatch(PauseGoal(
+      oldGoal: widget.goal,
+      newGoal: _goal,
+    ));
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(_title),
-        centerTitle: true,
-        actions: <Widget>[
-          _isReadOnly
-              ? IconButton(
-                  icon: Icon(Icons.edit),
-                  onPressed: () {
-                    setState(() {
-                      _isReadOnly = false;
-                    });
-                    FocusScope.of(context).requestFocus(_nameFocusNode);
-                  },
-                )
-              : IconButton(
-                  icon: Icon(Icons.check),
-                  onPressed: () {
-                    if (_formKey.currentState.validate()) {
-                      _editGoal();
-                      Navigator.of(context).pop();
-                    }
-                  },
-                ),
-          _isNewGoal
-              ? Container()
-              : PopupMenuButton<String>(
-                  icon: Icon(Icons.more_vert),
-                  onSelected: (value) {
-                    if (value == 'delete') {
-                      _deleteGoal();
-                      Navigator.of(context).pop(true);
-                    }
-                  },
-                  itemBuilder: (context) {
-                    return [
-                      PopupMenuItem<String>(
-                        value: 'delete',
-                        child: Text('Delete'),
-                      ),
-                    ];
-                  },
-                ),
-        ],
-      ),
-      body: SafeArea(
-        top: false,
-        bottom: false,
-        child: BlocListener<GoalBloc, GoalState>(
-          bloc: _goalBloc,
-          listener: (context, state) {
-            if (state is GoalActionAdded ||
-                state is GoalActionDeleted ||
-                state is GoalActionUpdated) {
-              print('Goal action added/deleted/updated');
-              setState(() {});
-            }
-          },
-          child: Form(
-            key: _formKey,
-            onWillPop: _onWillPop,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              child: ListView(
-                children: <Widget>[
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: UniqueCheckFormField(
-                      initialValue: _goal.name,
-                      focusNode: _nameFocusNode,
-                      textStyle: Theme.of(context)
-                          .textTheme
-                          .subhead
-                          .copyWith(fontSize: 24),
-                      validator: (String text, bool isUnique) {
-                        if (text.isEmpty) {
-                          return 'Goal name can not empty';
-                        }
-                        if (!isUnique && text != widget.goal?.name) {
-                          return 'Goal name already exist';
-                        }
-                        return null;
-                      },
-                      textChanged: _titleChanged,
-                      hintText: 'Enter goal name',
-                      uniqueCheckCallback: (String text) {
-                        return _goalBloc.goalNameUniqueCheck(text);
-                      },
-                      enabled: !_isReadOnly,
-                      autofocus: _isNewGoal,
-                    ),
-                  ),
-                  Divider(),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: ProgressTarget(
-                      padding: EdgeInsets.symmetric(vertical: 8),
-                      progressChanged: _progressChanged,
-                      targetChanged: _targetChanged,
-                      initialProgress: _goal.progress,
-                      initialTarget: _goal.target,
-                      enabled: !_isReadOnly,
-                    ),
-                  ),
-                  Divider(),
-                  SizedBox(height: 8),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: FormField(
-                      builder: (FormFieldState fieldState) {
-                        return Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: <Widget>[
-                            DatePickerFormField(
-                              labelText: 'From',
-                              initialDateTime:
-                                  DateTime.fromMillisecondsSinceEpoch(
-                                      _goal.startTime),
-                              selectDate: (date) {
-                                fieldState.didChange(null);
-                                print('Selected goal from date: $date');
-                                _goal.startTime = date.millisecondsSinceEpoch;
-                              },
-                              enabled: !_isReadOnly,
-                            ),
-                            DatePickerFormField(
-                              labelText: 'To',
-                              initialDateTime:
-                                  DateTime.fromMillisecondsSinceEpoch(
-                                      _goal.stopTime),
-                              selectDate: (date) {
-                                fieldState.didChange(null);
-                                print('Selected goal to date: $date');
-                                _goal.stopTime = date.millisecondsSinceEpoch;
-                              },
-                              enabled: !_isReadOnly,
-                            ),
-                            FormFieldError(
-                              errorText: fieldState.errorText,
-                            )
-                          ],
-                        );
-                      },
-                      autovalidate: true,
-                      validator: (value) {
-                        if (_isReadOnly) {
-                          return null;
-                        }
-                        var now = DateTime.now();
-                        var nowDate = DateTime(now.year, now.month, now.day);
-                        if (_goal.startTime < nowDate.millisecondsSinceEpoch) {
-                          return '开始时间必须在当前时间之后';
-                        }
-                        if (_goal.stopTime - _goal.startTime <
-                            Duration(days: 3).inMilliseconds) {
-                          return '时长必须大于三天';
-                        }
-                        if (_goal.startTime > _goal.stopTime) {
-                          return '开始时间必须早于结束时间';
-                        }
-                        return null;
-                      },
-                    ),
-                  ),
-                  SizedBox(height: 8),
-                  Divider(),
-                  SizedBox(height: 8),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: _createGoalActionWidget(),
-                  ),
-                ],
-              ),
-            ),
-          ),
+  void _resumeGoal() {
+    setState(() {
+      _goal.status = GoalStatus.ongoing;
+    });
+    _goalBloc.dispatch(ResumeGoal(
+      oldGoal: widget.goal,
+      newGoal: _goal,
+    ));
+  }
+
+  void _finishGoal() {
+    setState(() {
+      _goal.status = GoalStatus.finished;
+    });
+    _goalBloc.dispatch(FinishGoal(
+      oldGoal: widget.goal,
+      newGoal: _goal,
+    ));
+  }
+
+  Widget _getGoalStatus() {
+    if (_goal.status == GoalStatus.ongoing) return Container();
+    return Center(
+      child: Text(
+        '${TypeToStr.goalStatusToStr(_goal.status, context)}',
+        style: TextStyle(
+          color: _goal.status == GoalStatus.finished
+              ? Theme.of(context).primaryColor
+              : Theme.of(context).accentColor,
         ),
       ),
     );
+  }
+
+  Widget _createActionMenu() {
+    if (_isNewGoal ||
+        _goal.status == GoalStatus.finished ||
+        _goal.status == GoalStatus.expired) {
+      return Container();
+    }
+
+    return PopupMenuButton<String>(
+      icon: Icon(Icons.more_vert),
+      onSelected: (value) {
+        if (value == 'pause') {
+          _pauseGoal();
+        }
+        if (value == 'resume') {
+          _resumeGoal();
+        }
+        if (value == 'finish') {
+          _finishGoal();
+        }
+      },
+      itemBuilder: (context) {
+        return [
+          PopupMenuItem<String>(
+            value: _goal.status == GoalStatus.paused ? 'resume' : 'pause',
+            child: _createPauseResumeMenuItem(),
+          ),
+          PopupMenuItem<String>(
+            value: 'finish',
+            child: _createFinishMenuItem(),
+          ),
+        ];
+      },
+    );
+  }
+
+  Widget _createCheckAction() {
+    return IconButton(
+      icon: Icon(Icons.check),
+      onPressed: () {
+        if (_formKey.currentState.validate()) {
+          _editGoal();
+          Navigator.of(context).pop();
+        }
+      },
+    );
+  }
+
+  Widget _createEditAction() {
+    if (_isNewGoal) {
+      return _createCheckAction();
+    }
+    if (_goal.status == GoalStatus.finished || _goal.status == GoalStatus.expired) {
+      return Container();
+    }
+    if (_isReadOnly) {
+      return IconButton(
+        icon: Icon(Icons.edit),
+        onPressed: () {
+          setState(() {
+            _isReadOnly = false;
+            _title = 'Edit Goal';
+          });
+          FocusScope.of(context).requestFocus(_nameFocusNode);
+        },
+      );
+    } else {
+      return _createCheckAction();
+    }
   }
 }

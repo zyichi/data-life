@@ -54,7 +54,6 @@ class _ActionListItem extends StatelessWidget {
               ),
               SizedBox(height: 8),
               _createLastActiveTimeWidget(context),
-              SizedBox(height: 8),
               _createTotalTimeTakenWidget(context),
             ],
           ),
@@ -73,14 +72,13 @@ class _ActionListItem extends StatelessWidget {
           TimeUtil.timeStringFromMillis(action.lastActiveTime, context);
     }
     return Text(
-      '最近活动: $s',
+      '最后活跃: $s',
     );
   }
 
   Widget _createTotalTimeTakenWidget(BuildContext context) {
     return Text(
       "共花时间: ${TimeUtil.formatMillisToDHM(action.totalTimeTaken, context)}",
-      style: Theme.of(context).textTheme.caption,
     );
   }
 }

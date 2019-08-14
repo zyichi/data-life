@@ -53,7 +53,6 @@ class _LocationListItem extends StatelessWidget {
               ),
               SizedBox(height: 8),
               _createLastActiveTimeWidget(context),
-              SizedBox(height: 8),
               _createTotalTimeStayWidget(context),
             ],
           ),
@@ -79,7 +78,6 @@ class _LocationListItem extends StatelessWidget {
   Widget _createTotalTimeStayWidget(BuildContext context) {
     return Text(
       "总共停留: ${TimeUtil.formatMillisToDHM(location.totalTimeStay, context)}",
-      style: Theme.of(context).textTheme.caption,
     );
   }
 }

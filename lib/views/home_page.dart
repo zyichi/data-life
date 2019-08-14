@@ -12,6 +12,7 @@ import 'package:data_life/views/location_page.dart';
 import 'package:data_life/views/contact_page.dart';
 import 'package:data_life/views/goal_edit.dart';
 import 'package:data_life/views/moment_edit.dart';
+import 'package:data_life/views/me_view.dart';
 
 import 'package:data_life/models/moment.dart';
 import 'package:data_life/models/goal.dart';
@@ -31,36 +32,15 @@ import 'package:data_life/paging/page_bloc.dart';
 
 import 'package:data_life/localizations.dart';
 
-enum TabType {
-  moments,
-  goals,
-  todo,
-}
-List<TabType> tabTypeList = [
-  TabType.moments,
-  TabType.goals,
-  TabType.todo,
-];
-String tabTypeToStr(TabType t, BuildContext context) {
-  switch (t) {
-    case TabType.moments:
-      return AppLocalizations.of(context).moments;
-    case TabType.goals:
-      return AppLocalizations.of(context).goals;
-    case TabType.todo:
-      return 'To-do';
-    default:
-      return null;
-  }
-}
-
 class _Tab {
   final String label;
+  final String title;
   final IconData fabIconData;
   final VoidCallback fabOnPressed;
   final Widget view;
 
-  _Tab({this.view, this.label, this.fabIconData, this.fabOnPressed});
+  _Tab(
+      {this.view, this.label, this.title, this.fabIconData, this.fabOnPressed});
 }
 
 class HomePage extends StatefulWidget {
@@ -102,25 +82,33 @@ class HomePageState extends State<HomePage>
 
     _tabs = <_Tab>[
       _Tab(
-          view: MomentList(name: 'moment'),
-          fabIconData: Icons.event,
-          fabOnPressed: _momentFabOnPressed,
-          label: 'Moment'),
+        view: MomentList(name: 'moment'),
+        fabIconData: Icons.event,
+        fabOnPressed: _momentFabOnPressed,
+        label: 'Moments',
+        title: 'DataLife',
+      ),
       _Tab(
-          view: GoalList(name: 'goal'),
-          fabIconData: Icons.outlined_flag,
-          fabOnPressed: _goalFabOnPressed,
-          label: 'Goal'),
+        view: GoalList(name: 'goal'),
+        fabIconData: Icons.outlined_flag,
+        fabOnPressed: _goalFabOnPressed,
+        label: 'Goals',
+        title: 'Goals',
+      ),
       _Tab(
-          view: TodoList(name: 'todo'),
-          fabIconData: null,
-          fabOnPressed: null,
-          label: 'Notification'),
+        view: TodoList(name: 'todo'),
+        fabIconData: null,
+        fabOnPressed: null,
+        label: 'Tasks',
+        title: 'Tasks',
+      ),
       _Tab(
-          view: Center(child: Text('Me')),
-          fabIconData: null,
-          fabOnPressed: null,
-          label: 'Me'),
+        view: MeView(),
+        fabIconData: null,
+        fabOnPressed: null,
+        label: 'Me',
+        title: 'Me',
+      ),
     ];
     _selectedNavigationIndex = 0;
   }
@@ -194,7 +182,14 @@ class HomePageState extends State<HomePage>
       _todoBloc.dispatch(GoalAddedTodoEvent(goal: state.goal));
     }
     if (state is GoalUpdated) {
-      print('Goal updated, dispatch GoalUpdatedTodoEvent');
+      _todoBloc.dispatch(
+          GoalUpdatedTodoEvent(oldGoal: state.oldGoal, newGoal: state.newGoal));
+    }
+    if (state is GoalResumed) {
+      _todoBloc.dispatch(
+          GoalUpdatedTodoEvent(oldGoal: state.oldGoal, newGoal: state.newGoal));
+    }
+    if (state is GoalPaused) {
       _todoBloc.dispatch(
           GoalUpdatedTodoEvent(oldGoal: state.oldGoal, newGoal: state.newGoal));
     }
@@ -269,7 +264,7 @@ class HomePageState extends State<HomePage>
       child: Material(
         child: Scaffold(
           appBar: AppBar(
-            title: Text(_tabs.elementAt(_selectedNavigationIndex).label),
+            title: Text(_tabs.elementAt(_selectedNavigationIndex).title),
             centerTitle: false,
             actions: <Widget>[
               IconButton(
@@ -310,9 +305,17 @@ class HomePageState extends State<HomePage>
                       value: 'contact',
                       child: Row(
                         children: <Widget>[
-                          Icon(Icons.people),
+                          Icon(
+                            Icons.people,
+                            color: _captionColor(),
+                          ),
                           SizedBox(width: 16),
-                          Text('Contacts'),
+                          Text(
+                            'Contacts',
+                            style: TextStyle(
+                              color: _captionColor(),
+                            ),
+                          ),
                         ],
                       ),
                     ),
@@ -320,9 +323,17 @@ class HomePageState extends State<HomePage>
                       value: 'location',
                       child: Row(
                         children: <Widget>[
-                          Icon(Icons.place),
+                          Icon(
+                            Icons.place,
+                            color: _captionColor(),
+                          ),
                           SizedBox(width: 16),
-                          Text('Location'),
+                          Text(
+                            'Locations',
+                            style: TextStyle(
+                              color: _captionColor(),
+                            ),
+                          ),
                         ],
                       ),
                     ),
@@ -330,9 +341,17 @@ class HomePageState extends State<HomePage>
                       value: 'action',
                       child: Row(
                         children: <Widget>[
-                          Icon(Icons.accessibility_new),
+                          Icon(
+                            Icons.accessibility_new,
+                            color: _captionColor(),
+                          ),
                           SizedBox(width: 16),
-                          Text('Actions'),
+                          Text(
+                            'Actions',
+                            style: TextStyle(
+                              color: _captionColor(),
+                            ),
+                          ),
                         ],
                       ),
                     ),
@@ -486,5 +505,9 @@ class HomePageState extends State<HomePage>
         color: Colors.red,
       ),
     );
+  }
+
+  Color _captionColor() {
+    return Theme.of(context).textTheme.caption.color;
   }
 }

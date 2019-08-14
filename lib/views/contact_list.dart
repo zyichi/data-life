@@ -54,7 +54,6 @@ class _ContactListItem extends StatelessWidget {
               ),
               SizedBox(height: 8),
               _createLastMeetTimeWidget(context),
-              SizedBox(height: 8),
               _createTotalTimeTogetherWidget(context),
             ],
           ),
@@ -80,7 +79,6 @@ class _ContactListItem extends StatelessWidget {
   Widget _createTotalTimeTogetherWidget(BuildContext context) {
     return Text(
       "共呆一起: ${TimeUtil.formatMillisToDHM(contact.totalTimeTogether, context)}",
-      style: Theme.of(context).textTheme.caption,
     );
   }
 }

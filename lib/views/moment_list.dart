@@ -52,12 +52,11 @@ class _MomentListItem extends StatelessWidget {
               ),
               SizedBox(height: 8.0),
               _createTimeWidget(context),
+              _createDurationWidget(context),
               Text(
-                moment.location.name,
+                '${moment.location.name}',
               ),
               _createContactsWidget(),
-              SizedBox(height: 8.0),
-              _createDurationWidget(context),
             ],
           ),
         ),
@@ -69,8 +68,8 @@ class _MomentListItem extends StatelessWidget {
     var names = moment.contacts.map((Contact contact) {
       return contact.name;
     }).toList();
-    names.insert(0, 'Me');
-    return Text(names.join(', '));
+    names.insert(0, '我');
+    return Text('${names.join(', ')}');
   }
 
   Widget _createDurationWidget(BuildContext context) {
@@ -88,8 +87,7 @@ class _MomentListItem extends StatelessWidget {
       s = "$dayStr${dayStr.isEmpty ? '' : ' '}$hourStr${hourStr.isEmpty ? '' : ' '}$minuteStr${minuteStr.isEmpty ? '' : ' '}";
     }
     return Text(
-      'Duration: $s',
-      style: Theme.of(context).textTheme.caption,
+      '$s',
     );
   }
 
@@ -144,9 +142,7 @@ class _MomentListState extends State<MomentList>
         bloc: _momentListBloc,
         builder: (context, state) {
           if (state is PageUninitialized) {
-            return Center(
-              child: Text('No results'),
-            );
+            return _createEmptyResults();
           }
           if (state is PageLoading) {
             return Center(
@@ -155,6 +151,9 @@ class _MomentListState extends State<MomentList>
           }
           if (state is PageLoaded<Moment>) {
             PageList pagedList = state.pageList;
+            if (pagedList.total == 0) {
+              return _createEmptyResults();
+            }
             return ListView.separated(
               key: PageStorageKey<String>(widget.name),
               separatorBuilder: (context, index) {
@@ -182,4 +181,13 @@ class _MomentListState extends State<MomentList>
       ),
     );
   }
+
+  Widget _createEmptyResults() {
+    return Center(
+      child: Text('No moments',
+        style: Theme.of(context).textTheme.display2,
+      ),
+    );
+  }
+
 }

@@ -52,7 +52,7 @@ class GoalProvider {
     return goals;
   }
 
-  Future<List<Goal>> getGoalViaStatus(int statusIndex, bool rowOnly) async {
+  Future<List<Goal>> getViaStatus(int statusIndex, bool rowOnly) async {
     List<Map> maps = await LifeDb.db.query(
       GoalTable.name,
       columns: [],
@@ -70,7 +70,7 @@ class GoalProvider {
     return goals;
   }
 
-  Future<List<Goal>> getGoalViaActionId(int actionId, bool rowOnly) async {
+  Future<List<Goal>> getViaActionId(int actionId, bool rowOnly) async {
     List<Map> maps = await LifeDb.db.query(GoalActionTable.name,
         distinct: true,
         columns: [GoalActionTable.columnGoalId],
@@ -311,5 +311,14 @@ class GoalProvider {
     int t = Sqflite.firstIntValue(await LifeDb.db.rawQuery(
         'select sum(${GoalMomentTable.columnMomentDuration}) from ${GoalMomentTable.name} where ${GoalMomentTable.columnGoalId} = $goalId and ${GoalMomentTable.columnGoalActionId} = $goalActionId'));
     return t ?? 0;
+  }
+
+  Future<int> setStatus(int id, int statusIndex) async {
+    return LifeDb.db.update(
+      GoalTable.name,
+      {'status': statusIndex},
+      where: '${GoalTable.columnId} = ?',
+      whereArgs: [id],
+    );
   }
 }

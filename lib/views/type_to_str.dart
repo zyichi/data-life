@@ -176,11 +176,11 @@ class TypeToStr {
       case GoalStatus.ongoing:
         return '进行中';
       case GoalStatus.finished:
-        return '完成';
+        return '已完成';
       case GoalStatus.expired:
-        return '过期';
+        return '已过期';
       case GoalStatus.paused:
-        return '暂停';
+        return '已暂停';
     }
     return 'Unknown';
   }

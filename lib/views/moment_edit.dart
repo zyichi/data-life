@@ -45,6 +45,7 @@ class _MomentEditState extends State<MomentEdit> {
   bool _isReadOnly = false;
   final _formKey = GlobalKey<FormState>();
   final Moment _moment = Moment();
+  String _title;
 
   double _sentimentIconSize = 48.0;
 
@@ -57,6 +58,8 @@ class _MomentEditState extends State<MomentEdit> {
   final _costController = TextEditingController();
   final _feelingsController = TextEditingController();
 
+  final _suggestionsBoxController = SuggestionsBoxController();
+
   MomentBloc _momentEditBloc;
 
   @override
@@ -66,6 +69,7 @@ class _MomentEditState extends State<MomentEdit> {
     _momentEditBloc = BlocProvider.of<MomentBloc>(context);
 
     if (widget.moment != null) {
+      print('Moment read only');
       _isReadOnly = true;
 
       _actionNameController.text = widget.moment.action.name;
@@ -80,6 +84,8 @@ class _MomentEditState extends State<MomentEdit> {
       for (Contact contact in widget.moment.contacts) {
         _moment.contacts.add(Contact.copyCreate(contact));
       }
+
+      _title = 'Moment';
     } else {
       final now = DateTime.now();
       _moment.beginTime = now.subtract(Duration(minutes: 60)).millisecondsSinceEpoch;
@@ -88,12 +94,13 @@ class _MomentEditState extends State<MomentEdit> {
       if (widget.todo != null) {
         _actionNameController.text = widget.todo.goalAction.action.name;
       }
+      _title = 'New Moment';
     }
 
     _contactController.addListener(_contactControllerListener);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      requestPermissions();
+      _requestPermissions();
     });
   }
 
@@ -104,19 +111,174 @@ class _MomentEditState extends State<MomentEdit> {
     super.dispose();
   }
 
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        centerTitle: true,
+        title: Text(_title),
+        actions: <Widget>[
+          _createEditAction(),
+          _isNewMoment
+              ? Container()
+              : PopupMenuButton<String>(
+                  icon: Icon(Icons.more_vert),
+                  onSelected: (value) {
+                    if (value == 'delete') {
+                      _deleteMoment();
+                      Navigator.of(context).pop(true);
+                    }
+                  },
+                  itemBuilder: (context) {
+                    return [
+                      PopupMenuItem<String>(
+                        value: 'delete',
+                        child: Row(
+                          children: <Widget>[
+                            Icon(Icons.delete,
+                              color: _captionColor(),
+                            ),
+                            SizedBox(width: 16,),
+                            Text('Delete',
+                              style: TextStyle(color: _captionColor()),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ];
+                  },
+                ),
+        ],
+      ),
+      body: SafeArea(
+        top: false,
+        bottom: false,
+        child: AbsorbPointer(
+          absorbing: _isReadOnly,
+          child: Form(
+            key: _formKey,
+            onWillPop: _onWillPop,
+            child: ListView(
+              padding: const EdgeInsets.symmetric(vertical: 16,),
+              children: <Widget>[
+                widget.todo != null
+                    ? Align(
+                        alignment: Alignment.topCenter,
+                        child: _createEditHint(),
+                      )
+                    : Container(),
+                widget.moment == null && widget.todo == null
+                    ? Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: <Widget>[
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            child: _createActionNameFormField(),
+                          ),
+                          Divider(),
+                        ],
+                      )
+                    : Container(),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: _createLocationField(),
+                ),
+                Divider(),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: _createPeopleFormField(),
+                ),
+                Divider(),
+                SizedBox(height: 8),
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 16),
+                  child: FormField(
+                    builder: (fieldState) {
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: <Widget>[
+                          DateTimePickerFormField(
+                            labelText: AppLocalizations.of(context).begin,
+                            initialDateTime: DateTime.fromMillisecondsSinceEpoch(
+                                _moment.beginTime),
+                            selectDateTime: (value) {
+                              _moment.beginTime = value.millisecondsSinceEpoch;
+                              fieldState.didChange(null);
+                            },
+                          ),
+                          DateTimePickerFormField(
+                            labelText: AppLocalizations.of(context).end,
+                            initialDateTime: DateTime.fromMillisecondsSinceEpoch(
+                                _moment.endTime),
+                            selectDateTime: (value) {
+                              _moment.endTime = value.millisecondsSinceEpoch;
+                              fieldState.didChange(null);
+                            },
+                          ),
+                          FormFieldError(
+                            errorText: fieldState.errorText,
+                          ),
+                        ],
+                      );
+                    },
+                    autovalidate: true,
+                    validator: (value) {
+                      // If to-do is not null, we need to limit time to today.
+                      var now = DateTime.now();
+                      if (widget.todo != null) {
+                        var t = DateTime.fromMillisecondsSinceEpoch(
+                            _moment.beginTime);
+                        if (t.isBefore(DateTime(now.year, now.month, now.day))) {
+                          return "任务完成时间必须是今天";
+                        }
+                      }
+                      if (_moment.endTime > now.millisecondsSinceEpoch) {
+                        return '结束时间不能在将来';
+                      }
+                      if (_moment.beginTime > _moment.endTime) {
+                        return '开始时间必须早于结束时间';
+                      }
+                      return null;
+                    },
+                  ),
+                ),
+                SizedBox(height: 8),
+                Divider(),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: _createExpendFormField(),
+                ),
+                Divider(),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: _createSentimentFormField(),
+                ),
+                Divider(),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: _createFeelingsFormField(),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   bool get _isNewMoment => widget.moment == null;
 
-  void requestPermissions() async {
+  void _requestPermissions() async {
     final permissionGroups = [
       PermissionGroup.location,
       PermissionGroup.storage,
       PermissionGroup.phone,
     ];
     Map<PermissionGroup, PermissionStatus> _ =
-        await PermissionHandler().requestPermissions(permissionGroups);
+    await PermissionHandler().requestPermissions(permissionGroups);
   }
 
-  bool needExitConfirm() {
+  bool _needExitConfirm() {
     if (_isReadOnly) {
       return false;
     }
@@ -171,10 +333,10 @@ class _MomentEditState extends State<MomentEdit> {
         onPressed: _isReadOnly
             ? () {}
             : () {
-                setState(() {
-                  _moment.sentiment = source.sentiment;
-                });
-              },
+          setState(() {
+            _moment.sentiment = source.sentiment;
+          });
+        },
         color: _moment.sentiment == source.sentiment
             ? Theme.of(context).accentColor
             : Theme.of(context).disabledColor,
@@ -184,14 +346,14 @@ class _MomentEditState extends State<MomentEdit> {
     return widgets;
   }
 
-  num parseCost(String cost) {
+  num _parseCost(String cost) {
     var value = num.tryParse(cost);
     return value ?? 0.0;
   }
 
   void _updateMomentFromForm() {
     _moment.duration = _moment.durationInMillis();
-    _moment.cost = parseCost(_costController.text);
+    _moment.cost = _parseCost(_costController.text);
     _moment.details = _feelingsController.text;
     if (_moment.action == null) {
       if (_actionNameController.text.isNotEmpty) {
@@ -237,7 +399,9 @@ class _MomentEditState extends State<MomentEdit> {
   }
 
   Future<bool> _onWillPop() async {
-    if (!needExitConfirm()) {
+    _suggestionsBoxController.close();
+
+    if (!_needExitConfirm()) {
       return true;
     }
 
@@ -261,8 +425,8 @@ class _MomentEditState extends State<MomentEdit> {
             },
             location: _moment.location,
             addressController: _locationNameController,
-            enabled: !_isReadOnly,
             focusNode: _locationNameFocusNode,
+            suggestionsBoxController: _suggestionsBoxController,
           ),
         ],
       ),
@@ -314,26 +478,26 @@ class _MomentEditState extends State<MomentEdit> {
         onDeleted: _isReadOnly
             ? null
             : () {
-                setState(() {
-                  _moment.contacts.remove(contact);
-                });
-                FocusScope.of(context).requestFocus(_contactFocusNode);
-              },
+          setState(() {
+            _moment.contacts.remove(contact);
+          });
+          FocusScope.of(context).requestFocus(_contactFocusNode);
+        },
         onPressed: _isReadOnly
             ? () {}
             : () {
-                setState(() {
-                  _moment.contacts.remove(contact);
-                  if (_contactController.text.isNotEmpty) {
-                    var contact = Contact();
-                    contact.name = _contactController.text;
-                    _addContact(contact);
-                  }
-                });
-                FocusScope.of(context).requestFocus(_contactFocusNode);
-                // TODO: Set cursor to the end of text on Android platform.
-                _contactController.text = contact.name;
-              },
+          setState(() {
+            _moment.contacts.remove(contact);
+            if (_contactController.text.isNotEmpty) {
+              var contact = Contact();
+              contact.name = _contactController.text;
+              _addContact(contact);
+            }
+          });
+          FocusScope.of(context).requestFocus(_contactFocusNode);
+          // TODO: Set cursor to the end of text on Android platform.
+          _contactController.text = contact.name;
+        },
       );
     }).toList(growable: true);
     widgets.insert(0, _selfInputChip());
@@ -358,42 +522,41 @@ class _MomentEditState extends State<MomentEdit> {
           _isReadOnly
               ? Container()
               : TypeAheadField(
-                  textFieldConfiguration: TextFieldConfiguration(
-                    autocorrect: false,
-                    controller: _contactController,
-                    focusNode: _contactFocusNode,
-                    decoration: InputDecoration(
-                      hintText: "Enter people, delimited by commas",
-                      border: InputBorder.none,
-                    ),
-                    enabled: !_isReadOnly,
-                    autofocus: !_isReadOnly,
-                  ),
-                  suggestionsBoxDecoration: SuggestionsBoxDecoration(),
-                  suggestionsCallback: (pattern) {
-                    return _momentEditBloc.getContactSuggestions(pattern);
-                  },
-                  itemBuilder: (context, suggestion) {
-                    final Contact contact = suggestion as Contact;
-                    return Padding(
-                      padding: const EdgeInsets.only(
-                          left: 16, top: 8, right: 16, bottom: 8),
-                      child: Text(
-                        contact.name,
-                      ),
-                    );
-                  },
-                  hideOnEmpty: true,
-                  hideOnLoading: true,
-                  getImmediateSuggestions: true,
-                  onSuggestionSelected: (suggestion) {
-                    setState(() {
-                      _contactController.text = '';
-                      _addContact(suggestion as Contact);
-                      FocusScope.of(context).requestFocus(_contactFocusNode);
-                    });
-                  },
+            textFieldConfiguration: TextFieldConfiguration(
+              autocorrect: false,
+              controller: _contactController,
+              focusNode: _contactFocusNode,
+              decoration: InputDecoration(
+                hintText: "Enter people, delimited by commas",
+                border: InputBorder.none,
+              ),
+              autofocus: !_isReadOnly,
+            ),
+            suggestionsBoxDecoration: SuggestionsBoxDecoration(),
+            suggestionsCallback: (pattern) {
+              return _momentEditBloc.getContactSuggestions(pattern);
+            },
+            itemBuilder: (context, suggestion) {
+              final Contact contact = suggestion as Contact;
+              return Padding(
+                padding: const EdgeInsets.only(
+                    left: 16, top: 8, right: 16, bottom: 8),
+                child: Text(
+                  contact.name,
                 ),
+              );
+            },
+            hideOnEmpty: true,
+            hideOnLoading: true,
+            getImmediateSuggestions: true,
+            onSuggestionSelected: (suggestion) {
+              setState(() {
+                _contactController.text = '';
+                _addContact(suggestion as Contact);
+                FocusScope.of(context).requestFocus(_contactFocusNode);
+              });
+            },
+          ),
         ],
       ),
     );
@@ -420,7 +583,6 @@ class _MomentEditState extends State<MomentEdit> {
             return null;
           }
         },
-        enabled: !_isReadOnly,
       ),
     );
   }
@@ -464,7 +626,6 @@ class _MomentEditState extends State<MomentEdit> {
         hintText: 'Say something ...',
         maxLines: 4,
         controller: _feelingsController,
-        enabled: !_isReadOnly,
       ),
     );
   }
@@ -511,12 +672,15 @@ class _MomentEditState extends State<MomentEdit> {
   }
 
   Widget _createEditAction() {
+    print('_createEditAction');
     if (_isReadOnly) {
       return IconButton(
         icon: Icon(Icons.edit),
         onPressed: () {
+          print('Edit momment');
           setState(() {
             _isReadOnly = false;
+            _title = 'Edit Moment';
           });
           // FocusScope.of(context).requestFocus(_actionNameFocusNode);
           FocusScope.of(context).requestFocus(_locationNameFocusNode);
@@ -535,17 +699,6 @@ class _MomentEditState extends State<MomentEdit> {
     }
   }
 
-  String _getTitle() {
-    if (widget.moment != null) {
-      return widget.moment.action.name;
-    }
-    if (widget.todo != null) {
-      return widget.todo.goalAction.action.name;
-      // return 'Done to-do ${widget.todo.goalAction.action.name}';
-    }
-    return 'Moment';
-  }
-
   Widget _createEditHint() {
     return Text(
       'Mark to-do ${widget.todo.goalAction.action.name} as done',
@@ -555,147 +708,7 @@ class _MomentEditState extends State<MomentEdit> {
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        centerTitle: true,
-        title: Text(_getTitle()),
-        actions: <Widget>[
-          _createEditAction(),
-          _isNewMoment
-              ? Container()
-              : PopupMenuButton<String>(
-                  icon: Icon(Icons.more_vert),
-                  onSelected: (value) {
-                    if (value == 'delete') {
-                      _deleteMoment();
-                      Navigator.of(context).pop(true);
-                    }
-                  },
-                  itemBuilder: (context) {
-                    return [
-                      PopupMenuItem<String>(
-                        value: 'delete',
-                        child: Text('Delete'),
-                      ),
-                    ];
-                  },
-                ),
-        ],
-      ),
-      body: SafeArea(
-        top: false,
-        bottom: false,
-        child: Form(
-          key: _formKey,
-          onWillPop: _onWillPop,
-          child: ListView(
-            padding: const EdgeInsets.symmetric(vertical: 16,),
-            children: <Widget>[
-              widget.todo != null
-                  ? Align(
-                      alignment: Alignment.topCenter,
-                      child: _createEditHint(),
-                    )
-                  : Container(),
-              widget.moment == null && widget.todo == null
-                  ? Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: <Widget>[
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 16),
-                          child: _createActionNameFormField(),
-                        ),
-                        Divider(),
-                      ],
-                    )
-                  : Container(),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: _createLocationField(),
-              ),
-              Divider(),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: _createPeopleFormField(),
-              ),
-              Divider(),
-              SizedBox(height: 8),
-              Padding(
-                padding: EdgeInsets.symmetric(horizontal: 16),
-                child: FormField(
-                  builder: (fieldState) {
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: <Widget>[
-                        DateTimePickerFormField(
-                          labelText: AppLocalizations.of(context).begin,
-                          initialDateTime: DateTime.fromMillisecondsSinceEpoch(
-                              _moment.beginTime),
-                          selectDateTime: (value) {
-                            _moment.beginTime = value.millisecondsSinceEpoch;
-                            fieldState.didChange(null);
-                          },
-                          enabled: !_isReadOnly,
-                        ),
-                        DateTimePickerFormField(
-                          labelText: AppLocalizations.of(context).end,
-                          initialDateTime: DateTime.fromMillisecondsSinceEpoch(
-                              _moment.endTime),
-                          selectDateTime: (value) {
-                            _moment.endTime = value.millisecondsSinceEpoch;
-                            fieldState.didChange(null);
-                          },
-                          enabled: !_isReadOnly,
-                        ),
-                        FormFieldError(
-                          errorText: fieldState.errorText,
-                        ),
-                      ],
-                    );
-                  },
-                  autovalidate: true,
-                  validator: (value) {
-                    // If to-do is not null, we need to limit time to today.
-                    var now = DateTime.now();
-                    if (widget.todo != null) {
-                      var t = DateTime.fromMillisecondsSinceEpoch(
-                          _moment.beginTime);
-                      if (t.isBefore(DateTime(now.year, now.month, now.day))) {
-                        return "任务完成时间必须是今天";
-                      }
-                    }
-                    if (_moment.endTime > now.millisecondsSinceEpoch) {
-                      return '结束时间不能在将来';
-                    }
-                    if (_moment.beginTime > _moment.endTime) {
-                      return '开始时间必须早于结束时间';
-                    }
-                    return null;
-                  },
-                ),
-              ),
-              SizedBox(height: 8),
-              Divider(),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: _createExpendFormField(),
-              ),
-              Divider(),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: _createSentimentFormField(),
-              ),
-              Divider(),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: _createFeelingsFormField(),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
+  Color _captionColor() {
+    return Theme.of(context).textTheme.caption.color;
   }
 }

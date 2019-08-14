@@ -12,7 +12,6 @@ import 'package:data_life/views/goal_edit.dart';
 
 import 'package:data_life/utils/time_util.dart';
 
-
 class _GoalListItem extends StatelessWidget {
   final Goal goal;
 
@@ -25,7 +24,8 @@ class _GoalListItem extends StatelessWidget {
         alignment: Alignment.centerLeft,
         height: 48.0,
         child: Padding(
-          padding: const EdgeInsets.only(left: 16.0, top: 8.0, right: 16, bottom: 8.0),
+          padding: const EdgeInsets.only(
+              left: 16.0, top: 8.0, right: 16, bottom: 8.0),
           child: Text('Loading ...'),
         ),
       );
@@ -40,20 +40,28 @@ class _GoalListItem extends StatelessWidget {
               ));
         },
         child: Padding(
-          padding: const EdgeInsets.only(left: 16.0, top: 8.0, right: 16, bottom: 8.0),
+          padding: const EdgeInsets.only(
+              left: 16.0, top: 8.0, right: 16, bottom: 8.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
               Text(
                 goal.name,
-                style:
-                    Theme.of(context).textTheme.title,
+                style: Theme.of(context).textTheme.title,
+              ),
+              SizedBox(height: 4),
+              Text(
+                '${TypeToStr.goalStatusToStr(goal.status, context)}',
+                style: Theme.of(context).textTheme.subtitle.copyWith(
+                      color: goal.status == GoalStatus.ongoing ||
+                              goal.status == GoalStatus.finished
+                          ? Theme.of(context).primaryColor
+                          : Theme.of(context).accentColor,
+                    ),
               ),
               SizedBox(height: 8),
-              Text('状态: ${TypeToStr.goalStatusToStr(goal.status, context)}'),
               _createLastActiveTimeWidget(context),
-              SizedBox(height: 8),
               _createTotalTimeTakenWidget(context),
             ],
           ),
@@ -72,14 +80,13 @@ class _GoalListItem extends StatelessWidget {
           TimeUtil.timeStringFromMillis(goal.lastActiveTime, context);
     }
     return Text(
-      '最近活跃: $s',
+      '最后活跃: $s',
     );
   }
 
   Widget _createTotalTimeTakenWidget(BuildContext context) {
     return Text(
       "总共用时: ${TimeUtil.formatMillisToDHM(goal.totalTimeTaken, context)}",
-      style: Theme.of(context).textTheme.caption,
     );
   }
 }
@@ -125,9 +132,7 @@ class _GoalListState extends State<GoalList>
         bloc: _goalListBloc,
         builder: (context, state) {
           if (state is PageUninitialized) {
-            return Center(
-              child: Text('No results'),
-            );
+            return _createEmptyResults();
           }
           if (state is PageLoading) {
             return Center(
@@ -136,6 +141,9 @@ class _GoalListState extends State<GoalList>
           }
           if (state is PageLoaded<Goal>) {
             PageList pagedList = state.pageList;
+            if (pagedList.total == 0) {
+              return _createEmptyResults();
+            }
             return ListView.separated(
               key: PageStorageKey<String>(widget.name),
               separatorBuilder: (context, index) {
@@ -160,6 +168,14 @@ class _GoalListState extends State<GoalList>
           }
           return null;
         },
+      ),
+    );
+  }
+
+  Widget _createEmptyResults() {
+    return Center(
+      child: Text('No goals',
+        style: Theme.of(context).textTheme.display2,
       ),
     );
   }
