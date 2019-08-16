@@ -6,6 +6,7 @@ const maxInt = 0x7FFFFFFF;
 
 const String SP_KEY_lastTimeCreateTodayTodo = 'lastTimeCreateTodayTodo';
 const String SP_KEY_lastTimeUpdateGoalStatus = 'lastTimeUpdateGoalStatus';
+const String SP_KEY_authToken = 'authToken';
 
 List<DurationType> defaultDurationList = [
   DurationType.oneDay,

@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 
+import 'package:flutter_bloc/flutter_bloc.dart';
+
+import 'package:data_life/blocs/timer_bloc.dart';
+
 enum _LoginMode {
   password,
   sms,
@@ -22,10 +26,13 @@ class _LoginPageState extends State<LoginPage> {
   TextEditingController _usernameController = TextEditingController();
   TextEditingController _passwordController = TextEditingController();
   TextEditingController _smsCodeController = TextEditingController();
+  TimerBloc _timerBloc;
 
   @override
   void initState() {
     super.initState();
+
+    _timerBloc = BlocProvider.of<TimerBloc>(context);
 
     _phoneNumberController.addListener(() {
       setState(() {
@@ -47,6 +54,13 @@ class _LoginPageState extends State<LoginPage> {
         _smsCode = _smsCodeController.text;
       });
     });
+  }
+
+  @override
+  void dispose() {
+    _timerBloc.dispatch(Reset());
+
+    super.dispose();
   }
 
   @override
@@ -124,13 +138,37 @@ class _LoginPageState extends State<LoginPage> {
                   controller: _smsCodeController,
                 ),
               ),
-              RaisedButton(
-                elevation: 0,
-                color: Theme.of(context).primaryColor,
-                child: Text('获取验证码',
-                  style: TextStyle(color: Colors.white),
-                ),
-                onPressed: _phoneNumber.isEmpty ? null : () {},
+              BlocBuilder(
+                bloc: _timerBloc,
+                builder: (context, state) {
+                  String text = '获取验证码';
+                  bool _enableTap = true;
+                  if (state is Running) {
+                    final String secondsStr = (state.duration % 60)
+                        .floor()
+                        .toString()
+                        .padLeft(2, '0');
+                    text = '$secondsStr 秒后重发';
+                    _enableTap = false;
+                  }
+                  if (state is Finished) {
+                    _enableTap = true;
+                  }
+                  return RaisedButton(
+                    elevation: 0,
+                    color: Theme.of(context).primaryColor,
+                    child: Text(
+                      text,
+                      style: TextStyle(color: Colors.white),
+                    ),
+                    onPressed: _phoneNumber.isEmpty || !_enableTap
+                        ? null
+                        : () {
+                            _timerBloc.dispatch(Start(duration: 8));
+                            _enableTap = false;
+                          },
+                  );
+                },
               )
             ],
           ),
@@ -142,7 +180,8 @@ class _LoginPageState extends State<LoginPage> {
               '下一步',
               style: TextStyle(color: Colors.white),
             ),
-            onPressed: !_validSmsLoginData() ? null : () {},
+            onPressed: !_validSmsLoginData() ? null : () {
+            },
           ),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,

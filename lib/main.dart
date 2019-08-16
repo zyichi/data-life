@@ -27,6 +27,7 @@ import 'package:data_life/blocs/db_bloc.dart';
 import 'package:data_life/blocs/todo_bloc.dart';
 import 'package:data_life/blocs/theme_bloc.dart';
 import 'package:data_life/blocs/action_bloc.dart';
+import 'package:data_life/blocs/timer_bloc.dart';
 
 import 'package:data_life/paging/page_bloc.dart';
 
@@ -74,6 +75,7 @@ class _MyAppState extends State<MyApp> {
   GoalBloc _goalBloc;
   TodoBloc _todoBloc;
   ActionBloc _actionBloc;
+  TimerBloc _timerBloc;
 
   @override
   void initState() {
@@ -118,6 +120,8 @@ class _MyAppState extends State<MyApp> {
       goalRepository: _goalRepository,
     );
 
+    _timerBloc = TimerBloc(ticker: Ticker());
+
     _dbBloc.dispatch(OpenDb());
   }
 
@@ -133,6 +137,7 @@ class _MyAppState extends State<MyApp> {
         BlocProvider<ContactBloc>(builder: (BuildContext context) => _contactBloc),
         BlocProvider<LocationBloc>(builder: (BuildContext context) => _locationBloc),
         BlocProvider<ActionBloc>(builder: (BuildContext context) => _actionBloc),
+        BlocProvider<TimerBloc>(builder: (BuildContext context) => _timerBloc),
         BlocProvider<PageBloc<Moment>>(builder: (BuildContext context) => _momentListBloc),
         BlocProvider<PageBloc<Goal>>(builder: (BuildContext context) => _goalListBloc),
         BlocProvider<PageBloc<Todo>>(builder: (BuildContext context) => _todoListBloc),

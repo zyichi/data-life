@@ -10,7 +10,7 @@ class TodoProvider {
 
   Future<int> count() async {
     return Sqflite.firstIntValue(
-        await LifeDb.db.rawQuery('select count(*) from ${TodoTable.name} where ${TodoTable.columnStatus} != ${TodoStatus.dismiss.index}'));
+        await LifeDb.db.rawQuery('select count(*) from ${TodoTable.name}'));
   }
 
   Future<int> getWaitingTodoCount() async {
@@ -22,10 +22,8 @@ class TodoProvider {
     List<Map> maps = await LifeDb.db.query(
       TodoTable.name,
       columns: [],
-      where: "${TodoTable.columnStatus} != ?",
-      whereArgs: [TodoStatus.dismiss.index],
       orderBy:
-          '${TodoTable.columnStartTime} asc, ${TodoTable.columnStatus} asc',
+          '${TodoTable.columnStatus} asc, ${TodoTable.columnStartTime} asc',
       limit: count,
       offset: startIndex,
     );

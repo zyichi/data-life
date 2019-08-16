@@ -701,7 +701,7 @@ class _MomentEditState extends State<MomentEdit> {
 
   Widget _createEditHint() {
     return Text(
-      'Mark to-do ${widget.todo.goalAction.action.name} as done',
+      '标记任务 ${widget.todo.goalAction.action.name} 为已完成',
       style: TextStyle(
         color: Theme.of(context).primaryColorDark,
       ),

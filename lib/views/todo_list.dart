@@ -13,6 +13,7 @@ import 'package:data_life/views/moment_edit.dart';
 
 import 'package:data_life/models/todo.dart';
 
+
 class _TodoListItem extends StatelessWidget {
   final Todo todo;
   final TodoBloc todoBloc;
@@ -20,6 +21,77 @@ class _TodoListItem extends StatelessWidget {
   _TodoListItem({this.todo, this.todoBloc})
       : assert(todo != null),
         assert(todoBloc != null);
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.only(left: 16, top: 8, right: 16, bottom: 8),
+      child: _createItem(context),
+    );
+  }
+
+  Widget _createStatusWidget(BuildContext context) {
+    if (todo.status == TodoStatus.waiting) {
+      return FlatButton(
+        child: Text(
+          '标记为已完成'.toUpperCase(),
+          style: Theme
+              .of(context)
+              .textTheme
+              .button
+              .copyWith(
+              color: Theme
+                  .of(context)
+                  .primaryColorDark),
+        ),
+        padding: EdgeInsets.symmetric(horizontal: 8),
+        onPressed: () {
+          Navigator.push(
+            context,
+            PageTransition(
+              child: MomentEdit(
+                moment: null,
+                todo: todo,
+              ),
+              type: PageTransitionType.rightToLeft,
+            ),
+          );
+        },
+      );
+    }
+    if (todo.status == TodoStatus.done) {
+      return Padding(
+        padding: const EdgeInsets.all(8),
+        child: Text(
+          '${DateFormat(DateFormat.HOUR_MINUTE).format(
+              DateTime.fromMillisecondsSinceEpoch(todo.doneTime))} 完成',
+          style: Theme
+              .of(context)
+              .textTheme
+              .button
+              .copyWith(color: Theme
+              .of(context)
+              .primaryColor),
+        ),
+      );
+    }
+    if (todo.status == TodoStatus.dismiss) {
+      return Padding(
+        padding: const EdgeInsets.all(8),
+        child: Text(
+          '已放弃',
+          style: Theme
+              .of(context)
+              .textTheme
+              .button
+              .copyWith(color: Theme
+              .of(context)
+              .accentColor),
+        ),
+      );
+    }
+    return null;
+  }
 
   Widget _createItem(BuildContext context) {
     if (todo == null) {
@@ -49,7 +121,7 @@ class _TodoListItem extends StatelessWidget {
                       children: <Widget>[
                         Expanded(
                           child: Text(
-                            todo.goal.name ?? '',
+                            todo.goalAction.action.name,
                             style: Theme.of(context).textTheme.title,
                             overflow: TextOverflow.ellipsis,
                             softWrap: false,
@@ -58,55 +130,25 @@ class _TodoListItem extends StatelessWidget {
                         ),
                         todo.status == TodoStatus.waiting
                             ? IconButton(
-                                icon: Icon(
-                                  Icons.clear,
-                                  size: 24,
-                                ),
-                                onPressed: () {
-                                  todoBloc.dispatch(DismissTodo(todo: todo));
-                                },
-                              )
+                          icon: Icon(
+                            Icons.clear,
+                            size: 24,
+                          ),
+                          onPressed: () {
+                            todoBloc.dispatch(DismissTodo(todo: todo));
+                          },
+                        )
                             : Container(height: 40),
                       ],
                     ),
                     Text(
-                      '${todo.goalAction.action.name} at ${DateFormat(DateFormat.HOUR_MINUTE).format(DateTime.fromMillisecondsSinceEpoch(todo.startTime))}',
+                      '${DateFormat(DateFormat.HOUR_MINUTE).format(DateTime.fromMillisecondsSinceEpoch(todo.startTime))} 开始, 目标: ${todo.goal.name}',
                       style: Theme.of(context).textTheme.body1,
                     ),
                   ],
                 ),
               ),
-              todo.status == TodoStatus.waiting
-                  ? FlatButton(
-                      child: Text(
-                        'Mark as done'.toUpperCase(),
-                        style: Theme.of(context).textTheme.button.copyWith(
-                            color: Theme.of(context).primaryColorDark),
-                      ),
-                      padding: EdgeInsets.symmetric(horizontal: 8),
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          PageTransition(
-                            child: MomentEdit(
-                              moment: null,
-                              todo: todo,
-                            ),
-                            type: PageTransitionType.rightToLeft,
-                          ),
-                        );
-                      },
-                    )
-                  : Padding(
-                      padding: const EdgeInsets.all(8),
-                      child: Text(
-                        'Done on ${DateFormat(DateFormat.HOUR_MINUTE).format(DateTime.fromMillisecondsSinceEpoch(todo.doneTime))}',
-                        style: Theme.of(context)
-                            .textTheme
-                            .button
-                            .copyWith(color: Theme.of(context).primaryColor),
-                      ),
-                    ),
+              _createStatusWidget(context),
             ],
           ),
         ),
@@ -114,13 +156,6 @@ class _TodoListItem extends StatelessWidget {
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.only(left: 16, top: 8, right: 16, bottom: 8),
-      child: _createItem(context),
-    );
-  }
 }
 
 class TodoList extends StatefulWidget {

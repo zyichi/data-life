@@ -39,32 +39,46 @@ class _GoalListItem extends StatelessWidget {
                 type: PageTransitionType.rightToLeft,
               ));
         },
-        child: Padding(
-          padding: const EdgeInsets.only(
-              left: 16.0, top: 8.0, right: 16, bottom: 8.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
-              Text(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            Padding(
+              padding: const EdgeInsets.only(left: 16, top: 16, right: 16, bottom: 8),
+              child: Text(
                 goal.name,
                 style: Theme.of(context).textTheme.title,
               ),
-              SizedBox(height: 4),
-              Text(
-                '${TypeToStr.goalStatusToStr(goal.status, context)}',
-                style: Theme.of(context).textTheme.subtitle.copyWith(
-                      color: goal.status == GoalStatus.ongoing ||
+            ),
+            Divider(),
+            Padding(
+              padding: const EdgeInsets.only(left: 16, top: 0, right: 16, bottom: 16),
+              child: Column(
+                children: <Widget>[
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: <Widget>[
+                      Text('状态'),
+                      Text(
+                        '${TypeToStr.goalStatusToStr(goal.status, context)}',
+                        style: Theme.of(context).textTheme.subtitle.copyWith(
+                          color: goal.status == GoalStatus.ongoing ||
                               goal.status == GoalStatus.finished
-                          ? Theme.of(context).primaryColor
-                          : Theme.of(context).accentColor,
-                    ),
+                              ? Theme.of(context).primaryColor
+                              : Theme.of(context).accentColor,
+                        ),
+                      ),
+                    ],
+                  ),
+                  Divider(),
+                  _createLastActiveTimeWidget(context),
+                  Divider(),
+                  _createTotalTimeTakenWidget(context),
+                  Divider(),
+                ],
               ),
-              SizedBox(height: 8),
-              _createLastActiveTimeWidget(context),
-              _createTotalTimeTakenWidget(context),
-            ],
-          ),
+            ),
+          ],
         ),
       );
     }
@@ -79,14 +93,32 @@ class _GoalListItem extends StatelessWidget {
           ' ' +
           TimeUtil.timeStringFromMillis(goal.lastActiveTime, context);
     }
-    return Text(
-      '最后活跃: $s',
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: <Widget>[
+        Text(
+          '最后活跃',
+        ),
+        Text(
+          s,
+          style: Theme.of(context).textTheme.caption.copyWith(fontSize: 14),
+        ),
+      ],
     );
   }
 
   Widget _createTotalTimeTakenWidget(BuildContext context) {
-    return Text(
-      "总共用时: ${TimeUtil.formatMillisToDHM(goal.totalTimeTaken, context)}",
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: <Widget>[
+        Text(
+          "总共用时",
+        ),
+        Text(
+          TimeUtil.formatMillisToDHM(goal.totalTimeTaken, context),
+          style: Theme.of(context).textTheme.caption.copyWith(fontSize: 14),
+        ),
+      ],
     );
   }
 }
@@ -144,7 +176,11 @@ class _GoalListState extends State<GoalList>
             return ListView.separated(
               key: PageStorageKey<String>(widget.name),
               separatorBuilder: (context, index) {
-                return Divider();
+                return Container(
+                  height: 8,
+                  width: double.infinity,
+                  color: Colors.grey[300],
+                );
               },
               itemCount: pagedList.total,
               itemBuilder: (context, index) {
@@ -171,7 +207,8 @@ class _GoalListState extends State<GoalList>
 
   Widget _createEmptyResults() {
     return Center(
-      child: Text('No goals',
+      child: Text(
+        'No goals',
         style: Theme.of(context).textTheme.display2,
       ),
     );
