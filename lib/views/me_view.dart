@@ -59,15 +59,15 @@ class _MeViewState extends State<MeView> {
 
   Widget _createSeparator() {
     return Container(
-      color: Colors.grey[300],
+      color: Colors.grey[200],
       width: double.infinity,
-      height: 8,
+      height: 16,
     );
   }
 
   Widget _createGoalStats() {
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: <Widget>[
         Padding(
           padding:
@@ -101,7 +101,10 @@ class _MeViewState extends State<MeView> {
           ),
           onTap: () {},
         ),
-        Divider(),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Divider(),
+        ),
         InkWell(
           child: Padding(
             padding:
@@ -131,7 +134,7 @@ class _MeViewState extends State<MeView> {
 
   Widget _createContactStats() {
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: <Widget>[
         Padding(
           padding:
@@ -173,7 +176,10 @@ class _MeViewState extends State<MeView> {
           ),
           onTap: () {},
         ),
-        Divider(),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Divider(),
+        ),
         InkWell(
           child: Padding(
             padding:
@@ -196,7 +202,10 @@ class _MeViewState extends State<MeView> {
           ),
           onTap: () {},
         ),
-        Divider(),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Divider(),
+        ),
         InkWell(
           child: Padding(
             padding:
@@ -219,7 +228,10 @@ class _MeViewState extends State<MeView> {
           ),
           onTap: () {},
         ),
-        Divider(),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Divider(),
+        ),
         InkWell(
           child: Padding(
             padding:
@@ -242,16 +254,20 @@ class _MeViewState extends State<MeView> {
           ),
           onTap: () {},
         ),
-        Divider(),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Divider(),
+        ),
         InkWell(
           child: Padding(
-            padding: const EdgeInsets.only(left: 16, top: 8, right: 16, bottom: 16),
+            padding: const EdgeInsets.only(left: 16, top: 8, right: 16, bottom: 8),
             child: Text('更多人...',
               style: TextStyle(color: Theme.of(context).textTheme.caption.color),
             ),
           ),
           onTap: () {},
-        )
+        ),
+        SizedBox(height: 8),
       ],
     );
   }
@@ -300,7 +316,10 @@ class _MeViewState extends State<MeView> {
           ),
           onTap: () {},
         ),
-        Divider(),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Divider(),
+        ),
         InkWell(
           child: Padding(
             padding:
@@ -323,7 +342,10 @@ class _MeViewState extends State<MeView> {
           ),
           onTap: () {},
         ),
-        Divider(),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Divider(),
+        ),
         InkWell(
           child: Padding(
             padding:
@@ -346,7 +368,10 @@ class _MeViewState extends State<MeView> {
           ),
           onTap: () {},
         ),
-        Divider(),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Divider(),
+        ),
         InkWell(
           child: Padding(
             padding:
@@ -369,16 +394,20 @@ class _MeViewState extends State<MeView> {
           ),
           onTap: () {},
         ),
-        Divider(),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Divider(),
+        ),
         InkWell(
           child: Padding(
-            padding: const EdgeInsets.only(left: 16, top: 8, right: 16, bottom: 16),
+            padding: const EdgeInsets.only(left: 16, top: 8, right: 16, bottom: 8),
             child: Text('更多地点...',
               style: TextStyle(color: Theme.of(context).textTheme.caption.color),
             ),
           ),
           onTap: () {},
-        )
+        ),
+        SizedBox(height: 8),
       ],
     );
   }

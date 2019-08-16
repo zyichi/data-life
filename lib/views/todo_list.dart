@@ -256,7 +256,7 @@ class _TodoListState extends State<TodoList>
 
   Widget _createEmptyResults() {
     return Center(
-      child: Text('No tasks',
+      child: Text('今天无任务',
         style: Theme.of(context).textTheme.display2,
       ),
     );
