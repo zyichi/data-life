@@ -60,13 +60,13 @@ class _MomentEditState extends State<MomentEdit> {
 
   final _suggestionsBoxController = SuggestionsBoxController();
 
-  MomentBloc _momentEditBloc;
+  MomentBloc _momentBloc;
 
   @override
   void initState() {
     super.initState();
 
-    _momentEditBloc = BlocProvider.of<MomentBloc>(context);
+    _momentBloc = BlocProvider.of<MomentBloc>(context);
 
     if (widget.moment != null) {
       print('Moment read only');
@@ -119,35 +119,6 @@ class _MomentEditState extends State<MomentEdit> {
         title: Text(_title),
         actions: <Widget>[
           _createEditAction(),
-          _isNewMoment
-              ? Container()
-              : PopupMenuButton<String>(
-                  icon: Icon(Icons.more_vert),
-                  onSelected: (value) {
-                    if (value == 'delete') {
-                      _deleteMoment();
-                      Navigator.of(context).pop(true);
-                    }
-                  },
-                  itemBuilder: (context) {
-                    return [
-                      PopupMenuItem<String>(
-                        value: 'delete',
-                        child: Row(
-                          children: <Widget>[
-                            Icon(Icons.delete,
-                              color: _captionColor(),
-                            ),
-                            SizedBox(width: 16,),
-                            Text('Delete',
-                              style: TextStyle(color: _captionColor()),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ];
-                  },
-                ),
         ],
       ),
       body: SafeArea(
@@ -379,7 +350,7 @@ class _MomentEditState extends State<MomentEdit> {
   void _editMoment() {
     _updateMomentFromForm();
     if (_isNewMoment) {
-      _momentEditBloc.dispatch(
+      _momentBloc.dispatch(
         AddMoment(moment: _moment, todo: widget.todo),
       );
     } else {
@@ -387,15 +358,11 @@ class _MomentEditState extends State<MomentEdit> {
         print('Moment content is same, no need to save');
         return;
       }
-      _momentEditBloc.dispatch(UpdateMoment(
+      _momentBloc.dispatch(UpdateMoment(
         oldMoment: widget.moment,
         newMoment: _moment,
       ));
     }
-  }
-
-  void _deleteMoment() {
-    _momentEditBloc.dispatch(DeleteMoment(moment: widget.moment));
   }
 
   Future<bool> _onWillPop() async {
@@ -534,7 +501,7 @@ class _MomentEditState extends State<MomentEdit> {
             ),
             suggestionsBoxDecoration: SuggestionsBoxDecoration(),
             suggestionsCallback: (pattern) {
-              return _momentEditBloc.getContactSuggestions(pattern);
+              return _momentBloc.getContactSuggestions(pattern);
             },
             itemBuilder: (context, suggestion) {
               final Contact contact = suggestion as Contact;
@@ -660,7 +627,7 @@ class _MomentEditState extends State<MomentEdit> {
         );
       },
       suggestionsCallback: (pattern) {
-        return _momentEditBloc.getActionSuggestions(pattern);
+        return _momentBloc.getActionSuggestions(pattern);
       },
       validator: (value) {
         if (value.isEmpty) {
