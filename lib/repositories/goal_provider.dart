@@ -316,7 +316,10 @@ class GoalProvider {
   Future<int> setStatus(int id, int statusIndex) async {
     return LifeDb.db.update(
       GoalTable.name,
-      {'status': statusIndex},
+      {
+        'status': statusIndex,
+        'updateTime': DateTime.now().millisecondsSinceEpoch,
+      },
       where: '${GoalTable.columnId} = ?',
       whereArgs: [id],
     );

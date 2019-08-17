@@ -214,9 +214,6 @@ class TodoBloc extends Bloc<TodoEvent, TodoState> {
             }
           }
         }
-        if (!_isCreateTodoForGoal(newGoal, now)) {
-          return;
-        }
         await _updateTodoFromGoal(newGoal, now, todayDate, tomorrowDate,
             deletedList, addedList, updatedList);
         await _updateWaitingTodoCount();
@@ -250,36 +247,44 @@ class TodoBloc extends Bloc<TodoEvent, TodoState> {
     for (var goalAction in goal.goalActions) {
       Todo dbTodo = await todoRepository.getViaUniqueIndexId(
           goal.id, goalAction.id, true);
-      if (isTodoGoalActionToday(goalAction, now)) {
-        if (dbTodo != null) {
-          if (dbTodo.status != TodoStatus.dismiss) {
-            updatedList.add(dbTodo);
-            _updateTodoStatus(dbTodo, goalAction, now);
-            await todoRepository.save(dbTodo);
-          }
-        } else {
-          Todo todo = _newTodo(goalAction, now);
-          addedList.add(todo);
-          await todoRepository.save(todo);
-        }
-      } else {
+      if (goal.status == GoalStatus.finished ||
+          goal.status == GoalStatus.expired) {
         if (dbTodo != null) {
           deletedList.add(dbTodo);
           await todoRepository.delete(dbTodo.id);
         }
+      } else if (goal.status == GoalStatus.paused) {
+        if (dbTodo != null) {
+          updatedList.add(dbTodo);
+          dbTodo.status = TodoStatus.dismiss;
+          await todoRepository.dismissTodo(dbTodo.id);
+        }
+      } else if (goal.status == GoalStatus.ongoing) {
+        if (isTodoGoalActionToday(goalAction, now)) {
+          if (dbTodo != null) {
+            updatedList.add(dbTodo);
+            if (_isToday(
+                goalAction.lastActiveTime,
+                TimeUtil.todayStart(now).millisecondsSinceEpoch,
+                TimeUtil.tomorrowStart(now).millisecondsSinceEpoch)) {
+              dbTodo.status = TodoStatus.done;
+              dbTodo.doneTime = goalAction.lastActiveTime;
+            } else {
+              dbTodo.status = TodoStatus.waiting;
+            }
+            await todoRepository.save(dbTodo);
+          } else {
+            Todo todo = _newTodo(goalAction, now);
+            addedList.add(todo);
+            await todoRepository.save(todo);
+          }
+        } else {
+          if (dbTodo != null) {
+            deletedList.add(dbTodo);
+            await todoRepository.delete(dbTodo.id);
+          }
+        }
       }
-    }
-  }
-
-  void _updateTodoStatus(Todo todo, GoalAction goalAction, DateTime now) {
-    if (_isToday(
-        goalAction.lastActiveTime,
-        TimeUtil.todayStart(now).millisecondsSinceEpoch,
-        TimeUtil.tomorrowStart(now).millisecondsSinceEpoch)) {
-      todo.status = TodoStatus.done;
-      todo.doneTime = goalAction.lastActiveTime;
-    } else {
-      todo.status = TodoStatus.waiting;
     }
   }
 

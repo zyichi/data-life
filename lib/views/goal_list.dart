@@ -39,7 +39,7 @@ class __GoalListItemState extends State<_GoalListItem> {
       );
     } else {
       return Padding(
-        padding: const EdgeInsets.all(8.0),
+        padding: const EdgeInsets.only(left: 16, top: 8, right: 16, bottom: 8),
         child: Material(
           elevation: 2,
           borderRadius: BorderRadius.circular(8),
@@ -67,37 +67,45 @@ class __GoalListItemState extends State<_GoalListItem> {
                         widget.goal.name,
                         style: Theme.of(context).textTheme.title,
                       ),
-                      PopupMenuButton<String>(
-                        icon: Icon(
-                          Icons.more_vert,
-                          color: _captionColor(context),
-                        ),
-                        onSelected: (value) {
-                          if (value == 'pause') {
-                            _pauseGoal();
-                          }
-                          if (value == 'resume') {
-                            _resumeGoal();
-                          }
-                          if (value == 'finish') {
-                            _finishGoal();
-                          }
-                        },
-                        itemBuilder: (context) {
-                          return [
-                            PopupMenuItem<String>(
-                              value: widget.goal.status == GoalStatus.paused
-                                  ? 'resume'
-                                  : 'pause',
-                              child: _createPauseResumeMenuItem(context),
+                      widget.goal.status == GoalStatus.finished
+                          ? IconButton(
+                              icon: Icon(Icons.more_vert,
+                                color: Colors.transparent,
+                              ),
+                              onPressed: null,
+                            )
+                          : PopupMenuButton<String>(
+                              icon: Icon(
+                                Icons.more_vert,
+                                color: _captionColor(context),
+                              ),
+                              onSelected: (value) {
+                                if (value == 'pause') {
+                                  _pauseGoal();
+                                }
+                                if (value == 'resume') {
+                                  _resumeGoal();
+                                }
+                                if (value == 'finish') {
+                                  _finishGoal();
+                                }
+                              },
+                              itemBuilder: (context) {
+                                return [
+                                  PopupMenuItem<String>(
+                                    value:
+                                        widget.goal.status == GoalStatus.paused
+                                            ? 'resume'
+                                            : 'pause',
+                                    child: _createPauseResumeMenuItem(context),
+                                  ),
+                                  PopupMenuItem<String>(
+                                    value: 'finish',
+                                    child: _createFinishMenuItem(context),
+                                  ),
+                                ];
+                              },
                             ),
-                            PopupMenuItem<String>(
-                              value: 'finish',
-                              child: _createFinishMenuItem(context),
-                            ),
-                          ];
-                        },
-                      ),
                     ],
                   ),
                 ),
@@ -143,18 +151,22 @@ class __GoalListItemState extends State<_GoalListItem> {
 
   Widget _createLastActiveTimeWidget(BuildContext context) {
     String s;
-    if (widget.goal.lastActiveTime == 0 || widget.goal.lastActiveTime == null) {
+    // TODO: Add Goal.doneTime for GoalStatus.finished
+    int t = widget.goal.status == GoalStatus.finished
+        ? widget.goal.updateTime
+        : widget.goal.lastActiveTime;
+    if (t == 0 || t == null) {
       s = '无';
     } else {
-      s = TimeUtil.dateStringFromMillis(widget.goal.lastActiveTime) +
+      s = TimeUtil.dateStringFromMillis(t) +
           ' ' +
-          TimeUtil.timeStringFromMillis(widget.goal.lastActiveTime, context);
+          TimeUtil.timeStringFromMillis(t, context);
     }
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: <Widget>[
         Text(
-          '最后活跃',
+          widget.goal.status == GoalStatus.finished ? '完成时间' : '最后活跃',
         ),
         Text(
           s,
@@ -240,6 +252,7 @@ class __GoalListItemState extends State<_GoalListItem> {
 
   void _pauseGoal() {
     setState(() {
+      widget.goal.updateTime = DateTime.now().millisecondsSinceEpoch;
       widget.goal.status = GoalStatus.paused;
     });
     widget.goalBloc.dispatch(PauseGoal(
@@ -249,6 +262,7 @@ class __GoalListItemState extends State<_GoalListItem> {
 
   void _resumeGoal() {
     setState(() {
+      widget.goal.updateTime = DateTime.now().millisecondsSinceEpoch;
       widget.goal.status = GoalStatus.ongoing;
     });
     widget.goalBloc.dispatch(ResumeGoal(
@@ -258,6 +272,7 @@ class __GoalListItemState extends State<_GoalListItem> {
 
   void _finishGoal() {
     setState(() {
+      widget.goal.updateTime = DateTime.now().millisecondsSinceEpoch;
       widget.goal.status = GoalStatus.finished;
     });
     widget.goalBloc.dispatch(FinishGoal(
