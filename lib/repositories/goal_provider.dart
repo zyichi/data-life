@@ -25,7 +25,7 @@ class GoalProvider {
       GoalTable.name,
       columns: [],
       orderBy:
-          '${GoalTable.columnLastActiveTime} desc, ${GoalTable.columnStatus} asc',
+          '${GoalTable.columnStatus} asc, ${GoalTable.columnLastActiveTime} desc',
       limit: count,
       offset: startIndex,
     );

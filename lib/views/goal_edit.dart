@@ -140,7 +140,6 @@ class _GoalEditState extends State<GoalEdit> {
         centerTitle: true,
         actions: <Widget>[
           _createEditAction(),
-          _createActionMenu(),
         ],
       ),
       body: SafeArea(
@@ -282,65 +281,6 @@ class _GoalEditState extends State<GoalEdit> {
     );
   }
 
-  Color _captionColor() {
-    return Theme.of(context).textTheme.caption.color;
-  }
-
-  Widget _createFinishMenuItem() {
-    return Row(
-      children: <Widget>[
-        Icon(
-          Icons.done,
-          color: _captionColor(),
-        ),
-        SizedBox(width: 16),
-        Text(
-          'Finish goal',
-          style: TextStyle(
-            color: _captionColor(),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _createPauseResumeMenuItem() {
-    if (_goal.status == GoalStatus.paused) {
-      return Row(
-        children: <Widget>[
-          Icon(
-            Icons.play_arrow,
-            color: _captionColor(),
-          ),
-          SizedBox(width: 16),
-          Text(
-            'Resume goal',
-            style: TextStyle(
-              color: _captionColor(),
-            ),
-          ),
-        ],
-      );
-    } else if (_goal.status == GoalStatus.ongoing) {
-      return Row(
-        children: <Widget>[
-          Icon(
-            Icons.pause,
-            color: _captionColor(),
-          ),
-          SizedBox(width: 16),
-          Text(
-            'Pause goal',
-            style: TextStyle(
-              color: _captionColor(),
-            ),
-          ),
-        ],
-      );
-    }
-    return null;
-  }
-
   bool get _isNewGoal => widget.goal == null;
 
   bool _isNeedExitConfirm() {
@@ -449,36 +389,6 @@ class _GoalEditState extends State<GoalEdit> {
     }
   }
 
-  void _pauseGoal() {
-    setState(() {
-      _goal.status = GoalStatus.paused;
-    });
-    _goalBloc.dispatch(PauseGoal(
-      oldGoal: widget.goal,
-      newGoal: _goal,
-    ));
-  }
-
-  void _resumeGoal() {
-    setState(() {
-      _goal.status = GoalStatus.ongoing;
-    });
-    _goalBloc.dispatch(ResumeGoal(
-      oldGoal: widget.goal,
-      newGoal: _goal,
-    ));
-  }
-
-  void _finishGoal() {
-    setState(() {
-      _goal.status = GoalStatus.finished;
-    });
-    _goalBloc.dispatch(FinishGoal(
-      oldGoal: widget.goal,
-      newGoal: _goal,
-    ));
-  }
-
   Widget _getGoalStatus() {
     if (_goal.status == GoalStatus.ongoing) return Container();
     return Center(
@@ -490,41 +400,6 @@ class _GoalEditState extends State<GoalEdit> {
               : Theme.of(context).accentColor,
         ),
       ),
-    );
-  }
-
-  Widget _createActionMenu() {
-    if (_isNewGoal ||
-        _goal.status == GoalStatus.finished ||
-        _goal.status == GoalStatus.expired) {
-      return Container();
-    }
-
-    return PopupMenuButton<String>(
-      icon: Icon(Icons.more_vert),
-      onSelected: (value) {
-        if (value == 'pause') {
-          _pauseGoal();
-        }
-        if (value == 'resume') {
-          _resumeGoal();
-        }
-        if (value == 'finish') {
-          _finishGoal();
-        }
-      },
-      itemBuilder: (context) {
-        return [
-          PopupMenuItem<String>(
-            value: _goal.status == GoalStatus.paused ? 'resume' : 'pause',
-            child: _createPauseResumeMenuItem(),
-          ),
-          PopupMenuItem<String>(
-            value: 'finish',
-            child: _createFinishMenuItem(),
-          ),
-        ];
-      },
     );
   }
 

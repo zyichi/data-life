@@ -67,30 +67,21 @@ class UpdateGoalAction extends GoalEvent {
 }
 
 class PauseGoal extends GoalEvent {
-  final Goal oldGoal;
-  final Goal newGoal;
-
-  PauseGoal({@required this.oldGoal, @required this.newGoal})
-      : assert(oldGoal != null),
-      assert(newGoal != null);
+  final Goal goal;
+  PauseGoal({@required this.goal})
+      : assert(goal != null);
 }
 
 class ResumeGoal extends GoalEvent {
-  final Goal oldGoal;
-  final Goal newGoal;
-
-  ResumeGoal({@required this.oldGoal, @required this.newGoal})
-      : assert(oldGoal != null),
-        assert(newGoal != null);
+  final Goal goal;
+  ResumeGoal({@required this.goal})
+      : assert(goal != null);
 }
 
 class FinishGoal extends GoalEvent {
-  final Goal oldGoal;
-  final Goal newGoal;
-
-  FinishGoal({@required this.oldGoal, @required this.newGoal})
-      : assert(oldGoal != null),
-        assert(newGoal != null);
+  final Goal goal;
+  FinishGoal({@required this.goal})
+      : assert(goal != null);
 }
 
 class DeleteGoal extends GoalEvent {
@@ -129,14 +120,16 @@ class GoalDeleted extends GoalState {
   GoalDeleted({@required this.goal}) : assert(goal != null);
 }
 class GoalPaused extends GoalState {
-  final Goal newGoal;
-  final Goal oldGoal;
-  GoalPaused({this.newGoal, this.oldGoal});
+  final Goal goal;
+  GoalPaused({this.goal});
 }
 class GoalResumed extends GoalState {
-  final Goal newGoal;
-  final Goal oldGoal;
-  GoalResumed({this.newGoal, this.oldGoal});
+  final Goal goal;
+  GoalResumed({this.goal});
+}
+class GoalFinished extends GoalState {
+  final Goal goal;
+  GoalFinished({this.goal});
 }
 
 class GoalActionAdded extends GoalState {}
@@ -247,36 +240,33 @@ class GoalBloc extends Bloc<GoalEvent, GoalState> {
       }
     }
     if (event is PauseGoal) {
-      final oldGoal = event.oldGoal;
-      final newGoal = event.newGoal;
+      final goal = event.goal;
       try {
-        await goalRepository.setStatus(newGoal.id, GoalStatus.paused);
-        yield GoalUpdated(oldGoal: oldGoal, newGoal: newGoal);
+        await goalRepository.setStatus(goal.id, GoalStatus.paused);
+        yield GoalPaused(goal: goal);
       } catch (e) {
         yield GoalFailed(
-            error: 'Pause ${oldGoal.name} failed: ${e.toString()}');
+            error: 'Pause ${goal.name} failed: ${e.toString()}');
       }
     }
     if (event is ResumeGoal) {
-      final oldGoal = event.oldGoal;
-      final newGoal = event.newGoal;
+      final goal = event.goal;
       try {
-        await goalRepository.setStatus(newGoal.id, GoalStatus.ongoing);
-        yield GoalUpdated(oldGoal: oldGoal, newGoal: newGoal);
+        await goalRepository.setStatus(goal.id, GoalStatus.ongoing);
+        yield GoalResumed(goal: goal);
       } catch (e) {
         yield GoalFailed(
-            error: 'Resume ${oldGoal.name} failed: ${e.toString()}');
+            error: 'Resume ${goal.name} failed: ${e.toString()}');
       }
     }
     if (event is FinishGoal) {
-      final oldGoal = event.oldGoal;
-      final newGoal = event.newGoal;
+      final goal = event.goal;
       try {
-        await goalRepository.setStatus(newGoal.id, GoalStatus.finished);
-        yield GoalUpdated(oldGoal: oldGoal, newGoal: newGoal);
+        await goalRepository.setStatus(goal.id, GoalStatus.finished);
+        yield GoalFinished(goal: goal);
       } catch (e) {
         yield GoalFailed(
-            error: 'Resume ${oldGoal.name} failed: ${e.toString()}');
+            error: 'Resume ${goal.name} failed: ${e.toString()}');
       }
     }
     if (event is DeleteGoalAction) {

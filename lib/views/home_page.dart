@@ -187,11 +187,15 @@ class HomePageState extends State<HomePage>
     }
     if (state is GoalResumed) {
       _todoBloc.dispatch(
-          GoalUpdatedTodoEvent(oldGoal: state.oldGoal, newGoal: state.newGoal));
+          GoalUpdatedTodoEvent(oldGoal: null, newGoal: state.goal));
     }
     if (state is GoalPaused) {
       _todoBloc.dispatch(
-          GoalUpdatedTodoEvent(oldGoal: state.oldGoal, newGoal: state.newGoal));
+          GoalUpdatedTodoEvent(oldGoal: null, newGoal: state.goal));
+    }
+    if (state is GoalFinished) {
+      _todoBloc.dispatch(
+          GoalUpdatedTodoEvent(oldGoal: null, newGoal: state.goal));
     }
     if (state is GoalFailed) {
       print('${state.error}');
@@ -271,6 +275,7 @@ class HomePageState extends State<HomePage>
                 icon: Icon(Icons.search),
                 onPressed: () {},
               ),
+              /*
               PopupMenuButton<String>(
                 icon: Icon(Icons.more_vert),
                 onSelected: (value) {
@@ -358,6 +363,7 @@ class HomePageState extends State<HomePage>
                   ];
                 },
               ),
+              */
             ],
           ),
           body: MultiBlocListener(
