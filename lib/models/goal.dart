@@ -37,6 +37,16 @@ class Goal {
     }).reduce((a, b) => a + b);
   }
 
+  int getProgressPercent() {
+    try {
+      var percent = (progress / target) * 100;
+      return percent.toInt();
+    } catch(e) {
+      print('Get progress percent failed: ${e.toString()}');
+      return 0;
+    }
+  }
+
   void updateFieldFromGoalAction() {
     if (goalActions.isNotEmpty) {
       totalTimeTaken = 0;

@@ -440,6 +440,7 @@ class HomePageState extends State<HomePage>
           ),
           floatingActionButton:
               _createFloatingActionButton(_selectedNavigationIndex),
+          floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
         ),
       ),
     );
@@ -472,7 +473,8 @@ class HomePageState extends State<HomePage>
       child: Icon(tab.fabIconData),
       onPressed: tab.fabOnPressed,
       mini: false,
-      backgroundColor: Colors.lightGreen,
+      // backgroundColor: Colors.lightGreen,
+      backgroundColor: Theme.of(context).primaryColor,
     );
   }
 

@@ -67,9 +67,10 @@ class __GoalListItemState extends State<_GoalListItem> {
                         widget.goal.name,
                         style: Theme.of(context).textTheme.title,
                       ),
-                      widget.goal.status == GoalStatus.finished
+                      widget.goal.status == GoalStatus.finished || widget.goal.status == GoalStatus.expired
                           ? IconButton(
-                              icon: Icon(Icons.more_vert,
+                              icon: Icon(
+                                Icons.more_vert,
                                 color: Colors.transparent,
                               ),
                               onPressed: null,
@@ -118,7 +119,7 @@ class __GoalListItemState extends State<_GoalListItem> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: <Widget>[
-                          Text('状态'),
+                          Text('目标状态'),
                           Text(
                             '${TypeToStr.goalStatusToStr(widget.goal.status, context)}',
                             style:
@@ -134,10 +135,19 @@ class __GoalListItemState extends State<_GoalListItem> {
                           ),
                         ],
                       ),
-                      Divider(),
-                      _createLastActiveTimeWidget(context),
-                      Divider(),
-                      _createTotalTimeTakenWidget(context),
+                      widget.goal.status == GoalStatus.ongoing ||
+                              widget.goal.status == GoalStatus.paused
+                          ? Column(
+                              children: <Widget>[
+                                Divider(),
+                                // _createLastActiveTimeWidget(context),
+                                _createProgressWidget(context),
+                                Divider(),
+                                // _createTotalTimeTakenWidget(context),
+                                _createTimeRemainingWidget(context),
+                              ],
+                            )
+                          : Container(),
                     ],
                   ),
                 ),
@@ -147,6 +157,33 @@ class __GoalListItemState extends State<_GoalListItem> {
         ),
       );
     }
+  }
+
+  Widget _createProgressWidget(BuildContext context) {
+    return _createNameValueItem(
+        '当前进度', '${widget.goal.getProgressPercent()}%', context);
+  }
+
+  Widget _createTimeRemainingWidget(BuildContext context) {
+    var timeRemaining = Duration(
+        milliseconds:
+            widget.goal.stopTime - DateTime.now().millisecondsSinceEpoch);
+    return _createNameValueItem('剩余时间', '${timeRemaining.inDays} 天', context);
+  }
+
+  Widget _createNameValueItem(String name, String value, BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: <Widget>[
+        Text(
+          name,
+        ),
+        Text(
+          value,
+          style: Theme.of(context).textTheme.caption.copyWith(fontSize: 14),
+        ),
+      ],
+    );
   }
 
   Widget _createLastActiveTimeWidget(BuildContext context) {

@@ -106,7 +106,9 @@ class _MomentListItem extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: <Widget>[
-                      _createTimeWidget(context),
+                      _createTimeWidget(context, '开始时间', moment.beginTime),
+                      Divider(),
+                      _createTimeWidget(context, '结束时间', moment.endTime),
                       Divider(),
                       _createDurationWidget(context),
                       Divider(),
@@ -183,14 +185,14 @@ class _MomentListItem extends StatelessWidget {
     );
   }
 
-  Widget _createTimeWidget(BuildContext context) {
-    String s = TimeUtil.dateStringFromMillis(moment.beginTime) +
+  Widget _createTimeWidget(BuildContext context, String label, int t) {
+    String s = TimeUtil.dateStringFromMillis(t) +
         ' ' +
-        TimeUtil.timeStringFromMillis(moment.beginTime, context);
+        TimeUtil.timeStringFromMillis(t, context);
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: <Widget>[
-        Text('开始时间'),
+        Text(label),
         Text(
           '$s',
           style: Theme.of(context).textTheme.caption.copyWith(fontSize: 14),

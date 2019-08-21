@@ -57,9 +57,9 @@ class TypeToStr {
   static String goalActionStatusToStr(GoalActionStatus status, BuildContext context) {
     switch (status) {
       case GoalActionStatus.ongoing:
-        return 'ongoing';
+        return '正在进行';
       case GoalActionStatus.finished:
-        return 'finished';
+        return '已完成';
       default:
         return null;
     }
