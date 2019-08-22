@@ -24,9 +24,11 @@ class _TodoListItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.only(left: 16, top: 8, right: 16, bottom: 8),
-      child: _createItem(context),
+    return Material(
+      child: Padding(
+        padding: EdgeInsets.only(left: 16, top: 8, right: 16, bottom: 8),
+        child: _createItem(context),
+      ),
     );
   }
 
@@ -64,7 +66,7 @@ class _TodoListItem extends StatelessWidget {
         padding: const EdgeInsets.all(8),
         child: Text(
           '${DateFormat(DateFormat.HOUR_MINUTE).format(
-              DateTime.fromMillisecondsSinceEpoch(todo.doneTime))} 完成',
+              DateTime.fromMillisecondsSinceEpoch(todo.doneTime))}完成',
           style: Theme
               .of(context)
               .textTheme
@@ -142,7 +144,7 @@ class _TodoListItem extends StatelessWidget {
                       ],
                     ),
                     Text(
-                      '${DateFormat(DateFormat.HOUR_MINUTE).format(DateTime.fromMillisecondsSinceEpoch(todo.startTime))} 开始, 目标: ${todo.goal.name}',
+                      '${DateFormat(DateFormat.HOUR_MINUTE).format(DateTime.fromMillisecondsSinceEpoch(todo.startTime))}开始, 目标: ${todo.goal.name}',
                       style: Theme.of(context).textTheme.body1,
                     ),
                   ],
@@ -193,62 +195,68 @@ class _TodoListState extends State<TodoList>
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    return BlocListener(
-      bloc: _todoListBloc,
-      listener: (context, state) {
-        if (state is PageLoaded || state is PageError) {
-          _refreshCompleter?.complete();
-          _refreshCompleter = null;
-        }
-      },
-      child: RefreshIndicator(
-        onRefresh: () {
-          _refreshCompleter = Completer<void>();
-          // _todoBloc.dispatch(CreateTodayTodo());
-          _todoListBloc.dispatch(RefreshPage());
-          return _refreshCompleter.future;
+    return Material(
+      color: Colors.grey[200],
+      child: BlocListener(
+        bloc: _todoListBloc,
+        listener: (context, state) {
+          if (state is PageLoaded || state is PageError) {
+            _refreshCompleter?.complete();
+            _refreshCompleter = null;
+          }
         },
-        child: BlocBuilder(
-          bloc: _todoListBloc,
-          builder: (context, state) {
-            if (state is PageUninitialized) {
-              return _createEmptyResults();
-            }
-            if (state is PageLoading) {
-              return Center(
-                child: CircularProgressIndicator(),
-              );
-            }
-            if (state is PageLoaded<Todo>) {
-              PageList pagedList = state.pageList;
-              if (pagedList.total == 0) {
+        child: RefreshIndicator(
+          onRefresh: () {
+            _refreshCompleter = Completer<void>();
+            // _todoBloc.dispatch(CreateTodayTodo());
+            _todoListBloc.dispatch(RefreshPage());
+            return _refreshCompleter.future;
+          },
+          child: BlocBuilder(
+            bloc: _todoListBloc,
+            builder: (context, state) {
+              if (state is PageUninitialized) {
                 return _createEmptyResults();
               }
-              return ListView.separated(
-                key: PageStorageKey<String>(widget.name),
-                separatorBuilder: (context, index) {
-                  return Divider();
-                },
-                itemCount: pagedList.total,
-                itemBuilder: (context, index) {
-                  Todo todo = pagedList.itemAt(index);
-                  if (todo == null) {
-                    _todoListBloc.getItem(index);
-                  }
-                  return _TodoListItem(
-                    todo: todo,
-                    todoBloc: _todoBloc,
-                  );
-                },
-              );
-            }
-            if (state is PageError) {
-              return Center(
-                child: Text('Load todo failed'),
-              );
-            }
-            return null;
-          },
+              if (state is PageLoading) {
+                return Center(
+                  child: CircularProgressIndicator(),
+                );
+              }
+              if (state is PageLoaded<Todo>) {
+                PageList pagedList = state.pageList;
+                if (pagedList.total == 0) {
+                  return _createEmptyResults();
+                }
+                return ListView.separated(
+                  key: PageStorageKey<String>(widget.name),
+                  separatorBuilder: (context, index) {
+                    return Container(
+                      height: 16,
+                      color: Colors.grey[200],
+                    );
+                  },
+                  itemCount: pagedList.total,
+                  itemBuilder: (context, index) {
+                    Todo todo = pagedList.itemAt(index);
+                    if (todo == null) {
+                      _todoListBloc.getItem(index);
+                    }
+                    return _TodoListItem(
+                      todo: todo,
+                      todoBloc: _todoBloc,
+                    );
+                  },
+                );
+              }
+              if (state is PageError) {
+                return Center(
+                  child: Text('Load todo failed'),
+                );
+              }
+              return null;
+            },
+          ),
         ),
       ),
     );

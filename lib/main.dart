@@ -151,6 +151,7 @@ class _MyAppState extends State<MyApp> {
           return MaterialApp(
             localizationsDelegates: [
               const AppLocalizationsDelegate(),
+              GlobalCupertinoLocalizations.delegate,
               GlobalMaterialLocalizations.delegate,
               GlobalWidgetsLocalizations.delegate
             ],

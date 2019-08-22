@@ -69,7 +69,6 @@ class _MomentEditState extends State<MomentEdit> {
     _momentBloc = BlocProvider.of<MomentBloc>(context);
 
     if (widget.moment != null) {
-      print('Moment read only');
       _isReadOnly = true;
 
       _actionNameController.text = widget.moment.action.name;
@@ -85,7 +84,7 @@ class _MomentEditState extends State<MomentEdit> {
         _moment.contacts.add(Contact.copyCreate(contact));
       }
 
-      _title = 'Moment';
+      _title = '动态';
     } else {
       final now = DateTime.now();
       _moment.beginTime = now.subtract(Duration(minutes: 60)).millisecondsSinceEpoch;
@@ -94,7 +93,7 @@ class _MomentEditState extends State<MomentEdit> {
       if (widget.todo != null) {
         _actionNameController.text = widget.todo.goalAction.action.name;
       }
-      _title = 'New Moment';
+      _title = '记录新动态';
     }
 
     _contactController.addListener(_contactControllerListener);
@@ -118,9 +117,10 @@ class _MomentEditState extends State<MomentEdit> {
         centerTitle: true,
         title: Text(_title),
         actions: <Widget>[
-          _createEditAction(),
+          _createSaveAction(),
         ],
       ),
+      floatingActionButton: _createFloatingActionButton(),
       body: SafeArea(
         top: false,
         bottom: false,
@@ -540,6 +540,7 @@ class _MomentEditState extends State<MomentEdit> {
     return Padding(
       padding: EdgeInsets.only(top: 16.0, bottom: 16.0),
       child: LabeledTextFormField(
+        inputType: TextInputType.number,
         labelText: 'Cost (unit: ${AppLocalizations.of(context).currencyName})',
         hintText: '0.0',
         controller: _costController,
@@ -638,21 +639,9 @@ class _MomentEditState extends State<MomentEdit> {
     );
   }
 
-  Widget _createEditAction() {
-    print('_createEditAction');
+  Widget _createSaveAction() {
     if (_isReadOnly) {
-      return IconButton(
-        icon: Icon(Icons.edit),
-        onPressed: () {
-          print('Edit momment');
-          setState(() {
-            _isReadOnly = false;
-            _title = 'Edit Moment';
-          });
-          // FocusScope.of(context).requestFocus(_actionNameFocusNode);
-          FocusScope.of(context).requestFocus(_locationNameFocusNode);
-        },
-      );
+      return Container();
     } else {
       return IconButton(
         icon: Icon(Icons.check),
@@ -675,7 +664,26 @@ class _MomentEditState extends State<MomentEdit> {
     );
   }
 
-  Color _captionColor() {
-    return Theme.of(context).textTheme.caption.color;
+  Widget _createFloatingActionButton() {
+    if (_isNewMoment) {
+      return Container();
+    }
+    if (!_isReadOnly) {
+      return Container();
+    }
+    return FloatingActionButton(
+      backgroundColor: Theme.of(context).primaryColor,
+      onPressed: () {
+        setState(() {
+          _isReadOnly = false;
+          _title = '修改动态';
+        });
+        FocusScope.of(context).requestFocus(_locationNameFocusNode);
+      },
+      child: Icon(
+        Icons.edit,
+      ),
+    );
   }
+
 }

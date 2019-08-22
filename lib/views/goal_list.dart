@@ -38,121 +38,116 @@ class __GoalListItemState extends State<_GoalListItem> {
         ),
       );
     } else {
-      return Padding(
-        padding: const EdgeInsets.only(left: 16, top: 8, right: 16, bottom: 8),
-        child: Material(
-          elevation: 2,
-          borderRadius: BorderRadius.circular(8),
-          child: InkWell(
-            onTap: () {
-              Navigator.push(
-                  context,
-                  PageTransition(
-                    child: GoalEdit(goal: widget.goal),
-                    type: PageTransitionType.rightToLeft,
-                  ));
-            },
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[
-                Padding(
-                  padding: const EdgeInsets.only(
-                      left: 16, top: 8, right: 0, bottom: 0),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: <Widget>[
-                      Text(
-                        widget.goal.name,
-                        style: Theme.of(context).textTheme.title,
-                      ),
-                      widget.goal.status == GoalStatus.finished || widget.goal.status == GoalStatus.expired
-                          ? IconButton(
-                              icon: Icon(
-                                Icons.more_vert,
-                                color: Colors.transparent,
-                              ),
-                              onPressed: null,
-                            )
-                          : PopupMenuButton<String>(
-                              icon: Icon(
-                                Icons.more_vert,
-                                color: _captionColor(context),
-                              ),
-                              onSelected: (value) {
-                                if (value == 'pause') {
-                                  _pauseGoal();
-                                }
-                                if (value == 'resume') {
-                                  _resumeGoal();
-                                }
-                                if (value == 'finish') {
-                                  _finishGoal();
-                                }
-                              },
-                              itemBuilder: (context) {
-                                return [
-                                  PopupMenuItem<String>(
-                                    value:
-                                        widget.goal.status == GoalStatus.paused
-                                            ? 'resume'
-                                            : 'pause',
-                                    child: _createPauseResumeMenuItem(context),
-                                  ),
-                                  PopupMenuItem<String>(
-                                    value: 'finish',
-                                    child: _createFinishMenuItem(context),
-                                  ),
-                                ];
-                              },
+      return Material(
+        child: InkWell(
+          onTap: () {
+            Navigator.push(
+                context,
+                PageTransition(
+                  child: GoalEdit(goal: widget.goal),
+                  type: PageTransitionType.rightToLeft,
+                ));
+          },
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              Padding(
+                padding: const EdgeInsets.only(
+                    left: 16, top: 8, right: 0, bottom: 0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: <Widget>[
+                    Text(
+                      widget.goal.name,
+                      style: Theme.of(context).textTheme.title,
+                    ),
+                    widget.goal.status == GoalStatus.finished || widget.goal.status == GoalStatus.expired
+                        ? IconButton(
+                            icon: Icon(
+                              Icons.more_vert,
+                              color: Colors.transparent,
                             ),
-                    ],
-                  ),
-                ),
-                Divider(),
-                Padding(
-                  padding: const EdgeInsets.only(
-                      left: 16, top: 8, right: 16, bottom: 16),
-                  child: Column(
-                    children: <Widget>[
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: <Widget>[
-                          Text('目标状态'),
-                          Text(
-                            '${TypeToStr.goalStatusToStr(widget.goal.status, context)}',
-                            style:
-                                Theme.of(context).textTheme.subtitle.copyWith(
-                                      color: widget.goal.status ==
-                                                  GoalStatus.ongoing ||
-                                              widget.goal.status ==
-                                                  GoalStatus.finished
-                                          ? Theme.of(context).primaryColor
-                                          : Theme.of(context).accentColor,
-                                      fontSize: 14,
-                                    ),
+                            onPressed: null,
+                          )
+                        : PopupMenuButton<String>(
+                            icon: Icon(
+                              Icons.more_vert,
+                              color: _captionColor(context),
+                            ),
+                            onSelected: (value) {
+                              if (value == 'pause') {
+                                _pauseGoal();
+                              }
+                              if (value == 'resume') {
+                                _resumeGoal();
+                              }
+                              if (value == 'finish') {
+                                _finishGoal();
+                              }
+                            },
+                            itemBuilder: (context) {
+                              return [
+                                PopupMenuItem<String>(
+                                  value:
+                                      widget.goal.status == GoalStatus.paused
+                                          ? 'resume'
+                                          : 'pause',
+                                  child: _createPauseResumeMenuItem(context),
+                                ),
+                                PopupMenuItem<String>(
+                                  value: 'finish',
+                                  child: _createFinishMenuItem(context),
+                                ),
+                              ];
+                            },
                           ),
-                        ],
-                      ),
-                      widget.goal.status == GoalStatus.ongoing ||
-                              widget.goal.status == GoalStatus.paused
-                          ? Column(
-                              children: <Widget>[
-                                Divider(),
-                                // _createLastActiveTimeWidget(context),
-                                _createProgressWidget(context),
-                                Divider(),
-                                // _createTotalTimeTakenWidget(context),
-                                _createTimeRemainingWidget(context),
-                              ],
-                            )
-                          : Container(),
-                    ],
-                  ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+              Divider(),
+              Padding(
+                padding: const EdgeInsets.only(
+                    left: 16, top: 8, right: 16, bottom: 16),
+                child: Column(
+                  children: <Widget>[
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: <Widget>[
+                        Text('目标状态'),
+                        Text(
+                          '${TypeToStr.goalStatusToStr(widget.goal.status, context)}',
+                          style:
+                              Theme.of(context).textTheme.subtitle.copyWith(
+                                    color: widget.goal.status ==
+                                                GoalStatus.ongoing ||
+                                            widget.goal.status ==
+                                                GoalStatus.finished
+                                        ? Theme.of(context).primaryColor
+                                        : Theme.of(context).accentColor,
+                                    fontSize: 14,
+                                  ),
+                        ),
+                      ],
+                    ),
+                    widget.goal.status == GoalStatus.ongoing ||
+                            widget.goal.status == GoalStatus.paused
+                        ? Column(
+                            children: <Widget>[
+                              Divider(),
+                              // _createLastActiveTimeWidget(context),
+                              _createProgressWidget(context),
+                              Divider(),
+                              // _createTotalTimeTakenWidget(context),
+                              _createTimeRemainingWidget(context),
+                            ],
+                          )
+                        : Container(),
+                  ],
+                ),
+              ),
+            ],
           ),
         ),
       );
@@ -353,49 +348,52 @@ class _GoalListState extends State<GoalList>
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    return Container(
+    return Material(
       color: Colors.grey[200],
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8),
-        child: BlocBuilder(
-          bloc: _goalListBloc,
-          builder: (context, state) {
-            if (state is PageUninitialized) {
+      child: BlocBuilder(
+        bloc: _goalListBloc,
+        builder: (context, state) {
+          if (state is PageUninitialized) {
+            return _createEmptyResults();
+          }
+          if (state is PageLoading) {
+            return Center(
+              child: CircularProgressIndicator(),
+            );
+          }
+          if (state is PageLoaded<Goal>) {
+            PageList pagedList = state.pageList;
+            if (pagedList.total == 0) {
               return _createEmptyResults();
             }
-            if (state is PageLoading) {
-              return Center(
-                child: CircularProgressIndicator(),
-              );
-            }
-            if (state is PageLoaded<Goal>) {
-              PageList pagedList = state.pageList;
-              if (pagedList.total == 0) {
-                return _createEmptyResults();
-              }
-              return ListView.builder(
-                key: PageStorageKey<String>(widget.name),
-                itemCount: pagedList.total,
-                itemBuilder: (context, index) {
-                  Goal goal = pagedList.itemAt(index);
-                  if (goal == null) {
-                    _goalListBloc.getItem(index);
-                  }
-                  return _GoalListItem(
-                    goal: goal,
-                    goalBloc: _goalBloc,
-                  );
-                },
-              );
-            }
-            if (state is PageError) {
-              return Center(
-                child: Text('Load goal failed'),
-              );
-            }
-            return null;
-          },
-        ),
+            return ListView.separated(
+              key: PageStorageKey<String>(widget.name),
+              separatorBuilder: (BuildContext context, int i) {
+                return Container(
+                  height: 16,
+                  color: Colors.grey[200],
+                );
+              },
+              itemCount: pagedList.total,
+              itemBuilder: (context, index) {
+                Goal goal = pagedList.itemAt(index);
+                if (goal == null) {
+                  _goalListBloc.getItem(index);
+                }
+                return _GoalListItem(
+                  goal: goal,
+                  goalBloc: _goalBloc,
+                );
+              },
+            );
+          }
+          if (state is PageError) {
+            return Center(
+              child: Text('Load goal failed'),
+            );
+          }
+          return null;
+        },
       ),
     );
   }

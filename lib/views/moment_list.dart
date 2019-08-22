@@ -33,105 +33,101 @@ class _MomentListItem extends StatelessWidget {
         ),
       );
     } else {
-      return Padding(
-        padding: const EdgeInsets.only(left: 16, top: 8, right: 16, bottom: 8),
-        child: Material(
-          elevation: 2,
-          borderRadius: BorderRadius.circular(8),
-          child: InkWell(
-            onTap: () {
-              Navigator.push(
-                  context,
-                  PageTransition(
-                    child: MomentEdit(
-                      moment: moment,
+      return Material(
+        child: InkWell(
+          onTap: () {
+            Navigator.push(
+                context,
+                PageTransition(
+                  child: MomentEdit(
+                    moment: moment,
+                  ),
+                  type: PageTransitionType.rightToLeft,
+                ));
+          },
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Padding(
+                padding: const EdgeInsets.only(
+                    left: 16, top: 8, right: 0, bottom: 0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: <Widget>[
+                    Text(
+                      moment.action.name,
+                      style: Theme.of(context).textTheme.title,
                     ),
-                    type: PageTransitionType.rightToLeft,
-                  ));
-            },
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                Padding(
-                  padding: const EdgeInsets.only(
-                      left: 16, top: 8, right: 0, bottom: 0),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: <Widget>[
-                      Text(
-                        moment.action.name,
-                        style: Theme.of(context).textTheme.title,
+                    PopupMenuButton<String>(
+                      icon: Icon(
+                        Icons.more_vert,
+                        color: _captionColor(context),
                       ),
-                      PopupMenuButton<String>(
-                        icon: Icon(Icons.more_vert,
-                          color: _captionColor(context),
-                        ),
-                        onSelected: (value) {
-                          if (value == 'delete') {
-                            momentBloc.dispatch(DeleteMoment(moment: moment));
-                          }
-                        },
-                        itemBuilder: (context) {
-                          return [
-                            PopupMenuItem<String>(
-                              value: 'delete',
-                              child: Row(
-                                children: <Widget>[
-                                  Icon(
-                                    Icons.delete,
-                                    color: _captionColor(context),
-                                  ),
-                                  SizedBox(
-                                    width: 16,
-                                  ),
-                                  Text(
-                                    'Delete',
-                                    style: TextStyle(
-                                        color: _captionColor(context)),
-                                  ),
-                                ],
-                              ),
+                      onSelected: (value) {
+                        if (value == 'delete') {
+                          momentBloc.dispatch(DeleteMoment(moment: moment));
+                        }
+                      },
+                      itemBuilder: (context) {
+                        return [
+                          PopupMenuItem<String>(
+                            value: 'delete',
+                            child: Row(
+                              children: <Widget>[
+                                Icon(
+                                  Icons.delete,
+                                  color: _captionColor(context),
+                                ),
+                                SizedBox(
+                                  width: 16,
+                                ),
+                                Text(
+                                  'Delete',
+                                  style: TextStyle(
+                                      color: _captionColor(context)),
+                                ),
+                              ],
                             ),
-                          ];
-                        },
-                      ),
-                    ],
-                  ),
-                ),
-                Divider(),
-                Padding(
-                  padding: const EdgeInsets.only(
-                      left: 16, top: 8, right: 16, bottom: 16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: <Widget>[
-                      _createTimeWidget(context, '开始时间', moment.beginTime),
-                      Divider(),
-                      _createTimeWidget(context, '结束时间', moment.endTime),
-                      Divider(),
-                      _createDurationWidget(context),
-                      Divider(),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: <Widget>[
-                          Text('地点'),
-                          Text(
-                            '${moment.location.name}',
-                            style: Theme.of(context)
-                                .textTheme
-                                .caption
-                                .copyWith(fontSize: 14),
                           ),
-                        ],
-                      ),
-                      Divider(),
-                      _createContactsWidget(context),
-                    ],
-                  ),
+                        ];
+                      },
+                    ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+              Divider(),
+              Padding(
+                padding: const EdgeInsets.only(
+                    left: 16, top: 8, right: 16, bottom: 16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    _createTimeWidget(context, '开始时间', moment.beginTime),
+                    Divider(),
+                    _createTimeWidget(context, '结束时间', moment.endTime),
+                    Divider(),
+                    _createDurationWidget(context),
+                    Divider(),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: <Widget>[
+                        Text('地点'),
+                        Text(
+                          '${moment.location.name}',
+                          style: Theme.of(context)
+                              .textTheme
+                              .caption
+                              .copyWith(fontSize: 14),
+                        ),
+                      ],
+                    ),
+                    Divider(),
+                    _createContactsWidget(context),
+                  ],
+                ),
+              ),
+            ],
           ),
         ),
       );
@@ -237,49 +233,52 @@ class _MomentListState extends State<MomentList>
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    return Container(
+    return Material(
       color: Colors.grey[200],
-      child: Padding(
-        padding: const EdgeInsets.only(left: 0, top: 8, right: 0, bottom: 8),
-        child: BlocBuilder(
-          bloc: _momentListBloc,
-          builder: (context, state) {
-            if (state is PageUninitialized) {
+      child: BlocBuilder(
+        bloc: _momentListBloc,
+        builder: (context, state) {
+          if (state is PageUninitialized) {
+            return _createEmptyResults();
+          }
+          if (state is PageLoading) {
+            return Center(
+              child: CircularProgressIndicator(),
+            );
+          }
+          if (state is PageLoaded<Moment>) {
+            PageList pagedList = state.pageList;
+            if (pagedList.total == 0) {
               return _createEmptyResults();
             }
-            if (state is PageLoading) {
-              return Center(
-                child: CircularProgressIndicator(),
-              );
-            }
-            if (state is PageLoaded<Moment>) {
-              PageList pagedList = state.pageList;
-              if (pagedList.total == 0) {
-                return _createEmptyResults();
-              }
-              return ListView.builder(
-                key: PageStorageKey<String>(widget.name),
-                itemCount: pagedList.total,
-                itemBuilder: (context, index) {
-                  Moment moment = pagedList.itemAt(index);
-                  if (moment == null) {
-                    _momentListBloc.getItem(index);
-                  }
-                  return _MomentListItem(
-                    moment: moment,
-                    momentBloc: _momentBloc,
-                  );
-                },
-              );
-            }
-            if (state is PageError) {
-              return Center(
-                child: Text('Load moment failed'),
-              );
-            }
-            return null;
-          },
-        ),
+            return ListView.separated(
+              separatorBuilder: (BuildContext context, int i) {
+                return Container(
+                  height: 16,
+                  color: Colors.transparent,
+                );
+              },
+              key: PageStorageKey<String>(widget.name),
+              itemCount: pagedList.total,
+              itemBuilder: (context, index) {
+                Moment moment = pagedList.itemAt(index);
+                if (moment == null) {
+                  _momentListBloc.getItem(index);
+                }
+                return _MomentListItem(
+                  moment: moment,
+                  momentBloc: _momentBloc,
+                );
+              },
+            );
+          }
+          if (state is PageError) {
+            return Center(
+              child: Text('Load moment failed'),
+            );
+          }
+          return null;
+        },
       ),
     );
   }

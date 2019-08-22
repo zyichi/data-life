@@ -1,8 +1,13 @@
+import 'package:data_life/models/contact.dart';
+import 'package:data_life/models/location.dart';
 import 'package:flutter/material.dart';
 
 import 'package:page_transition/page_transition.dart';
 
 import 'package:data_life/views/login_page.dart';
+import 'package:data_life/views/action_page.dart';
+import 'package:data_life/views/location_page.dart';
+import 'package:data_life/views/contact_page.dart';
 
 class MeView extends StatefulWidget {
   @override
@@ -22,11 +27,11 @@ class _MeViewState extends State<MeView> {
               children: <Widget>[
                 CircleAvatar(
                   radius: 32,
-                  backgroundColor: Colors.grey[300],
+                  backgroundColor: Colors.grey[200],
                   child: Icon(
                     Icons.person,
                     size: 48,
-                    color: Theme.of(context).primaryColorLight,
+                    color: Colors.grey[500],
                   ),
                 ),
                 SizedBox(width: 20),
@@ -53,6 +58,7 @@ class _MeViewState extends State<MeView> {
         _createSeparator(),
         _createLocationStats(),
         _createSeparator(),
+        _buildActionStats(),
       ],
     );
   }
@@ -265,7 +271,14 @@ class _MeViewState extends State<MeView> {
               style: TextStyle(color: Theme.of(context).textTheme.caption.color),
             ),
           ),
-          onTap: () {},
+          onTap: () {
+            Navigator.push(
+                context,
+                PageTransition(
+                  child: ContactPage(),
+                  type: PageTransitionType.rightToLeft,
+                ));
+          },
         ),
         SizedBox(height: 8),
       ],
@@ -405,9 +418,58 @@ class _MeViewState extends State<MeView> {
               style: TextStyle(color: Theme.of(context).textTheme.caption.color),
             ),
           ),
-          onTap: () {},
+          onTap: () {
+            Navigator.push(
+                context,
+                PageTransition(
+                  child: LocationPage(),
+                  type: PageTransitionType.rightToLeft,
+                ));
+          },
         ),
         SizedBox(height: 8),
+      ],
+    );
+  }
+
+  Widget _buildActionStats() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: <Widget>[
+        Padding(
+          padding:
+          const EdgeInsets.only(left: 16, top: 16, right: 16, bottom: 0),
+          child: Row(
+            children: <Widget>[
+              Text(
+                '常做的事情',
+                style: Theme.of(context).textTheme.title,
+              ),
+              Text(
+                '(最近半年)',
+                style: Theme.of(context).textTheme.caption,
+              ),
+            ],
+          ),
+        ),
+        SizedBox(height: 8),
+        InkWell(
+          child: Padding(
+            padding: const EdgeInsets.only(left: 16, top: 8, right: 16, bottom: 8),
+            child: Text('更多常做...',
+              style: TextStyle(color: Theme.of(context).textTheme.caption.color),
+            ),
+          ),
+          onTap: () {
+            Navigator.push(
+                context,
+                PageTransition(
+                  child: ActionPage(),
+                  type: PageTransitionType.rightToLeft,
+                ));
+          },
+        ),
+        SizedBox(height: 16),
       ],
     );
   }

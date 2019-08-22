@@ -47,6 +47,12 @@ class Goal {
     }
   }
 
+  DateTime get startDateTime => DateTime.fromMillisecondsSinceEpoch(this.startTime);
+  set startDateTime(DateTime dateTime) => this.startTime = dateTime.millisecondsSinceEpoch;
+  DateTime get stopDateTime => DateTime.fromMillisecondsSinceEpoch(this.stopTime);
+  set stopDateTime(DateTime dateTime) => this.stopTime = dateTime.millisecondsSinceEpoch;
+  int get durationInDays => this.stopDateTime.difference(this.startDateTime).inDays;
+
   void updateFieldFromGoalAction() {
     if (goalActions.isNotEmpty) {
       totalTimeTaken = 0;

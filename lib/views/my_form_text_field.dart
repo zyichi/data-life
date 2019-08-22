@@ -1,29 +1,5 @@
 import 'package:flutter/material.dart';
 
-Color mutableFieldColor(bool valueMutable, BuildContext context) {
-  if (valueMutable) {
-    return Colors.black;
-  } else {
-    return captionColor(context);
-  }
-}
-
-TextStyle fieldNameTextStyle() {
-  return TextStyle(
-    fontSize: 16,
-  );
-}
-
-TextStyle fieldValueTextStyle(bool valueMutable, BuildContext context) {
-  return TextStyle(
-    fontSize: 16,
-    color: mutableFieldColor(valueMutable, context),
-  );
-}
-
-Color captionColor(BuildContext context) {
-  return Theme.of(context).textTheme.caption.color;
-}
 
 class MyImmutableFormTextField extends StatelessWidget {
   final String name;
@@ -34,35 +10,48 @@ class MyImmutableFormTextField extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(top: 8, bottom: 8),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      padding: const EdgeInsets.only(top: 0, bottom: 0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
-          Flexible(
-              flex: 2,
-              child: Text(
-                name,
-                style: fieldNameTextStyle(),
-              )),
-          Expanded(
-            flex: 3,
-            child: Row(
-              children: <Widget>[
-                Expanded(
-                  child: Text(
-                    value,
-                    textAlign: TextAlign.end,
-                    style: fieldValueTextStyle(false, context),
-                  ),
-                ),
-              ],
-            ),
+          Text(
+            name,
+            style: Theme.of(context).textTheme.caption,
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            child: Text(value),
           )
         ],
       ),
     );
   }
 }
+
+
+class MyFormFieldLabel extends StatelessWidget {
+  final String label;
+  final EdgeInsets padding;
+
+  const MyFormFieldLabel(
+      {Key key,
+        this.label,
+        this.padding = EdgeInsets.zero})
+      : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final labelStyle = Theme.of(context).textTheme.caption;
+    return Padding(
+      padding: padding,
+      child: Text(
+        label,
+        style: labelStyle,
+      ),
+    );
+  }
+}
+
 
 class MyFormTextField extends StatefulWidget {
   final String name;
@@ -88,108 +77,66 @@ class MyFormTextField extends StatefulWidget {
 class _MyFormTextFieldState extends State<MyFormTextField> {
   TextEditingController _valueController = TextEditingController();
   FocusNode _valueFocusNode = FocusNode();
-  String _value;
-  String _error;
 
   @override
   void initState() {
     super.initState();
 
-    _value = widget.initialValue ?? '';
-    _valueController.text = _value;
+    _valueController.text = widget.initialValue ?? '';
 
     _valueController.addListener(() {
-      setState(() {
-        _value = _valueController.text;
-        _error = widget.validator(_value);
-      });
-      widget.valueChanged(_value);
+      widget.valueChanged(_valueController.text);
     });
   }
 
   @override
   Widget build(BuildContext context) {
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.end,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
+        MyFormFieldLabel(
+          label: widget.name,
+        ),
         Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: <Widget>[
-            Flexible(
-                flex: 2,
-                child: Text(
-                  widget.name,
-                  style: fieldNameTextStyle(),
-                )),
             Expanded(
-              flex: 3,
-              child: Container(
-                color: widget.valueMutable ? Colors.grey[100] : Colors.white,
-                padding: EdgeInsets.only(left: 8),
-                child: Row(
-                  children: <Widget>[
-                    Expanded(
-                      child: TextFormField(
-                        decoration: InputDecoration(
-                          hintText: widget.inputHint,
-                          border: InputBorder.none,
-                          isDense: true,
-                        ),
-                        keyboardType:
-                            TextInputType.numberWithOptions(signed: true),
-                        textAlign: widget.valueMutable
-                            ? TextAlign.left
-                            : TextAlign.right,
-                        style:
-                            fieldValueTextStyle(widget.valueMutable, context),
-                        controller: _valueController,
-                        focusNode: _valueFocusNode,
+              child: TextFormField(
+                decoration: InputDecoration(
+                  hintText: widget.inputHint,
+                  border: InputBorder.none,
+                  isDense: true,
+                  contentPadding: EdgeInsets.only(top: 8, bottom: 0),
+                ),
+                keyboardType: TextInputType.number,
+                controller: _valueController,
+                focusNode: _valueFocusNode,
+                autovalidate: true,
+                validator: widget.validator,
+              ),
+            ),
+            widget.valueMutable && _valueController.text.isNotEmpty
+                ? GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    child: Container(
+                      width: 40,
+                      height: 36,
+                      child: Icon(
+                        Icons.clear,
+                        color: Colors.grey[500],
+                        size: 20,
                       ),
                     ),
-                    GestureDetector(
-                      child: widget.valueMutable &&
-                              _value.isNotEmpty &&
-                              _valueFocusNode.hasFocus
-                          ? Container(
-                              color: Colors.grey[100],
-                              width: 32,
-                              height: 32,
-                              child: Center(
-                                child: Icon(
-                                  Icons.clear,
-                                  size: 20,
-                                  color: Theme.of(context).primaryColor,
-                                ),
-                              ),
-                            )
-                          : Container(),
-                      onTap: () {
-                        setState(() {
-                          _value = '';
-                          _valueController.text = '';
-                        });
-                      },
-                    ),
-                  ],
-                ),
-              ),
-            )
+                    onTap: () {
+                      final bool textChanged = _valueController.text.isNotEmpty;
+                      _valueController.clear();
+                      if (textChanged && widget.valueChanged != null) {
+                        widget.valueChanged(_valueController.text);
+                      }
+                    },
+                  ) : Container(),
           ],
-        ),
-        _showError(_error),
+        )
       ],
     );
-  }
-
-  Widget _showError(String error) {
-    if (error != null) {
-      return Text(
-        error,
-        style: TextStyle(
-          color: Colors.red,
-        ),
-      );
-    }
-    return Container();
   }
 }

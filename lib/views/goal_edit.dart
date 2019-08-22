@@ -1,25 +1,27 @@
+import 'package:data_life/views/my_date_picker_form_field.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:page_transition/page_transition.dart';
-import 'package:flutter_datetime_picker/flutter_datetime_picker.dart';
+import 'package:flutter/cupertino.dart';
 
-import 'package:data_life/localizations.dart';
+import 'package:percent_indicator/percent_indicator.dart';
 
 import 'package:data_life/models/goal.dart';
 import 'package:data_life/models/goal_action.dart';
 
 import 'package:data_life/views/goal_action_edit.dart';
-import 'package:data_life/views/progress_target_form_field.dart';
 import 'package:data_life/views/labeled_text_form_field.dart';
 import 'package:data_life/views/unique_check_form_field.dart';
 import 'package:data_life/views/common_dialog.dart';
-import 'package:data_life/views/date_picker_form_field.dart';
 import 'package:data_life/views/type_to_str.dart';
 import 'package:data_life/views/my_form_text_field.dart';
-import 'package:data_life/views/list_dialog.dart';
 
 import 'package:data_life/blocs/goal_bloc.dart';
+
+
+const double _kPickerSheetHeight = 216;
+
 
 void _showGoalActionEditPage(
     BuildContext context, Goal goal, GoalAction goalAction, bool readOnly) {
@@ -98,15 +100,12 @@ class _GoalEditState extends State<GoalEdit> {
   final Goal _goal = Goal();
   GoalBloc _goalBloc;
 
-  TextEditingController _targetController = TextEditingController();
-  TextEditingController _progressController = TextEditingController();
-
   final _formKey = GlobalKey<FormState>();
 
   final _nameFocusNode = FocusNode();
 
   String _title;
-  String _progressPercent;
+  double _progressPercent;
   String _howLong;
   String _customHowLong;
 
@@ -133,13 +132,6 @@ class _GoalEditState extends State<GoalEdit> {
 
     _progressPercent = _getProgressPercent();
 
-    _targetController.text = _getNumDisplayStr(_goal.target);
-    _targetController.addListener(() {
-      setState(() {
-        // _goal.target = num.tryParse(_targetController.text);
-      });
-    });
-
     _goalBloc = BlocProvider.of<GoalBloc>(context);
   }
 
@@ -155,17 +147,10 @@ class _GoalEditState extends State<GoalEdit> {
         title: Text(_title),
         centerTitle: true,
         actions: <Widget>[
-          _createEditAction(),
+          _createSaveAction(),
         ],
       ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
-      floatingActionButton: FloatingActionButton(
-        backgroundColor: Theme.of(context).primaryColor,
-        onPressed: () {},
-        child: Icon(
-          Icons.edit,
-        ),
-      ),
+      floatingActionButton: _createFloatingActionButton(),
       body: SafeArea(
         top: false,
         bottom: false,
@@ -191,101 +176,21 @@ class _GoalEditState extends State<GoalEdit> {
                   AbsorbPointer(
                     absorbing: _isReadOnly,
                     child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: <Widget>[
                         _createGoalNameField(),
+                        SizedBox(height: 8),
                         Divider(),
-                        // _createSeparator(),
+                        SizedBox(height: 8),
                         _createTargetProgressField(),
-                        _createSeparator(),
-                        _createGoalTimeField(),
+                        SizedBox(height: 16),
+                        Divider(),
+                        _createTimeField(),
                       ],
                     ),
                   ),
-                  _createSeparator(),
+                  Divider(),
                   _createGoalTaskField(),
-                  /*
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: ProgressTarget(
-                      padding: EdgeInsets.symmetric(vertical: 8),
-                      progressChanged: _progressChanged,
-                      targetChanged: _targetChanged,
-                      initialProgress: _goal.progress,
-                      initialTarget: _goal.target,
-                      enabled: !_isReadOnly,
-                    ),
-                  ),
-                  Divider(),
-                  SizedBox(height: 8),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: FormField(
-                      builder: (FormFieldState fieldState) {
-                        return Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: <Widget>[
-                            DatePickerFormField(
-                              labelText: 'From',
-                              initialDateTime:
-                                  DateTime.fromMillisecondsSinceEpoch(
-                                      _goal.startTime),
-                              selectDate: (date) {
-                                fieldState.didChange(null);
-                                print('Selected goal from date: $date');
-                                _goal.startTime = date.millisecondsSinceEpoch;
-                              },
-                              enabled: !_isReadOnly,
-                            ),
-                            DatePickerFormField(
-                              labelText: 'To',
-                              initialDateTime:
-                                  DateTime.fromMillisecondsSinceEpoch(
-                                      _goal.stopTime),
-                              selectDate: (date) {
-                                fieldState.didChange(null);
-                                print('Selected goal to date: $date');
-                                _goal.stopTime = date.millisecondsSinceEpoch;
-                              },
-                              enabled: !_isReadOnly,
-                            ),
-                            FormFieldError(
-                              errorText: fieldState.errorText,
-                            )
-                          ],
-                        );
-                      },
-                      autovalidate: true,
-                      validator: (value) {
-                        if (_isReadOnly) {
-                          return null;
-                        }
-                        var now = DateTime.now();
-                        var nowDate = DateTime(now.year, now.month, now.day);
-                        if (_isNewGoal) {
-                          if (_goal.startTime <
-                              nowDate.millisecondsSinceEpoch) {
-                            return '开始时间必须在当前时间之后';
-                          }
-                        }
-                        if (_goal.stopTime - _goal.startTime <
-                            Duration(days: 3).inMilliseconds) {
-                          return '时长必须大于三天';
-                        }
-                        if (_goal.startTime > _goal.stopTime) {
-                          return '开始时间必须早于结束时间';
-                        }
-                        return null;
-                      },
-                    ),
-                  ),
-                  SizedBox(height: 8),
-                  Divider(),
-                  SizedBox(height: 8),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: _createGoalActionWidget(),
-                  ),
-                  */
                 ],
               ),
             ),
@@ -295,12 +200,33 @@ class _GoalEditState extends State<GoalEdit> {
     );
   }
 
-  bool get _isNewGoal => widget.goal == null;
-
-  String _formatDateFromMillis(int t) {
-    return DateFormat(DateFormat.YEAR_ABBR_MONTH_WEEKDAY_DAY)
-        .format(DateTime.fromMillisecondsSinceEpoch(t));
+  Widget _createFloatingActionButton() {
+    if (_isNewGoal) {
+      return Container();
+    }
+    if (!_isReadOnly) {
+      return Container();
+    }
+    if (_goal.status == GoalStatus.finished ||
+        _goal.status == GoalStatus.expired) {
+      return Container();
+    }
+    return FloatingActionButton(
+      backgroundColor: Theme.of(context).primaryColor,
+      onPressed: () {
+        setState(() {
+          _isReadOnly = false;
+          _title = '修改目标';
+        });
+        FocusScope.of(context).requestFocus(_nameFocusNode);
+      },
+      child: Icon(
+        Icons.edit,
+      ),
+    );
   }
+
+  bool get _isNewGoal => widget.goal == null;
 
   bool _isNeedExitConfirm() {
     _updateGoalFromForm();
@@ -332,38 +258,6 @@ class _GoalEditState extends State<GoalEdit> {
 
   void _nameChanged(String text) {
     _goal.name = text;
-  }
-
-  void _targetChanged(num value) {
-    _goal.target = value;
-  }
-
-  void _progressChanged(num value) {
-    _goal.progress = value;
-  }
-
-  Widget _createAddGoalActionButton() {
-    return InkWell(
-      child: Padding(
-        padding: EdgeInsets.only(left: 0, top: 8.0, right: 0, bottom: 8.0),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: <Widget>[
-            Icon(Icons.add, size: 24.0),
-            SizedBox(width: 8.0),
-            Text(
-              AppLocalizations.of(context).addAction,
-              style: Theme.of(context).textTheme.subhead,
-            ),
-          ],
-        ),
-      ),
-      onTap: _isReadOnly
-          ? null
-          : () {
-              _showGoalActionEditPage(context, _goal, null, false);
-            },
-    );
   }
 
   Widget _createGoalActionItem(Goal goal, GoalAction goalAction) {
@@ -434,7 +328,7 @@ class _GoalEditState extends State<GoalEdit> {
     );
   }
 
-  Widget _createGoalActionWidget() {
+  Widget _buildGoalAction() {
     final toDoItems = <Widget>[];
     for (GoalAction goalAction in _goal.goalActions) {
       toDoItems.add(_createGoalActionItem(_goal, goalAction));
@@ -525,7 +419,7 @@ class _GoalEditState extends State<GoalEdit> {
     );
   }
 
-  Widget _createEditAction() {
+  Widget _createSaveAction() {
     if (_isNewGoal) {
       return _createCheckAction();
     }
@@ -534,38 +428,25 @@ class _GoalEditState extends State<GoalEdit> {
       return Container();
     }
     if (_isReadOnly) {
-      return IconButton(
-        icon: Icon(Icons.edit),
-        onPressed: () {
-          setState(() {
-            _isReadOnly = false;
-            _title = '修改目标';
-          });
-          FocusScope.of(context).requestFocus(_nameFocusNode);
-        },
-      );
-    } else {
-      return _createCheckAction();
+      return Container();
     }
+    return _createCheckAction();
   }
 
   Color _captionColor(BuildContext context) {
     return Theme.of(context).textTheme.caption.color;
   }
 
-  Widget _createSeparator() {
-    return Container(
-      width: double.infinity,
-      height: 8,
-    );
+  double _getProgressPercent() {
+    if (_goal.progress == null || _goal.target == null || _goal.target == 0) {
+      return 0.0;
+    }
+    double percent = _goal.progress / _goal.target;
+    return percent;
   }
 
-  String _getProgressPercent() {
-    if (_goal.progress == null || _goal.target == null || _goal.target == 0) {
-      return '0%';
-    }
-    double percent = _goal.progress / _goal.target * 100;
-    return '${percent.toInt()}%';
+  String _getGoalProgressPercentStr(double percent) {
+    return '${(percent * 100).toStringAsFixed(1)}%';
   }
 
   String _getNumDisplayStr(num num) {
@@ -611,295 +492,183 @@ class _GoalEditState extends State<GoalEdit> {
   }
 
   Widget _createTargetProgressField() {
-    return Material(
-      color: Colors.white,
-      child: Padding(
-        padding: const EdgeInsets.only(left: 16, top: 8, bottom: 8, right: 16),
-        child: Column(
-          children: <Widget>[
-            MyFormTextField(
-              name: '目标值',
-              inputHint: '输入目标值',
-              initialValue: _getNumDisplayStr(_goal.target),
-              valueMutable: !_isReadOnly,
-              valueChanged: (String text) {
-                num value = num.tryParse(text);
-                setState(() {
-                  _goal.target = value ?? 0;
-                  _progressPercent = _getProgressPercent();
-                });
-              },
-              validator: (String text) {
-                if (text == null || text.isEmpty) {
-                  return '目标值不能为空';
-                }
-                var val = num.tryParse(text);
-                if (val == null) {
-                  return '目标值必须是数字';
-                }
-                if (val <= 0) {
-                  return '目标值必须大于 0';
-                }
-                return null;
-              },
-            ),
-            Divider(),
-            MyFormTextField(
-              name: '当前进度值',
-              inputHint: '输入当前进度值',
-              initialValue: _getNumDisplayStr(_goal.progress),
-              valueMutable: !_isReadOnly,
-              valueChanged: (String text) {
-                num value = num.tryParse(text);
-                setState(() {
-                  _goal.progress = value ?? 0;
-                  _progressPercent = _getProgressPercent();
-                });
-              },
-              validator: (String text) {
-                if (text == null || text.isEmpty) {
-                  return '当前进度值不能为空';
-                }
-                var val = num.tryParse(text);
-                if (val == null) {
-                  return '当前进度值必须是数字';
-                }
-                if (val < 0) {
-                  return '当前进度值必须是正数';
-                }
-                return null;
-              },
-            ),
-            Divider(),
-            MyImmutableFormTextField(
-              name: '完成百分比',
-              value: _progressPercent,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  bool get _modifiable => !_isReadOnly;
-
-  Widget _createGoalTimeField() {
-    final String custom = '自定义...';
-    _customHowLong = custom;
-    var howLongValues = <String>[
-      '1 周',
-      '半个月',
-      '1 个月',
-      '3 个月',
-      '半年',
-      '1 年',
-      custom,
-    ];
-    return Material(
-      color: Colors.white,
-      child: Padding(
-        padding: const EdgeInsets.only(left: 16, top: 8, right: 16, bottom: 8),
-        child: Column(
-          children: <Widget>[
-            FlatButton(
-              child: Text('Current $_howLong'),
-              onPressed: () {
-                showDialog(
-                    context: context,
-                    builder: (context) {
-                      return ListDialog<String>(
-                        items: howLongValues.map((howLong) {
-                          String howLongText = howLong;
-                          if (howLong == custom) {
-                            howLongText = _customHowLong;
-                          }
-                          return ListDialogItem<String>(
-                            value: howLong,
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: <Widget>[
-                                Text(howLongText),
-                                howLong == _howLong ? Icon(Icons.check,
-                                  color: Colors.blue,
-                                ) : Container(),
-                              ],
-                            ),
-                          );
-                        }).toList(),
-                        value: _howLong,
-                        onChanged: (String newValue) {
-                          setState(() {
-                            _howLong = newValue;
-                          });
-                          if (newValue == custom) {
-                            showModalBottomSheet(context:
-                              context,
-                              builder: (context) {
-                                return _createCustomHowLongWidget();
-                              },
-                            );
-                          }
-                        },
-                        contentPadding: EdgeInsets.fromLTRB(0, 16, 0, 16),
-                        itemPadding: EdgeInsets.fromLTRB(32, 8, 32, 8),
-                      );
-                    });
-              },
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: <Widget>[
-                Flexible(
-                    flex: 1,
-                    child: Text(
-                      '开始时间',
-                      style: _fieldNameTextStyle(),
-                    )),
-                Expanded(
-                  flex: 2,
-                  child: GestureDetector(
-                    behavior: HitTestBehavior.opaque,
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 8),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: <Widget>[
-                          Text(
-                            _formatDateFromMillis(_goal.startTime),
-                            textAlign: TextAlign.end,
-                            style: _fieldValueTextStyle(_modifiable),
-                          ),
-                          _isReadOnly
-                              ? Container()
-                              : Icon(
-                                  Icons.chevron_right,
-                                  color: _captionColor(context),
-                                ),
-                        ],
-                      ),
-                    ),
-                    onTap: () {
-                      DatePicker.showDatePicker(
-                        context,
-                        currentTime: DateTime.fromMillisecondsSinceEpoch(
-                            _goal.startTime),
-                        showTitleActions: true,
-                        onConfirm: (value) {
-                          setState(() {
-                            _goal.startTime = value.millisecondsSinceEpoch;
-                          });
-                        },
-                        minTime: DateTime(1898, 8),
-                        maxTime: DateTime(2998, 8),
-                      );
-                    },
-                  ),
-                )
-              ],
-            ),
-            Divider(),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: <Widget>[
-                Flexible(
-                    flex: 1,
-                    child: Text(
-                      '结束时间',
-                      style: _fieldNameTextStyle(),
-                    )),
-                Expanded(
-                  flex: 2,
-                  child: GestureDetector(
-                    behavior: HitTestBehavior.opaque,
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 8),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: <Widget>[
-                          Text(
-                            _formatDateFromMillis(_goal.stopTime),
-                            textAlign: TextAlign.end,
-                            style: _fieldValueTextStyle(_modifiable),
-                          ),
-                          _isReadOnly
-                              ? Container()
-                              : Icon(
-                                  Icons.chevron_right,
-                                  color: _captionColor(context),
-                                ),
-                        ],
-                      ),
-                    ),
-                    onTap: () {
-                      DatePicker.showDatePicker(
-                        context,
-                        currentTime:
-                            DateTime.fromMillisecondsSinceEpoch(_goal.stopTime),
-                        showTitleActions: true,
-                        onConfirm: (value) {
-                          setState(() {
-                            _goal.stopTime = value.millisecondsSinceEpoch;
-                          });
-                        },
-                        minTime: DateTime(1898, 8),
-                        maxTime: DateTime(2998, 8),
-                      );
-                    },
-                  ),
-                )
-              ],
-            ),
-            Divider(),
-            MyImmutableFormTextField(
-              name: '持续时间',
-              value:
-                  '${Duration(milliseconds: (_goal.stopTime - _goal.startTime)).inDays} 天',
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _createGoalTaskField() {
-    return Material(
-      color: Colors.white,
+    return Padding(
+      padding: const EdgeInsets.only(left: 16, top: 8, bottom: 8, right: 16),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
-          Padding(
-            padding:
-                const EdgeInsets.only(left: 16, top: 16, right: 16, bottom: 0),
-            child: Text(
-              '任务',
-              style: Theme.of(context).textTheme.caption,
-            ),
+          MyFormTextField(
+            name: '目标值',
+            inputHint: '输入目标值',
+            initialValue: _getNumDisplayStr(_goal.target),
+            valueMutable: !_isReadOnly,
+            valueChanged: (String text) {
+              num value = num.tryParse(text);
+              setState(() {
+                _goal.target = value ?? 0;
+                _progressPercent = _getProgressPercent();
+              });
+            },
+            validator: (String text) {
+              if (text == null || text.isEmpty) {
+                return '目标值不能为空';
+              }
+              var val = num.tryParse(text);
+              if (val == null) {
+                return '目标值必须是数字';
+              }
+              if (val <= 0) {
+                return '目标值必须大于 0';
+              }
+              return null;
+            },
           ),
-          Divider(),
-          _createGoalActionWidget(),
+          SizedBox(height: 8),
+          MyFormTextField(
+            name: '当前进度值',
+            inputHint: '输入当前进度值',
+            initialValue: _getNumDisplayStr(_goal.progress),
+            valueMutable: !_isReadOnly,
+            valueChanged: (String text) {
+              num value = num.tryParse(text);
+              setState(() {
+                _goal.progress = value ?? 0;
+                _progressPercent = _getProgressPercent();
+              });
+            },
+            validator: (String text) {
+              if (text == null || text.isEmpty) {
+                return '当前进度值不能为空';
+              }
+              var val = num.tryParse(text);
+              if (val == null) {
+                return '当前进度值必须是数字';
+              }
+              if (val < 0) {
+                return '当前进度值必须是正数';
+              }
+              return null;
+            },
+          ),
+          SizedBox(height: 8),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Text(
+                '完成百分比 ${_getGoalProgressPercentStr(_progressPercent)}',
+                style: Theme.of(context).textTheme.caption,
+              ),
+              SizedBox(height: 16),
+              LinearPercentIndicator(
+                percent: _progressPercent > 1 ? 1 : _progressPercent,
+                lineHeight: 10,
+                backgroundColor: Colors.grey[300],
+                linearStrokeCap: LinearStrokeCap.butt,
+                padding: EdgeInsets.symmetric(horizontal: 0),
+                progressColor: Colors.green,
+              ),
+            ],
+          ),
         ],
       ),
     );
   }
 
-  Color _modifiableFieldColor(bool modifiable) {
-    if (modifiable) {
-      return Colors.black;
-    } else {
-      return _captionColor(context);
-    }
+  Widget _createTimeField() {
+    DateTime now = DateTime.now();
+    return FormField(
+      builder: (FormFieldState fieldState) {
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: <Widget>[
+            SizedBox(height: 16),
+            MyDatePickerFormField(
+              labelName: '开始时间',
+              onChanged: (DateTime newDateTime) {
+                fieldState.didChange(null);
+                setState(() {
+                  _goal.startDateTime = newDateTime;
+                });
+              },
+              mutable: !_isReadOnly,
+              initialDateTime: _goal.startDateTime,
+              mode: CupertinoDatePickerMode.date,
+              labelPadding: EdgeInsets.symmetric(horizontal: 16),
+              valuePadding: EdgeInsets.symmetric(horizontal: 16),
+            ),
+            SizedBox(height: 8),
+            MyDatePickerFormField(
+              labelName: '结束时间',
+              onChanged: (DateTime newDateTime) {
+                fieldState.didChange(null);
+                setState(() {
+                  _goal.stopDateTime = newDateTime;
+                });
+              },
+              mutable: !_isReadOnly,
+              initialDateTime: _goal.stopDateTime,
+              mode: CupertinoDatePickerMode.date,
+              labelPadding: EdgeInsets.symmetric(horizontal: 16),
+              valuePadding: EdgeInsets.symmetric(horizontal: 16),
+            ),
+            FormFieldError(
+              errorText: fieldState.errorText,
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: MyImmutableFormTextField(
+                name: '目标时长',
+                value: '${_goal.durationInDays} 天',
+              ),
+            ),
+          ],
+        );
+      },
+      autovalidate: true,
+      validator: (value) {
+        if (_isReadOnly) {
+          return null;
+        }
+        var now = DateTime.now();
+        var nowDate = DateTime(now.year, now.month, now.day);
+        if (_isNewGoal) {
+          if (_goal.startTime <
+              nowDate.millisecondsSinceEpoch) {
+            return '开始时间必须在当前时间之后';
+          }
+        }
+        if (_goal.startTime > _goal.stopTime) {
+          return '开始时间必须早于结束时间';
+        }
+        if (_goal.stopTime - _goal.startTime <
+            Duration(days: 3).inMilliseconds) {
+          return '时长必须大于三天';
+        }
+        return null;
+      },
+    );
   }
+
+  Widget _createGoalTaskField() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: <Widget>[
+        Padding(
+          padding:
+              const EdgeInsets.only(left: 16, top: 16, right: 16, bottom: 0),
+          child: Text(
+            '任务',
+            style: Theme.of(context).textTheme.caption,
+          ),
+        ),
+        _buildGoalAction(),
+      ],
+    );
+  }
+
 
   TextStyle _fieldNameTextStyle() {
     return TextStyle(
       fontSize: 16,
-    );
-  }
-
-  TextStyle _fieldValueTextStyle(bool modifiable) {
-    return TextStyle(
-      fontSize: 16,
-      color: _modifiableFieldColor(modifiable),
     );
   }
 
@@ -957,4 +726,27 @@ class _GoalEditState extends State<GoalEdit> {
       ),
     );
   }
+
+  Widget _buildBottomPicker(Widget picker) {
+    return Container(
+      height: _kPickerSheetHeight,
+      padding: const EdgeInsets.only(top: 6.0),
+      color: CupertinoColors.white,
+      child: DefaultTextStyle(
+        style: const TextStyle(
+          color: CupertinoColors.black,
+          fontSize: 22.0,
+        ),
+        child: GestureDetector(
+          // Blocks taps from propagating to the modal sheet and popping.
+          onTap: () { },
+          child: SafeArea(
+            top: false,
+            child: picker,
+          ),
+        ),
+      ),
+    );
+  }
+
 }
