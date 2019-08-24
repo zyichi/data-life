@@ -29,6 +29,12 @@ class Moment {
   Location _location;
   List<Contact> contacts = <Contact>[];
 
+  DateTime get beginDateTime => DateTime.fromMillisecondsSinceEpoch(this.beginTime);
+  set beginDateTime(DateTime value) => this.beginTime = value.millisecondsSinceEpoch;
+
+  DateTime get endDateTime => DateTime.fromMillisecondsSinceEpoch(this.endTime);
+  set endDateTime(DateTime value) => this.endTime = value.millisecondsSinceEpoch;
+
   MyAction get action => _action;
   set action(MyAction a) {
     _action = a;

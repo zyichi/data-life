@@ -20,18 +20,15 @@ import 'package:data_life/views/my_form_text_field.dart';
 import 'package:data_life/blocs/goal_bloc.dart';
 
 
-const double _kPickerSheetHeight = 216;
-
 
 void _showGoalActionEditPage(
-    BuildContext context, Goal goal, GoalAction goalAction, bool readOnly) {
+    BuildContext context, Goal goal, GoalAction goalAction) {
   Navigator.push(
       context,
       PageTransition(
         child: GoalActionEdit(
           goal: goal,
           goalAction: goalAction,
-          parentReadOnly: readOnly,
         ),
         type: PageTransitionType.rightToLeft,
       ));
@@ -76,7 +73,7 @@ class _GoalActionItem extends StatelessWidget {
         ),
       ),
       onTap: () {
-        _showGoalActionEditPage(context, goal, goalAction, parentReadOnly);
+        _showGoalActionEditPage(context, goal, goalAction);
       },
     );
   }
@@ -147,7 +144,7 @@ class _GoalEditState extends State<GoalEdit> {
         title: Text(_title),
         centerTitle: true,
         actions: <Widget>[
-          _createSaveAction(),
+          _buildSaveAction(),
         ],
       ),
       floatingActionButton: _createFloatingActionButton(),
@@ -178,19 +175,19 @@ class _GoalEditState extends State<GoalEdit> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: <Widget>[
-                        _createGoalNameField(),
+                        _buildGoalNameField(),
                         SizedBox(height: 8),
                         Divider(),
                         SizedBox(height: 8),
-                        _createTargetProgressField(),
+                        _buildTargetProgressField(),
                         SizedBox(height: 16),
                         Divider(),
-                        _createTimeField(),
+                        _buildTimeField(),
                       ],
                     ),
                   ),
                   Divider(),
-                  _createGoalTaskField(),
+                  _buildGoalTaskField(),
                 ],
               ),
             ),
@@ -260,65 +257,102 @@ class _GoalEditState extends State<GoalEdit> {
     _goal.name = text;
   }
 
-  Widget _createGoalActionItem(Goal goal, GoalAction goalAction) {
-    return InkWell(
-      child: Padding(
-        padding: const EdgeInsets.only(left: 16, top: 8, right: 16, bottom: 8),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: <Widget>[
-            Text(
-              goalAction.action.name,
-              style: _fieldNameTextStyle(),
-            ),
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: <Widget>[
-                Text(
-                  TypeToStr.goalActionStatusToStr(goalAction.status, context),
-                  style: TextStyle(color: _captionColor(context)),
-                ),
-                SizedBox(width: 0),
-                Icon(
-                  Icons.chevron_right,
-                  color: _captionColor(context),
-                ),
-              ],
-            ),
-          ],
+  Widget _buildGoalActionDeleteView(Goal goal, GoalAction goalAction) {
+    if (_isReadOnly) {
+      return Container(width: 8);
+    }
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      child: Container(
+        height: 32,
+        padding: EdgeInsets.only(left: 8, right: 8),
+        child: Icon(
+          Icons.remove_circle,
+          color: Colors.red,
         ),
       ),
       onTap: () {
-        _showGoalActionEditPage(context, _goal, goalAction, _isReadOnly);
       },
     );
   }
 
-  Widget _createAddGoalActionItem() {
+  Widget _buildGoalActionItem(Goal goal, GoalAction goalAction) {
+    return Padding(
+      padding: const EdgeInsets.only(left: 8),
+      child: Row(
+        children: <Widget>[
+          _buildGoalActionDeleteView(goal, goalAction),
+          Expanded(
+            child: InkWell(
+              child: Padding(
+                padding: const EdgeInsets.only(left: 0, top: 8, right: 16, bottom: 8),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: <Widget>[
+                    Text(
+                      goalAction.action.name,
+                      style: _fieldNameTextStyle(),
+                    ),
+                    Row(
+                      children: <Widget>[
+                        Text(
+                          TypeToStr.goalActionStatusToStr(goalAction.status, context),
+                          style: TextStyle(color: _captionColor(context)),
+                        ),
+                        SizedBox(width: 8),
+                        Icon(
+                          Icons.chevron_right,
+                          color: _captionColor(context),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              onTap: () {
+                _showGoalActionEditPage(context, _goal, goalAction);
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAddGoalActionButton() {
+    Color actionColor = Theme.of(context).primaryColorDark;
     return InkWell(
       child: Padding(
         padding: const EdgeInsets.only(left: 16, top: 8, right: 16, bottom: 8),
         child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          mainAxisAlignment: MainAxisAlignment.start,
           children: <Widget>[
+            Icon(Icons.add_circle,
+              color: actionColor,
+            ),
+            SizedBox(width: 8),
             Text(
               '添加新任务',
               style: _fieldNameTextStyle().copyWith(
-                color: Theme.of(context).primaryColorDark,
+                color: actionColor,
               ),
             ),
+            /*
+            Spacer(),
             Icon(Icons.chevron_right,
-                color: Theme.of(context).primaryColorDark),
+                color: actionColor,
+            ),
+             */
           ],
         ),
       ),
       onTap: () {
-        _showGoalActionEditPage(context, _goal, null, false);
+        _showGoalActionEditPage(context, _goal, null);
       },
     );
   }
 
-  Widget _emptyGoalActionItem() {
+  Widget _buildEmptyGoalActionItem() {
     return Padding(
       padding: const EdgeInsets.only(left: 16, top: 8, right: 16, bottom: 8),
       child: Text(
@@ -331,32 +365,13 @@ class _GoalEditState extends State<GoalEdit> {
   Widget _buildGoalAction() {
     final toDoItems = <Widget>[];
     for (GoalAction goalAction in _goal.goalActions) {
-      toDoItems.add(_createGoalActionItem(_goal, goalAction));
-      toDoItems.add(Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        child: Divider(),
-      ));
+      toDoItems.add(_buildGoalActionItem(_goal, goalAction));
     }
-    // Remove last divider
-    if (_isReadOnly) {
-      if (toDoItems.isNotEmpty) {
-        toDoItems.removeLast();
-      } else {
-        toDoItems.add(_emptyGoalActionItem());
-      }
-      toDoItems.add(SizedBox(
-        height: 8,
-      ));
-    } else {
-      if (toDoItems.isEmpty) {
-        toDoItems.add(_emptyGoalActionItem());
-        toDoItems.add(Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Divider(),
-        ));
-      }
-      toDoItems.add(_createAddGoalActionItem());
-      toDoItems.add(SizedBox(height: 8));
+    if (toDoItems.isEmpty) {
+      toDoItems.add(_buildEmptyGoalActionItem());
+    }
+    if (!_isReadOnly) {
+      toDoItems.add(_buildAddGoalActionButton());
     }
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -407,7 +422,7 @@ class _GoalEditState extends State<GoalEdit> {
     );
   }
 
-  Widget _createCheckAction() {
+  Widget _buildCheckAction() {
     return IconButton(
       icon: Icon(Icons.check),
       onPressed: () {
@@ -419,9 +434,9 @@ class _GoalEditState extends State<GoalEdit> {
     );
   }
 
-  Widget _createSaveAction() {
+  Widget _buildSaveAction() {
     if (_isNewGoal) {
-      return _createCheckAction();
+      return _buildCheckAction();
     }
     if (_goal.status == GoalStatus.finished ||
         _goal.status == GoalStatus.expired) {
@@ -430,7 +445,7 @@ class _GoalEditState extends State<GoalEdit> {
     if (_isReadOnly) {
       return Container();
     }
-    return _createCheckAction();
+    return _buildCheckAction();
   }
 
   Color _captionColor(BuildContext context) {
@@ -461,7 +476,7 @@ class _GoalEditState extends State<GoalEdit> {
     }
   }
 
-  Widget _createGoalNameField() {
+  Widget _buildGoalNameField() {
     return Material(
       color: Colors.white,
       child: Padding(
@@ -473,10 +488,10 @@ class _GoalEditState extends State<GoalEdit> {
           textStyle: Theme.of(context).textTheme.subhead.copyWith(fontSize: 24),
           validator: (String text, bool isUnique) {
             if (text.isEmpty) {
-              return 'Goal name can not empty';
+              return '目标名称不能为空';
             }
             if (!isUnique && text != widget.goal?.name) {
-              return 'Goal name already exist';
+              return '目标名称已经存在';
             }
             return null;
           },
@@ -486,12 +501,13 @@ class _GoalEditState extends State<GoalEdit> {
             return _goalBloc.goalNameUniqueCheck(text);
           },
           autofocus: _isNewGoal,
+          mutable: !_isReadOnly,
         ),
       ),
     );
   }
 
-  Widget _createTargetProgressField() {
+  Widget _buildTargetProgressField() {
     return Padding(
       padding: const EdgeInsets.only(left: 16, top: 8, bottom: 8, right: 16),
       child: Column(
@@ -573,8 +589,7 @@ class _GoalEditState extends State<GoalEdit> {
     );
   }
 
-  Widget _createTimeField() {
-    DateTime now = DateTime.now();
+  Widget _buildTimeField() {
     return FormField(
       builder: (FormFieldState fieldState) {
         return Column(
@@ -648,7 +663,7 @@ class _GoalEditState extends State<GoalEdit> {
     );
   }
 
-  Widget _createGoalTaskField() {
+  Widget _buildGoalTaskField() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: <Widget>[
@@ -656,7 +671,7 @@ class _GoalEditState extends State<GoalEdit> {
           padding:
               const EdgeInsets.only(left: 16, top: 16, right: 16, bottom: 0),
           child: Text(
-            '任务',
+            '任务列表',
             style: Theme.of(context).textTheme.caption,
           ),
         ),
@@ -665,87 +680,9 @@ class _GoalEditState extends State<GoalEdit> {
     );
   }
 
-
   TextStyle _fieldNameTextStyle() {
     return TextStyle(
       fontSize: 16,
-    );
-  }
-
-  Widget _createCustomHowLongWidget() {
-    return Container(
-      child: Column(
-        children: <Widget>[
-          Text('2 年 1 个月 15 天'),
-          Row(
-            children: <Widget>[
-              Container(
-                width: 60,
-                child: TextField(
-                  textAlign: TextAlign.center,
-                  keyboardType:
-                  TextInputType.numberWithOptions(signed: true),
-                  decoration: InputDecoration(),
-                  style: Theme.of(context).textTheme.subhead,
-                  controller: TextEditingController(text: '1'),
-                ),
-              ),
-              SizedBox(width: 16),
-              Text('年'),
-              SizedBox(width: 16),
-              Container(
-                width: 40,
-                child: TextField(
-                  textAlign: TextAlign.center,
-                  keyboardType:
-                  TextInputType.numberWithOptions(signed: true),
-                  decoration: InputDecoration(),
-                  style: Theme.of(context).textTheme.subhead,
-                  controller: TextEditingController(text: '6'),
-                ),
-              ),
-              SizedBox(width: 16),
-              Text('个月'),
-              SizedBox(width: 16),
-              Container(
-                width: 60,
-                child: TextField(
-                  textAlign: TextAlign.center,
-                  keyboardType:
-                  TextInputType.numberWithOptions(signed: true),
-                  decoration: InputDecoration(),
-                  style: Theme.of(context).textTheme.subhead,
-                  controller: TextEditingController(text: '12'),
-                ),
-              ),
-              SizedBox(width: 16),
-              Text('天'),
-            ],
-          )
-        ],
-      ),
-    );
-  }
-
-  Widget _buildBottomPicker(Widget picker) {
-    return Container(
-      height: _kPickerSheetHeight,
-      padding: const EdgeInsets.only(top: 6.0),
-      color: CupertinoColors.white,
-      child: DefaultTextStyle(
-        style: const TextStyle(
-          color: CupertinoColors.black,
-          fontSize: 22.0,
-        ),
-        child: GestureDetector(
-          // Blocks taps from propagating to the modal sheet and popping.
-          onTap: () { },
-          child: SafeArea(
-            top: false,
-            child: picker,
-          ),
-        ),
-      ),
     );
   }
 

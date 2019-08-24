@@ -118,10 +118,9 @@ class GoalActionEdit extends StatefulWidget {
   static const routeName = '/goalActionEdit';
   final Goal goal;
   final GoalAction goalAction;
-  final bool parentReadOnly;
 
   const GoalActionEdit(
-      {this.goal, this.goalAction, this.parentReadOnly = false})
+      {this.goal, this.goalAction})
       : assert(goal != null);
 
   @override
@@ -135,40 +134,12 @@ class _GoalActionEditState extends State<GoalActionEdit> {
   final GoalAction _goalAction = GoalAction();
   bool _isReadOnly = false;
   final FocusNode _actionNameFocusNode = FocusNode();
-  final FocusNode _progressFocusNode = FocusNode();
   final TextEditingController _actionNameController = TextEditingController();
   GoalBloc _goalEditBloc;
   bool _autoValidateActionName = false;
   String _repeatText;
   Repeat _customRepeat;
-
-  bool _isNeedExitConfirm() {
-    _updateGoalActionFromForm();
-    if (_isNewGoalAction) {
-      if (_goalAction.action != null) {
-        return true;
-      } else {
-        return false;
-      }
-    } else {
-      if (_isReadOnly) {
-        return false;
-      }
-      if (_goalAction.isContentSameWith(widget.goalAction)) {
-        return false;
-      } else {
-        return true;
-      }
-    }
-  }
-
-  Future<bool> _onWillPop() async {
-    if (!_isNeedExitConfirm()) {
-      return true;
-    }
-    return await CommonDialog.showEditExitConfirmDialog(context,
-        'Are you sure you want to discard your changes to the goal action?');
-  }
+  String _title;
 
   @override
   void initState() {
@@ -182,6 +153,8 @@ class _GoalActionEditState extends State<GoalActionEdit> {
       _goalAction.copy(widget.goalAction);
 
       _actionNameController.text = _goalAction.action.name;
+
+      _title = '任务';
     } else {
       DateTime now = DateTime.now();
       _goalAction.goalId = widget.goal.id;
@@ -189,6 +162,8 @@ class _GoalActionEditState extends State<GoalActionEdit> {
       _goalAction.stopTime =
           _goalAction.startTime + Duration(hours: 1).inMilliseconds;
       _goalAction.setRepeat(Repeat.oneTime(now));
+
+      _title = '添加新任务';
     }
 
     _actionNameController.addListener(() {
@@ -200,134 +175,6 @@ class _GoalActionEditState extends State<GoalActionEdit> {
     });
   }
 
-  bool get _isNewGoalAction => widget.goalAction == null;
-
-  Widget _createEditAction() {
-    if (widget.parentReadOnly) return Container();
-    if (_isReadOnly) {
-      return IconButton(
-        icon: Icon(Icons.edit),
-        onPressed: () {
-          setState(() {
-            _isReadOnly = false;
-          });
-          FocusScope.of(context).requestFocus(_progressFocusNode);
-        },
-      );
-    } else {
-      return IconButton(
-        icon: Icon(Icons.check),
-        onPressed: () {
-          if (_formKey.currentState.validate()) {
-            _editGoalAction();
-            Navigator.of(context).pop(true);
-          }
-        },
-      );
-    }
-  }
-
-  Widget _createMoreActionMenu() {
-    if (widget.parentReadOnly || _isNewGoalAction) return Container();
-    return PopupMenuButton<String>(
-      icon: Icon(Icons.more_vert),
-      onSelected: (value) {
-        if (value == 'delete') {
-          _deleteGoalAction();
-          Navigator.of(context).pop(true);
-        }
-      },
-      itemBuilder: (context) {
-        return [
-          PopupMenuItem<String>(
-            value: 'delete',
-            child: Text('Delete'),
-          ),
-        ];
-      },
-    );
-  }
-
-  Widget _createActionNameFormField() {
-    return TypeAheadFormField(
-      hideOnEmpty: true,
-      hideOnLoading: true,
-      getImmediateSuggestions: true,
-      textFieldConfiguration: TextFieldConfiguration(
-        decoration: InputDecoration(
-          hintText: 'Enter action',
-          border: InputBorder.none,
-        ),
-        controller: _actionNameController,
-        focusNode: _actionNameFocusNode,
-        style: Theme.of(context).textTheme.subhead.copyWith(fontSize: 24),
-        // autofocus: !_isReadOnly,
-        enabled: _isNewGoalAction,
-      ),
-      onSuggestionSelected: (MyAction action) {
-        _actionNameController.text = action.name;
-        _goalAction.action = action;
-      },
-      itemBuilder: (context, suggestion) {
-        final action = suggestion as MyAction;
-        return Padding(
-          padding: const EdgeInsets.only(left: 8.0, top: 8.0, bottom: 8.0),
-          child: Text(
-            action.name,
-          ),
-        );
-      },
-      suggestionsCallback: (pattern) {
-        return _goalEditBloc.getActionSuggestions(pattern);
-      },
-      validator: (value) {
-        if (!_isNewGoalAction) {
-          return null;
-        }
-        if (value.isEmpty) {
-          return 'Please enter action';
-        }
-        for (var goalAction in widget.goal.goalActions) {
-          if (goalAction.action.name == value) {
-            return 'Action already exist in goal';
-          }
-        }
-        return null;
-      },
-      autovalidate: _autoValidateActionName,
-    );
-  }
-
-  void _updateGoalActionFromForm() {
-    if (_goalAction.action == null) {
-      if (_actionNameController.text.isNotEmpty) {
-        var a = MyAction();
-        a.name = _actionNameController.text;
-        _goalAction.action = a;
-      }
-    }
-  }
-
-  void _editGoalAction() {
-    _updateGoalActionFromForm();
-    if (_isNewGoalAction) {
-      setState(() {
-        _autoValidateActionName = false;
-      });
-      widget.goal.goalActions.add(_goalAction);
-      _goalEditBloc.dispatch(AddGoalAction(goalAction: _goalAction));
-    } else {
-      widget.goalAction.copy(_goalAction);
-      _goalEditBloc.dispatch(UpdateGoalAction(
-          oldGoalAction: widget.goalAction, newGoalAction: _goalAction));
-    }
-  }
-
-  void _deleteGoalAction() {
-    widget.goal.goalActions.remove(widget.goalAction);
-    _goalEditBloc.dispatch(DeleteGoalAction(goalAction: widget.goalAction));
-  }
-
   @override
   Widget build(BuildContext context) {
     _repeatText =
@@ -337,13 +184,13 @@ class _GoalActionEditState extends State<GoalActionEdit> {
     }
     return Scaffold(
       appBar: AppBar(
-        title: Text(_goalAction.action?.name ?? 'Action'),
+        title: Text(_title),
         centerTitle: true,
         actions: <Widget>[
-          _createEditAction(),
-          _createMoreActionMenu(),
+          _buildSaveAction(),
         ],
       ),
+      floatingActionButton: _createFloatingActionButton(),
       body: SafeArea(
         top: false,
         bottom: false,
@@ -455,4 +302,153 @@ class _GoalActionEditState extends State<GoalActionEdit> {
       ),
     );
   }
+
+  Widget _createFloatingActionButton() {
+    if (_isNewGoalAction) {
+      return Container();
+    }
+    if (!_isReadOnly) {
+      return Container();
+    }
+    return FloatingActionButton(
+      backgroundColor: Theme.of(context).primaryColor,
+      onPressed: () {
+        setState(() {
+          _isReadOnly = false;
+          _title = '修改任务';
+        });
+        FocusScope.of(context).requestFocus(_actionNameFocusNode);
+      },
+      child: Icon(
+        Icons.edit,
+      ),
+    );
+  }
+
+  bool get _isNewGoalAction => widget.goalAction == null;
+
+  Widget _buildSaveAction() {
+    if (_isReadOnly) {
+      return Container();
+    } else {
+      return IconButton(
+        icon: Icon(Icons.check),
+        onPressed: () {
+          if (_formKey.currentState.validate()) {
+            _editGoalAction();
+            Navigator.of(context).pop(true);
+          }
+        },
+      );
+    }
+  }
+
+  bool _isNeedExitConfirm() {
+    _updateGoalActionFromForm();
+    if (_isNewGoalAction) {
+      if (_goalAction.action != null) {
+        return true;
+      } else {
+        return false;
+      }
+    } else {
+      if (_isReadOnly) {
+        return false;
+      }
+      if (_goalAction.isContentSameWith(widget.goalAction)) {
+        return false;
+      } else {
+        return true;
+      }
+    }
+  }
+
+  Future<bool> _onWillPop() async {
+    if (!_isNeedExitConfirm()) {
+      return true;
+    }
+    return await CommonDialog.showEditExitConfirmDialog(context,
+        'Are you sure you want to discard your changes to the goal action?');
+  }
+
+  Widget _createActionNameFormField() {
+    return TypeAheadFormField(
+      hideOnEmpty: true,
+      hideOnLoading: true,
+      getImmediateSuggestions: true,
+      textFieldConfiguration: TextFieldConfiguration(
+        decoration: InputDecoration(
+          hintText: 'Enter action',
+          border: InputBorder.none,
+        ),
+        controller: _actionNameController,
+        focusNode: _actionNameFocusNode,
+        style: Theme.of(context).textTheme.subhead.copyWith(fontSize: 24),
+        // autofocus: !_isReadOnly,
+        enabled: _isNewGoalAction,
+      ),
+      onSuggestionSelected: (MyAction action) {
+        _actionNameController.text = action.name;
+        _goalAction.action = action;
+      },
+      itemBuilder: (context, suggestion) {
+        final action = suggestion as MyAction;
+        return Padding(
+          padding: const EdgeInsets.only(left: 8.0, top: 8.0, bottom: 8.0),
+          child: Text(
+            action.name,
+          ),
+        );
+      },
+      suggestionsCallback: (pattern) {
+        return _goalEditBloc.getActionSuggestions(pattern);
+      },
+      validator: (value) {
+        if (!_isNewGoalAction) {
+          return null;
+        }
+        if (value.isEmpty) {
+          return 'Please enter action';
+        }
+        for (var goalAction in widget.goal.goalActions) {
+          if (goalAction.action.name == value) {
+            return 'Action already exist in goal';
+          }
+        }
+        return null;
+      },
+      autovalidate: _autoValidateActionName,
+    );
+  }
+
+  void _updateGoalActionFromForm() {
+    if (_goalAction.action == null) {
+      if (_actionNameController.text.isNotEmpty) {
+        var a = MyAction();
+        a.name = _actionNameController.text;
+        _goalAction.action = a;
+      }
+    }
+  }
+
+  void _editGoalAction() {
+    _updateGoalActionFromForm();
+    if (_isNewGoalAction) {
+      setState(() {
+        _autoValidateActionName = false;
+      });
+      widget.goal.goalActions.add(_goalAction);
+      _goalEditBloc.dispatch(AddGoalAction(goalAction: _goalAction));
+    } else {
+      widget.goalAction.copy(_goalAction);
+      _goalEditBloc.dispatch(UpdateGoalAction(
+          oldGoalAction: widget.goalAction, newGoalAction: _goalAction));
+    }
+  }
+
+  void _deleteGoalAction() {
+    widget.goal.goalActions.remove(widget.goalAction);
+    _goalEditBloc.dispatch(DeleteGoalAction(goalAction: widget.goalAction));
+  }
+
 }

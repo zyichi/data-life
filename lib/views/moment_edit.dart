@@ -87,8 +87,8 @@ class _MomentEditState extends State<MomentEdit> {
       _title = '动态';
     } else {
       final now = DateTime.now();
-      _moment.beginTime = now.subtract(Duration(minutes: 60)).millisecondsSinceEpoch;
-      _moment.endTime = now.millisecondsSinceEpoch;
+      _moment.beginDateTime = now.subtract(Duration(minutes: 60));
+      _moment.endDateTime = now;
 
       if (widget.todo != null) {
         _actionNameController.text = widget.todo.goalAction.action.name;
@@ -170,19 +170,17 @@ class _MomentEditState extends State<MomentEdit> {
                         children: <Widget>[
                           DateTimePickerFormField(
                             labelText: AppLocalizations.of(context).begin,
-                            initialDateTime: DateTime.fromMillisecondsSinceEpoch(
-                                _moment.beginTime),
+                            initialDateTime: _moment.beginDateTime,
                             selectDateTime: (value) {
-                              _moment.beginTime = value.millisecondsSinceEpoch;
+                              _moment.beginDateTime = value;
                               fieldState.didChange(null);
                             },
                           ),
                           DateTimePickerFormField(
                             labelText: AppLocalizations.of(context).end,
-                            initialDateTime: DateTime.fromMillisecondsSinceEpoch(
-                                _moment.endTime),
+                            initialDateTime: _moment.endDateTime,
                             selectDateTime: (value) {
-                              _moment.endTime = value.millisecondsSinceEpoch;
+                              _moment.endDateTime = value;
                               fieldState.didChange(null);
                             },
                           ),
@@ -197,13 +195,12 @@ class _MomentEditState extends State<MomentEdit> {
                       // If to-do is not null, we need to limit time to today.
                       var now = DateTime.now();
                       if (widget.todo != null) {
-                        var t = DateTime.fromMillisecondsSinceEpoch(
-                            _moment.beginTime);
+                        var t = _moment.beginDateTime;
                         if (t.isBefore(DateTime(now.year, now.month, now.day))) {
                           return "任务完成时间必须是今天";
                         }
                       }
-                      if (_moment.endTime > now.millisecondsSinceEpoch) {
+                      if (_moment.endDateTime.isAfter(now)) {
                         return '结束时间不能在将来';
                       }
                       if (_moment.beginTime > _moment.endTime) {

@@ -29,24 +29,42 @@ class MyImmutableFormTextField extends StatelessWidget {
 }
 
 
-class MyFormFieldLabel extends StatelessWidget {
+class MyFormFieldLabel extends StatefulWidget {
   final String label;
   final EdgeInsets padding;
+  final TextStyle textStyle;
 
   const MyFormFieldLabel(
       {Key key,
         this.label,
+        this.textStyle,
         this.padding = EdgeInsets.zero})
       : super(key: key);
 
   @override
+  _MyFormFieldLabelState createState() => _MyFormFieldLabelState();
+}
+
+class _MyFormFieldLabelState extends State<MyFormFieldLabel> {
+  TextStyle _textStyle;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _textStyle = widget.textStyle;
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final labelStyle = Theme.of(context).textTheme.caption;
+    if (widget.textStyle == null) {
+      _textStyle = Theme.of(context).textTheme.caption;
+    }
     return Padding(
-      padding: padding,
+      padding: widget.padding,
       child: Text(
-        label,
-        style: labelStyle,
+        widget.label,
+        style: _textStyle,
       ),
     );
   }
@@ -60,6 +78,13 @@ class MyFormTextField extends StatefulWidget {
   final ValueChanged<String> valueChanged;
   final bool valueMutable;
   final FormFieldValidator<String> validator;
+  final bool isShowLabel;
+  final TextStyle labelTextStyle;
+  final TextStyle valueTextStyle;
+  final FocusNode focusNode;
+  final TextEditingController controller;
+  final bool autofocus;
+  final bool autovalidate;
 
   MyFormTextField({
     this.name,
@@ -68,6 +93,13 @@ class MyFormTextField extends StatefulWidget {
     this.valueChanged,
     this.valueMutable,
     this.validator,
+    this.isShowLabel = true,
+    this.labelTextStyle,
+    this.valueTextStyle,
+    this.focusNode,
+    this.controller,
+    this.autofocus = false,
+    this.autovalidate = false,
   });
 
   @override
@@ -75,28 +107,56 @@ class MyFormTextField extends StatefulWidget {
 }
 
 class _MyFormTextFieldState extends State<MyFormTextField> {
-  TextEditingController _valueController = TextEditingController();
-  FocusNode _valueFocusNode = FocusNode();
+  TextEditingController _valueController;
+  FocusNode _valueFocusNode;
+  bool _isEdited = false;
+  TextStyle _labelTextStyle;
+  TextStyle _valueTextStyle;
 
   @override
   void initState() {
     super.initState();
 
-    _valueController.text = widget.initialValue ?? '';
+    _labelTextStyle = widget.labelTextStyle;
+    _valueTextStyle = widget.valueTextStyle;
+
+    _valueFocusNode = widget.focusNode;
+
+    _valueController = widget.controller;
+    if (_valueController == null) {
+      _valueController = TextEditingController();
+    }
+    if (widget.initialValue != null) {
+      _valueController.text = widget.initialValue;
+    }
 
     _valueController.addListener(() {
+      if (!_isEdited && _valueController.text.isNotEmpty) {
+        setState(() {
+          _isEdited = true;
+        });
+      }
       widget.valueChanged(_valueController.text);
     });
   }
 
   @override
   Widget build(BuildContext context) {
+    if (_labelTextStyle == null) {
+      _labelTextStyle = Theme.of(context).textTheme.caption;
+    }
+    if (_valueTextStyle == null) {
+      _valueTextStyle = Theme.of(context).textTheme.body1.copyWith(
+        fontSize: 16,
+      );
+    }
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
-        MyFormFieldLabel(
+        widget.isShowLabel ? MyFormFieldLabel(
+          textStyle: _labelTextStyle,
           label: widget.name,
-        ),
+        ) : Container(),
         Row(
           children: <Widget>[
             Expanded(
@@ -107,10 +167,11 @@ class _MyFormTextFieldState extends State<MyFormTextField> {
                   isDense: true,
                   contentPadding: EdgeInsets.only(top: 8, bottom: 0),
                 ),
+                style: _valueTextStyle,
                 keyboardType: TextInputType.number,
                 controller: _valueController,
                 focusNode: _valueFocusNode,
-                autovalidate: true,
+                autovalidate: _isEdited,
                 validator: widget.validator,
               ),
             ),
@@ -121,9 +182,9 @@ class _MyFormTextFieldState extends State<MyFormTextField> {
                       width: 40,
                       height: 36,
                       child: Icon(
-                        Icons.clear,
-                        color: Colors.grey[500],
-                        size: 20,
+                        Icons.remove_circle_outline,
+                        color: Colors.red,
+                        size: 24,
                       ),
                     ),
                     onTap: () {

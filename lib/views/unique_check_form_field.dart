@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
 
+import 'package:data_life/views/my_form_text_field.dart';
+
 
 typedef UniqueValidator<String, bool> = String Function(String text, bool isUnique);
 typedef UniqueCheckCallback<bool> = FutureOr<bool> Function(String text);
@@ -16,6 +18,7 @@ class UniqueCheckFormField extends StatefulWidget {
   final UniqueValidator<String, bool> validator;
   final UniqueCheckCallback<bool> uniqueCheckCallback;
   final bool enabled;
+  final bool mutable;
   final bool autofocus;
 
   UniqueCheckFormField({
@@ -28,6 +31,7 @@ class UniqueCheckFormField extends StatefulWidget {
     this.validator,
     this.uniqueCheckCallback,
     this.enabled = true,
+    this.mutable = true,
     this.autofocus = false,
   })  : assert(textChanged != null),
         assert(uniqueCheckCallback != null),
@@ -73,21 +77,19 @@ class _UniqueCheckFormFieldState extends State<UniqueCheckFormField> {
 
   @override
   Widget build(BuildContext context) {
-    return TextFormField(
-      style: widget.textStyle,
+    return MyFormTextField(
+      isShowLabel: false,
+      valueTextStyle: widget.textStyle,
       controller: _controller,
       focusNode: widget.focusNode,
       validator: (value) {
         return widget.validator(value, _isUnique);
       },
-      decoration: InputDecoration(
-        border: InputBorder.none,
-        hintText: widget.hintText,
-        isDense: true,
-      ),
-      enabled: widget.enabled,
+      inputHint: widget.hintText,
+      valueMutable: widget.mutable,
       autovalidate: _isEdited,
       autofocus: widget.autofocus,
+      valueChanged: widget.textChanged,
     );
   }
 }

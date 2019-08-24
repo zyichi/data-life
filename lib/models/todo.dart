@@ -22,4 +22,10 @@ class Todo {
 
   GoalAction goalAction;
   Goal goal;
+
+  DateTime get startDateTime => DateTime.fromMillisecondsSinceEpoch(this.startTime);
+  set startDateTime(DateTime value) => this.startTime = value.millisecondsSinceEpoch;
+
+  DateTime get doneDateTime => DateTime.fromMillisecondsSinceEpoch(this.doneTime);
+  set doneDateTime(DateTime value) => this.doneTime = value.millisecondsSinceEpoch;
 }
