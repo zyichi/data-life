@@ -13,16 +13,12 @@ class TodoRepository extends PageRepository<Todo> {
     return _todoProvider.get(startIndex: startIndex, count: count);
   }
 
-  Future<Todo> getViaGoalActionId(int goalActionId) async {
-    return _todoProvider.getViaGoalActionId(goalActionId);
+  Future<List<Todo>> getViaGoalUuid(String goalUuid, bool rowOnly) async {
+    return _todoProvider.getViaGoalUuid(goalUuid, rowOnly);
   }
 
-  Future<List<Todo>> getViaGoalId(int goalId, bool rowOnly) async {
-    return _todoProvider.getViaGoalId(goalId, rowOnly);
-  }
-
-  Future<Todo> getViaUniqueIndexId(int goalId, int goalActionId, bool rowOnly) async {
-    return _todoProvider.getViaUniqueIndexId(goalId, goalActionId, rowOnly);
+  Future<Todo> getViaKey(String goalUuid, String goalActionUuid, bool rowOnly) async {
+    return _todoProvider.getViaKey(goalUuid, goalActionUuid, rowOnly);
   }
 
   Future<int> count() async {
@@ -33,15 +29,19 @@ class TodoRepository extends PageRepository<Todo> {
     return _todoProvider.getWaitingTodoCount();
   }
 
+  Future<int> add(Todo todo) async {
+    return _todoProvider.insert(todo);
+  }
+
   Future<int> save(Todo todo) async {
     return _todoProvider.save(todo);
   }
 
-  Future<int> delete(int id) async {
-    return _todoProvider.delete(id);
+  Future<int> delete(Todo todo) async {
+    return _todoProvider.delete(todo);
   }
-  Future<int> deleteViaUniqueId(int goalId, int goalActionId) async {
-    return _todoProvider.deleteViaUniqueId(goalId, goalActionId);
+  Future<int> deleteViaKey(int goalId, int goalActionId) async {
+    return _todoProvider.deleteViaKey(goalId, goalActionId);
   }
   Future<int> deleteAll() async {
     return _todoProvider.deleteAll();
@@ -51,11 +51,4 @@ class TodoRepository extends PageRepository<Todo> {
     return _todoProvider.deleteOlderThanTime(time);
   }
 
-  Future<int> dismissTodo(int id) async {
-    return _todoProvider.dismissTodo(id);
-  }
-
-  Future<int> doneTodo(int id) async {
-    return _todoProvider.doneTodo(id);
-  }
 }

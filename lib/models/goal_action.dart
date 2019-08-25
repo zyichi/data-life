@@ -2,6 +2,8 @@ import 'package:data_life/models/action.dart';
 import 'package:data_life/models/repeat_types.dart';
 import 'package:flutter/cupertino.dart';
 
+import 'package:uuid/uuid.dart';
+
 
 enum GoalActionStatus {
   ongoing,
@@ -10,10 +12,12 @@ enum GoalActionStatus {
 }
 
 class GoalAction {
-  GoalAction();
+  GoalAction() {
+    this.uuid = Uuid().v4();
+  }
 
-  int id;
-  int goalId;
+  String uuid;
+  String goalUuid;
   int actionId;
   int startTime;
   int stopTime;
@@ -49,7 +53,7 @@ class GoalAction {
   }
 
   bool equal(GoalAction goalAction) {
-    if (goalId != goalAction.goalId) return false;
+    if (goalUuid != goalAction.goalUuid) return false;
     if (actionId != goalAction.actionId) return false;
     if (action?.name != goalAction.action?.name) return false;
     return true;
@@ -102,8 +106,8 @@ class GoalAction {
   }
 
   void copy(GoalAction goalAction) {
-    id = goalAction.id;
-    goalId = goalAction.goalId;
+    uuid = goalAction.uuid;
+    goalUuid = goalAction.goalUuid;
     actionId = goalAction.actionId;
     startTime = goalAction.startTime;
     stopTime = goalAction.stopTime;
@@ -122,7 +126,7 @@ class GoalAction {
   }
 
   bool isSameWith(GoalAction goalAction) {
-    if (id != goalAction.id) return false;
+    if (uuid != goalAction.uuid) return false;
     if (!isContentSameWith(goalAction)) return false;
     if (!action.isSameWith(goalAction.action)) return false;
     return true;
@@ -139,7 +143,7 @@ class GoalAction {
   }
 
   bool isContentSameWith(GoalAction goalAction) {
-    if (goalId != goalAction.goalId) return false;
+    if (goalUuid != goalAction.goalUuid) return false;
     if (actionId != goalAction.actionId) return false;
     if (startTime != goalAction.startTime) return false;
     if (stopTime != goalAction.stopTime) return false;

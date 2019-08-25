@@ -1,6 +1,6 @@
 class MomentContact {
   int id;
-  int momentId;
+  String momentUuid;
   int contactId;
   int momentBeginTime;
   int momentDuration;

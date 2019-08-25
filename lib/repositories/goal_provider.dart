@@ -33,7 +33,7 @@ class GoalProvider {
       return GoalTable.fromMap(map);
     }).toList();
     for (Goal goal in goals) {
-      goal.goalActions = await getGoalActionOfGoal(goal.id, false);
+      goal.goalActions = await getGoalActionOfGoal(goal.uuid, false);
     }
     return goals;
   }
@@ -47,7 +47,7 @@ class GoalProvider {
       return GoalTable.fromMap(map);
     }).toList();
     for (Goal goal in goals) {
-      goal.goalActions = await getGoalActionOfGoal(goal.id, false);
+      goal.goalActions = await getGoalActionOfGoal(goal.uuid, false);
     }
     return goals;
   }
@@ -64,7 +64,7 @@ class GoalProvider {
     }).toList();
     for (Goal goal in goals) {
       if (!rowOnly) {
-        goal.goalActions = await getGoalActionOfGoal(goal.id, false);
+        goal.goalActions = await getGoalActionOfGoal(goal.uuid, false);
       }
     }
     return goals;
@@ -73,15 +73,15 @@ class GoalProvider {
   Future<List<Goal>> getViaActionId(int actionId, bool rowOnly) async {
     List<Map> maps = await LifeDb.db.query(GoalActionTable.name,
         distinct: true,
-        columns: [GoalActionTable.columnGoalId],
+        columns: [GoalActionTable.columnGoalUuid],
         where: "${GoalActionTable.columnActionId} = ?",
         whereArgs: [actionId]);
-    var goalIdList = maps.map((map) {
-      return map[GoalActionTable.columnGoalId] as int;
+    var goalUuidList = maps.map((map) {
+      return map[GoalActionTable.columnGoalUuid];
     }).toList();
     var goals = <Goal>[];
-    for (int goalId in goalIdList) {
-      var goal = await getViaId(goalId, rowOnly);
+    for (String goalUuid in goalUuidList) {
+      var goal = await getViaUuid(goalUuid, rowOnly);
       if (goal != null) {
         goals.add(goal);
       }
@@ -102,17 +102,17 @@ class GoalProvider {
     return null;
   }
 
-  Future<Goal> getViaId(int id, bool rowOnly) async {
+  Future<Goal> getViaUuid(String uuid, bool rowOnly) async {
     List<Map> maps = await LifeDb.db.query(
       GoalTable.name,
       columns: [],
-      where: '${GoalTable.columnId} = ?',
-      whereArgs: [id],
+      where: '${GoalTable.columnUuid} = ?',
+      whereArgs: [uuid],
     );
     if (maps.length > 0) {
       Goal goal = GoalTable.fromMap(maps.first);
       if (!rowOnly) {
-        goal.goalActions = await getGoalActionOfGoal(goal.id, rowOnly);
+        goal.goalActions = await getGoalActionOfGoal(goal.uuid, rowOnly);
       }
       return goal;
     }
@@ -123,62 +123,39 @@ class GoalProvider {
     return LifeDb.db.insert(GoalTable.name, GoalTable.toMap(goal));
   }
 
-  Future<int> insertDeleted(Goal goal) async {
-    var m = GoalTable.toMap(goal);
-    m[GoalTable.columnId] = null;
-    return LifeDb.db.insert(GoalTable.deletedName, m);
-  }
-
-  Future<int> saveDeleted(Goal goal) async {
-    return insertDeleted(goal);
-  }
-
   Future<int> deleteGoalAction(GoalAction goalAction) async {
     return LifeDb.db.delete(
       GoalActionTable.name,
       where:
-          "${GoalActionTable.columnGoalId} = ? and ${GoalActionTable.columnActionId} = ?",
-      whereArgs: [goalAction.goalId, goalAction.actionId],
+          "${GoalActionTable.columnGoalUuid} = ? and ${GoalActionTable.columnActionId} = ?",
+      whereArgs: [goalAction.goalUuid, goalAction.actionId],
     );
   }
 
-  Future<int> saveDeletedGoalAction(GoalAction goalAction) async {
-    var m = GoalActionTable.toMap(goalAction);
-    m[GoalActionTable.columnId] = null;
-    return LifeDb.db.insert(GoalActionTable.deletedName, m);
-  }
-
   Future<int> update(Goal goal) async {
-    assert(goal.id != null);
+    assert(goal.uuid != null);
     return LifeDb.db.update(GoalTable.name, GoalTable.toMap(goal),
-        where: "${GoalTable.columnId} = ?", whereArgs: [goal.id]);
+        where: "${GoalTable.columnUuid} = ?", whereArgs: [goal.uuid]);
   }
 
   Future<int> save(Goal goal) async {
-    int affected = 0;
-    if (goal.id == null) {
-      goal.id = await insert(goal);
-      affected = 1;
-    } else {
-      affected = await update(goal);
-    }
-    return affected;
+    return await update(goal);
   }
 
   Future<int> delete(Goal goal) async {
     return LifeDb.db.delete(
       GoalTable.name,
-      where: "${GoalTable.columnId} = ?",
-      whereArgs: [goal.id],
+      where: "${GoalTable.columnUuid} = ?",
+      whereArgs: [goal.uuid],
     );
   }
 
-  Future<List<GoalAction>> getGoalActionOfGoal(int goalId, bool rowOnly) async {
+  Future<List<GoalAction>> getGoalActionOfGoal(String goalUuid, bool rowOnly) async {
     List<Map> maps = await LifeDb.db.query(
       GoalActionTable.name,
       columns: [],
-      where: "${GoalActionTable.columnGoalId} = ?",
-      whereArgs: [goalId],
+      where: "${GoalActionTable.columnGoalUuid} = ?",
+      whereArgs: [goalUuid],
     );
     List<GoalAction> goalActions = maps.map((map) {
       return GoalActionTable.fromMap(map);
@@ -192,12 +169,12 @@ class GoalProvider {
     return goalActions;
   }
 
-  Future<GoalAction> getGoalAction(int id, bool rowOnly) async {
+  Future<GoalAction> getGoalAction(String uuid, bool rowOnly) async {
     List<Map> maps = await LifeDb.db.query(
       GoalActionTable.name,
       columns: [],
-      where: "${GoalActionTable.columnId} = ?",
-      whereArgs: [id],
+      where: "${GoalActionTable.columnUuid} = ?",
+      whereArgs: [uuid],
     );
     if (maps.length > 0) {
       var goalAction = GoalActionTable.fromMap(maps.first);
@@ -215,21 +192,14 @@ class GoalProvider {
   }
 
   Future<int> updateGoalAction(GoalAction goalAction) async {
-    assert(goalAction.id != null);
+    assert(goalAction.uuid != null);
     return LifeDb.db.update(
         GoalActionTable.name, GoalActionTable.toMap(goalAction),
-        where: "${GoalActionTable.columnId} = ?", whereArgs: [goalAction.id]);
+        where: "${GoalActionTable.columnUuid} = ?", whereArgs: [goalAction.uuid]);
   }
 
   Future<int> saveGoalAction(GoalAction goalAction) async {
-    int affected = 0;
-    if (goalAction.id == null) {
-      goalAction.id = await insertGoalAction(goalAction);
-      affected = 1;
-    } else {
-      affected = await updateGoalAction(goalAction);
-    }
-    return affected;
+    return await updateGoalAction(goalAction);
   }
 
   Future<int> insertGoalMoment(GoalMoment goalMoment) async {
@@ -257,16 +227,16 @@ class GoalProvider {
 
   Future<int> deleteGoalMoment(GoalMoment goalMoment) async {
     return deleteGoalMomentViaUniqueKey(
-        goalMoment.goalId, goalMoment.goalActionId, goalMoment.momentId);
+        goalMoment.goalUuid, goalMoment.goalActionId, goalMoment.momentId);
   }
 
   Future<int> deleteGoalMomentViaUniqueKey(
-      int goalId, int goalActionId, int momentId) async {
+      String goalUuid, int goalActionId, int momentId) async {
     return LifeDb.db.delete(
       GoalMomentTable.name,
       where:
-          "${GoalMomentTable.columnGoalId} = ? and ${GoalMomentTable.columnGoalActionId} = ? and ${GoalMomentTable.columnMomentId} = ?",
-      whereArgs: [goalId, goalActionId, momentId],
+          "${GoalMomentTable.columnGoalUuid} = ? and ${GoalMomentTable.columnGoalActionId} = ? and ${GoalMomentTable.columnMomentId} = ?",
+      whereArgs: [goalUuid, goalActionId, momentId],
     );
   }
 
@@ -276,7 +246,7 @@ class GoalProvider {
       GoalActionTable.name,
       columns: [],
       where:
-          "${GoalActionTable.columnGoalId} = ? and ${GoalActionTable.columnActionId} = ?",
+          "${GoalActionTable.columnGoalUuid} = ? and ${GoalActionTable.columnActionId} = ?",
       whereArgs: [goalId, actionId],
     );
     if (maps.length > 0) {
@@ -291,37 +261,37 @@ class GoalProvider {
 
   Future<int> getGoalLastActiveTime(int goalId) async {
     int t = Sqflite.firstIntValue(await LifeDb.db.rawQuery(
-        'select max(${GoalMomentTable.columnMomentBeginTime}) from ${GoalMomentTable.name} where ${GoalMomentTable.columnGoalId} = $goalId'));
+        'select max(${GoalMomentTable.columnMomentBeginTime}) from ${GoalMomentTable.name} where ${GoalMomentTable.columnGoalUuid} = $goalId'));
     return t ?? 0;
   }
 
   Future<int> getGoalActionLastActiveTime(int goalId, int goalActionId) async {
     int t = Sqflite.firstIntValue(await LifeDb.db.rawQuery(
-        'select max(${GoalMomentTable.columnMomentBeginTime}) from ${GoalMomentTable.name} where ${GoalMomentTable.columnGoalId} = $goalId and ${GoalMomentTable.columnGoalActionId} = $goalActionId'));
+        'select max(${GoalMomentTable.columnMomentBeginTime}) from ${GoalMomentTable.name} where ${GoalMomentTable.columnGoalUuid} = $goalId and ${GoalMomentTable.columnGoalActionId} = $goalActionId'));
     return t ?? 0;
   }
 
   Future<int> getGoalTotalTimeTaken(int goalId) async {
     int t = Sqflite.firstIntValue(await LifeDb.db.rawQuery(
-        'select sum(${GoalMomentTable.columnMomentDuration}) from ${GoalMomentTable.name} where ${GoalMomentTable.columnGoalId} = $goalId'));
+        'select sum(${GoalMomentTable.columnMomentDuration}) from ${GoalMomentTable.name} where ${GoalMomentTable.columnGoalUuid} = $goalId'));
     return t ?? 0;
   }
 
   Future<int> getGoalActionTotalTimeTaken(int goalId, int goalActionId) async {
     int t = Sqflite.firstIntValue(await LifeDb.db.rawQuery(
-        'select sum(${GoalMomentTable.columnMomentDuration}) from ${GoalMomentTable.name} where ${GoalMomentTable.columnGoalId} = $goalId and ${GoalMomentTable.columnGoalActionId} = $goalActionId'));
+        'select sum(${GoalMomentTable.columnMomentDuration}) from ${GoalMomentTable.name} where ${GoalMomentTable.columnGoalUuid} = $goalId and ${GoalMomentTable.columnGoalActionId} = $goalActionId'));
     return t ?? 0;
   }
 
-  Future<int> setStatus(int id, int statusIndex) async {
+  Future<int> setStatus(String uuid, int statusIndex) async {
     return LifeDb.db.update(
       GoalTable.name,
       {
         'status': statusIndex,
         'updateTime': DateTime.now().millisecondsSinceEpoch,
       },
-      where: '${GoalTable.columnId} = ?',
-      whereArgs: [id],
+      where: '${GoalTable.columnUuid} = ?',
+      whereArgs: [uuid],
     );
   }
 }

@@ -1,5 +1,7 @@
 import 'dart:math';
 
+import 'package:uuid/uuid.dart';
+
 import 'package:data_life/models/goal_action.dart';
 import 'package:data_life/models/time_types.dart';
 
@@ -14,9 +16,11 @@ enum GoalStatus {
 
 
 class Goal {
-  Goal();
+  Goal() {
+    this.uuid = Uuid().v4();
+  }
 
-  int id;
+  String uuid;
   String name;
   num target;
   num progress;
@@ -117,14 +121,14 @@ class Goal {
   }
 
   bool isSameWith(Goal goal) {
-    if (id != goal.id) return false;
+    if (uuid != goal.uuid) return false;
     if (!_isSameGoalActionList(goalActions, goal.goalActions)) return false;
     if (!isContentSameWith(goal)) return false;
     return true;
   }
 
   void copy(Goal g) {
-    id = g.id;
+    uuid = g.uuid;
     name = g.name;
     target = g.target;
     progress = g.progress;

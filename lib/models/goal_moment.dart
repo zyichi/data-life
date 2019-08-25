@@ -1,6 +1,6 @@
 class GoalMoment {
   int id;
-  int goalId;
+  String goalUuid;
   int goalActionId;
   int momentId;
   int momentBeginTime;

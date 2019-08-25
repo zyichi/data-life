@@ -5,7 +5,7 @@ class GoalTable {
   static const name = 'goal';
   static const deletedName = 'deleted_goal';
 
-  static const columnId = '_id';
+  static const columnUuid = 'uuid';
   static const columnName = 'name';
   static const columnTarget = 'target';
   static const columnProgress = 'progress';
@@ -26,7 +26,7 @@ create unique index goal_name_idx on $name(
   static String getCreateTableSql(String tableName) {
     return '''
 create table $tableName (
-  $columnId integer primary key autoincrement,
+  $columnUuid text primary key,
   $columnName text not null,
   $columnTarget real default null,
   $columnProgress real default null,
@@ -49,7 +49,7 @@ create table $tableName (
 
   static Goal fromMap(Map map) {
     final Goal goal = Goal();
-    goal.id = map[GoalTable.columnId] as int;
+    goal.uuid = map[GoalTable.columnUuid];
     goal.name = map[GoalTable.columnName] as String;
     goal.target = map[GoalTable.columnTarget] as num;
     goal.progress = map[GoalTable.columnProgress] as num;
@@ -66,6 +66,7 @@ create table $tableName (
 
   static Map<String, dynamic> toMap(Goal goal) {
     var map = <String, dynamic>{
+      GoalTable.columnUuid: goal.uuid,
       GoalTable.columnName: goal.name,
       GoalTable.columnTarget: goal.target,
       GoalTable.columnProgress: goal.progress,
@@ -78,9 +79,6 @@ create table $tableName (
       GoalTable.columnCreateTime: goal.createTime,
       GoalTable.columnUpdateTime: goal.updateTime,
     };
-    if (goal.id != null) {
-      map[GoalTable.columnId] = goal.id;
-    }
     return map;
   }
 }

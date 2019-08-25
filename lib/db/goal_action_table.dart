@@ -5,10 +5,9 @@ import 'dart:convert';
 
 class GoalActionTable {
   static const name = 'goal_action';
-  static const deletedName = 'deleted_goal_action';
 
-  static const columnId = '_id';
-  static const columnGoalId = 'goalId';
+  static const columnUuid = 'uuid';
+  static const columnGoalUuid = 'goalUuid';
   static const columnActionId = 'actionId';
   static const columnStartTime = 'startTime';
   static const columnStopTime = 'stopTime';
@@ -26,14 +25,14 @@ class GoalActionTable {
 
   static const createIndexSql = '''
 create unique index goal_action_idx on $name(
-  $columnGoalId, $columnActionId);
+  $columnGoalUuid, $columnActionId);
 ''';
 
   static String getCreateTableSql(String tableName) {
     return '''
 create table $tableName (
-  $columnId integer primary key autoincrement,
-  $columnGoalId integer not null,
+  $columnUuid text primary key,
+  $columnGoalUuid text not null,
   $columnActionId integer not null,
   $columnStartTime integer default null,
   $columnStopTime integer default null,
@@ -53,14 +52,13 @@ create table $tableName (
 
   static List<String> get initSqlList => [
     getCreateTableSql(GoalActionTable.name),
-    getCreateTableSql(GoalActionTable.deletedName),
     createIndexSql,
   ];
 
   static GoalAction fromMap(Map map) {
     final goalAction = GoalAction();
-    goalAction.id = map[GoalActionTable.columnId] as int;
-    goalAction.goalId = map[GoalActionTable.columnGoalId] as int;
+    goalAction.uuid = map[GoalActionTable.columnUuid];
+    goalAction.goalUuid = map[GoalActionTable.columnGoalUuid];
     goalAction.actionId = map[GoalActionTable.columnActionId] as int;
     goalAction.startTime = map[GoalActionTable.columnStartTime] as int;
     goalAction.stopTime = map[GoalActionTable.columnStopTime] as int;
@@ -83,7 +81,8 @@ create table $tableName (
 
   static Map<String, dynamic> toMap(GoalAction goalAction) {
     var map = <String, dynamic>{
-      GoalActionTable.columnGoalId: goalAction.goalId,
+      GoalActionTable.columnUuid: goalAction.uuid,
+      GoalActionTable.columnGoalUuid: goalAction.goalUuid,
       GoalActionTable.columnActionId: goalAction.actionId,
       GoalActionTable.columnStartTime: goalAction.startTime,
       GoalActionTable.columnStopTime: goalAction.stopTime,
@@ -99,9 +98,6 @@ create table $tableName (
       GoalActionTable.columnCreateTime: goalAction.createTime,
       GoalActionTable.columnUpdateTime: goalAction.updateTime,
     };
-    if (goalAction.id != null) {
-      map[GoalActionTable.columnId] = goalAction.id;
-    }
     return map;
   }
 

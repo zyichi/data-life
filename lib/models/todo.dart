@@ -11,9 +11,8 @@ enum TodoStatus {
 class Todo {
   Todo();
 
-  int id;
-  int goalId;
-  int goalActionId;
+  String goalUuid;
+  String goalActionUuid;
   int startTime;
   int doneTime;
   TodoStatus status;

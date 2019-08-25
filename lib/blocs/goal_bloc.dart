@@ -213,8 +213,9 @@ class GoalBloc extends Bloc<GoalEvent, GoalState> {
         await _addGoal(goal, nowInMillis);
         yield GoalAdded(goal: goal);
       } catch (e) {
-        yield GoalFailed(
-            error: 'Add goal ${event.goal.name} failed: ${e.toString()}');
+        var error = 'Add goal ${event.goal.name} failed: ${e.toString()}';
+        print(error);
+        yield GoalFailed(error: error);
       }
     }
     if (event is UpdateGoal) {
@@ -242,7 +243,7 @@ class GoalBloc extends Bloc<GoalEvent, GoalState> {
     if (event is PauseGoal) {
       final goal = event.goal;
       try {
-        await goalRepository.setStatus(goal.id, GoalStatus.paused);
+        await goalRepository.setStatus(goal.uuid, GoalStatus.paused);
         yield GoalPaused(goal: goal);
       } catch (e) {
         yield GoalFailed(
@@ -252,7 +253,7 @@ class GoalBloc extends Bloc<GoalEvent, GoalState> {
     if (event is ResumeGoal) {
       final goal = event.goal;
       try {
-        await goalRepository.setStatus(goal.id, GoalStatus.ongoing);
+        await goalRepository.setStatus(goal.uuid, GoalStatus.ongoing);
         yield GoalResumed(goal: goal);
       } catch (e) {
         yield GoalFailed(
@@ -262,7 +263,7 @@ class GoalBloc extends Bloc<GoalEvent, GoalState> {
     if (event is FinishGoal) {
       final goal = event.goal;
       try {
-        await goalRepository.setStatus(goal.id, GoalStatus.finished);
+        await goalRepository.setStatus(goal.uuid, GoalStatus.finished);
         yield GoalFinished(goal: goal);
       } catch (e) {
         yield GoalFailed(
@@ -357,25 +358,22 @@ class GoalBloc extends Bloc<GoalEvent, GoalState> {
           await momentRepository.getActionTotalTimeTakenBetweenTime(
               goalAction.actionId, goal.startTime, goal.stopTime);
     }
-    if (goal.id != null) {
-      goal.id = null;
+    if (goal.createTime != null) {
       goal.updateTime = nowInMillis;
     } else {
       goal.createTime = nowInMillis;
     }
     goal.updateFieldFromGoalAction();
-    await goalRepository.save(goal);
     for (var goalAction in goal.goalActions) {
-      if (goalAction.id != null) {
+      if (goalAction.createTime != null) {
         goalAction.updateTime = nowInMillis;
-        // Add as new goalAction, we need set id to null
-        goalAction.id = null;
       } else {
         goalAction.createTime = nowInMillis;
       }
-      goalAction.goalId = goal.id;
-      await goalRepository.saveGoalAction(goalAction);
+      goalAction.goalUuid = goal.uuid;
+      await goalRepository.addGoalAction(goalAction);
     }
+    await goalRepository.add(goal);
   }
 
   Future<void> _saveGoal(Goal goal, int now) async {
@@ -416,7 +414,7 @@ class GoalBloc extends Bloc<GoalEvent, GoalState> {
       if (goalAction.action.id != moment.action.id) continue;
       if (moment.beginTime >= goalAction.lastActiveTime) {
         await momentRepository.getActionLastActiveTimeBetweenTime(
-            goalAction.id, goal.startTime, goal.stopTime);
+            goalAction.actionId, goal.startTime, goal.stopTime);
       }
       goalAction.totalTimeTaken -= moment.duration;
       await goalRepository.saveGoalAction(goalAction);

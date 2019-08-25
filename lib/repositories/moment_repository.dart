@@ -35,8 +35,8 @@ class MomentRepository extends PageRepository<Moment> {
     return _momentProvider.saveMomentContact(momentContact);
   }
 
-  Future<int> deleteMomentContactViaMomentId(int momentId) async {
-    return _momentProvider.deleteMomentContactViaMomentId(momentId);
+  Future<int> deleteMomentContactViaMomentId(String momentUuid) async {
+    return _momentProvider.deleteMomentContactViaMomentId(momentUuid);
   }
 
   Future<int> deleteMomentContact(int momentId, int contactId) async {

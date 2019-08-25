@@ -5,7 +5,7 @@ class GoalMomentTable {
   static const name = 'goal_moment';
 
   static const columnId = '_id';
-  static const columnGoalId = 'goalId';
+  static const columnGoalUuid = 'goalUuid';
   static const columnGoalActionId = 'actionId';
   static const columnMomentId = 'momentId';
   static const columnMomentBeginTime = 'momentBeginTime';
@@ -14,14 +14,14 @@ class GoalMomentTable {
 
   static const createIndexSql = '''
 create unique index goal_action_moment_idx on $name(
-  $columnGoalId, $columnGoalActionId, $columnMomentId);
+  $columnGoalUuid, $columnGoalActionId, $columnMomentId);
 ''';
 
   static String getCreateTableSql(String tableName) {
     return '''
 create table $tableName (
   $columnId integer primary key autoincrement,
-  $columnGoalId integer not null,
+  $columnGoalUuid text not null,
   $columnGoalActionId integer not null,
   $columnMomentId integer not null,
   $columnMomentBeginTime integer not null,
@@ -38,7 +38,7 @@ create table $tableName (
   static GoalMoment fromMap(Map map) {
     final goalMoment = GoalMoment();
     goalMoment.id = map[GoalMomentTable.columnId] as int;
-    goalMoment.goalId = map[GoalMomentTable.columnGoalId] as int;
+    goalMoment.goalUuid = map[GoalMomentTable.columnGoalUuid];
     goalMoment.goalActionId = map[GoalMomentTable.columnGoalActionId] as int;
     goalMoment.momentId = map[GoalMomentTable.columnMomentId] as int;
     goalMoment.momentBeginTime = map[GoalMomentTable.columnMomentBeginTime] as int;
@@ -49,7 +49,7 @@ create table $tableName (
 
   static Map<String, dynamic> toMap(GoalMoment goalMoment) {
     var map = <String, dynamic>{
-      GoalMomentTable.columnGoalId: goalMoment.goalId,
+      GoalMomentTable.columnGoalUuid: goalMoment.goalUuid,
       GoalMomentTable.columnGoalActionId: goalMoment.goalActionId,
       GoalMomentTable.columnMomentId: goalMoment.momentId,
       GoalMomentTable.columnMomentBeginTime: goalMoment.momentBeginTime,

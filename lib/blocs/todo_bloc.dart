@@ -1,4 +1,5 @@
 import 'package:bloc/bloc.dart';
+import 'package:data_life/db/goal_action_table.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -163,18 +164,7 @@ class TodoBloc extends Bloc<TodoEvent, TodoState> {
     }
     if (event is GoalAddedTodoEvent) {
       try {
-        var goal = event.goal;
-        if (!_isCreateTodoForGoal(goal, now)) {
-          return;
-        }
-        var todoList = <Todo>[];
-        for (var goalAction in goal.goalActions) {
-          if (isTodoGoalActionToday(goalAction, now)) {
-            Todo todo = _newTodo(goalAction, now);
-            todoList.add(todo);
-            await todoRepository.save(todo);
-          }
-        }
+        var todoList = await _goalAddedProcess(event.goal, now);
         await _updateWaitingTodoCount();
         yield TodoUpdated(addedList: todoList);
       } catch (e) {
@@ -184,10 +174,7 @@ class TodoBloc extends Bloc<TodoEvent, TodoState> {
     }
     if (event is GoalDeletedTodoEvent) {
       try {
-        var todoList = await todoRepository.getViaGoalId(event.goal.id, true);
-        for (var todo in todoList) {
-          await todoRepository.delete(todo.id);
-        }
+        var todoList = await _goalDeletedProcess(event.goal);
         await _updateWaitingTodoCount();
         yield TodoDeleted(todoList: todoList);
       } catch (e) {
@@ -197,45 +184,28 @@ class TodoBloc extends Bloc<TodoEvent, TodoState> {
     }
     if (event is GoalUpdatedTodoEvent) {
       try {
-        Goal newGoal = event.newGoal;
-        Goal oldGoal = event.oldGoal;
-        var deletedList = <Todo>[];
-        var addedList = <Todo>[];
-        var updatedList = <Todo>[];
-        if (oldGoal != null) {
-          for (var oldGoalAction in oldGoal.goalActions) {
-            var foundedInNew = newGoal.goalActions.firstWhere((newGoalAction) {
-              if (oldGoalAction.actionId != newGoalAction.actionId &&
-                  oldGoalAction.action?.name != newGoalAction.action?.name) return true;
-              return false;
-            }, orElse: () => null);
-            Todo dbTodo = await todoRepository.getViaUniqueIndexId(
-                oldGoal.id, oldGoalAction.id, true);
-            if (foundedInNew == null) {
-              if (dbTodo != null) {
-                deletedList.add(dbTodo);
-                await todoRepository.delete(dbTodo.id);
-              }
-            } else {
-              if (dbTodo != null) {
-                // Because we update goal by first delete then insert.
-                // We must update old goalId to new goalId.
-                dbTodo.goalId = newGoal.id;
-                await todoRepository.delete(dbTodo.id);
-                await todoRepository.save(dbTodo);
+        var deletedList = await _goalDeletedProcess(event.oldGoal ?? event.newGoal);
+        var addedList = await _goalAddedProcess(event.newGoal, now);
+        for (var todo in deletedList) {
+          if (todo.status == TodoStatus.dismiss ||
+              todo.status == TodoStatus.done) {
+            for (var addedTodo in addedList) {
+              if (addedTodo.goalUuid == todo.goalUuid &&
+                  addedTodo.goalActionUuid == todo.goalActionUuid) {
+                addedTodo.status = todo.status;
+                await todoRepository.save(addedTodo);
+                break;
               }
             }
           }
         }
-        await _updateTodoFromGoal(newGoal, now, todayDate, tomorrowDate,
-            deletedList, addedList, updatedList);
         await _updateWaitingTodoCount();
         yield TodoUpdated(
-            addedList: addedList,
-            updatedList: updatedList,
-            deletedList: deletedList);
+            addedList: addedList, deletedList: deletedList, updatedList: []);
       } catch (e) {
-        print("Todo bloc - process UpdateGoal event failed: ${e.toString()}");
+        var error =
+            "Todo bloc - process UpdateGoal event failed: ${e.toString()}";
+        print(error);
         yield TodoFailed();
       }
     }
@@ -249,59 +219,27 @@ class TodoBloc extends Bloc<TodoEvent, TodoState> {
     return false;
   }
 
-  Future<void> _updateTodoFromGoal(
-      Goal goal,
-      DateTime now,
-      DateTime todayDate,
-      DateTime tomorrowDate,
-      List<Todo> deletedList,
-      List<Todo> addedList,
-      List<Todo> updatedList) async {
+  Future<List<Todo>> _goalDeletedProcess(Goal goal) async {
+    var todoList = await todoRepository.getViaGoalUuid(goal.uuid, true);
+    for (var todo in todoList) {
+      await todoRepository.delete(todo);
+    }
+    return todoList;
+  }
+
+  Future<List<Todo>> _goalAddedProcess(Goal goal, DateTime now) async {
+    var todoList = <Todo>[];
+    if (!_isCreateTodoForGoal(goal, now)) {
+      return todoList;
+    }
     for (var goalAction in goal.goalActions) {
-      print(
-          '_updateTodoFromGoal: goal: ${goal.name}, goalAction: ${goalAction.action.name}');
-      Todo dbTodo = await todoRepository.getViaUniqueIndexId(
-          goal.id, goalAction.id, true);
-      print('dbTodo is null ${dbTodo == null}');
-      if (goal.status == GoalStatus.finished ||
-          goal.status == GoalStatus.expired) {
-        if (dbTodo != null) {
-          deletedList.add(dbTodo);
-          await todoRepository.delete(dbTodo.id);
-        }
-      } else if (goal.status == GoalStatus.paused) {
-        if (dbTodo != null) {
-          updatedList.add(dbTodo);
-          dbTodo.status = TodoStatus.dismiss;
-          await todoRepository.dismissTodo(dbTodo.id);
-        }
-      } else if (goal.status == GoalStatus.ongoing) {
-        if (isTodoGoalActionToday(goalAction, now)) {
-          if (dbTodo != null) {
-            if (dbTodo.status == TodoStatus.waiting) {
-              if (_isToday(
-                  goalAction.lastActiveTime,
-                  TimeUtil.todayStart(now).millisecondsSinceEpoch,
-                  TimeUtil.tomorrowStart(now).millisecondsSinceEpoch)) {
-                dbTodo.status = TodoStatus.done;
-                dbTodo.doneTime = goalAction.lastActiveTime;
-                updatedList.add(dbTodo);
-              }
-            }
-            await todoRepository.save(dbTodo);
-          } else {
-            Todo todo = _newTodo(goalAction, now);
-            addedList.add(todo);
-            await todoRepository.save(todo);
-          }
-        } else {
-          if (dbTodo != null) {
-            deletedList.add(dbTodo);
-            await todoRepository.delete(dbTodo.id);
-          }
-        }
+      if (isTodoGoalActionToday(goalAction, now)) {
+        Todo todo = _newTodo(goalAction, now);
+        todoList.add(todo);
+        await todoRepository.add(todo);
       }
     }
+    return todoList;
   }
 
   Future<void> _updateWaitingTodoCount() async {
@@ -444,8 +382,8 @@ class TodoBloc extends Bloc<TodoEvent, TodoState> {
     todo.startTime =
         DateTime(now.year, now.month, now.day, timeOfDay.hour, timeOfDay.minute)
             .millisecondsSinceEpoch;
-    todo.goalId = goalAction.goalId;
-    todo.goalActionId = goalAction.id;
+    todo.goalUuid = goalAction.goalUuid;
+    todo.goalActionUuid = goalAction.uuid;
     todo.createTime = now.millisecondsSinceEpoch;
     if (_isToday(
         goalAction.lastActiveTime,

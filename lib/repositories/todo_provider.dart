@@ -32,31 +32,18 @@ class TodoProvider {
     }).toList();
     for (var todo in todoList) {
       todo.goalAction =
-          await _goalProvider.getGoalAction(todo.goalActionId, false);
-      todo.goal = await _goalProvider.getViaId(todo.goalId, false);
+          await _goalProvider.getGoalAction(todo.goalActionUuid, false);
+      todo.goal = await _goalProvider.getViaUuid(todo.goalUuid, false);
     }
     return todoList;
   }
 
-  Future<Todo> getViaGoalActionId(int goalActionId) async {
+  Future<List<Todo>> getViaGoalUuid(String goalUuid, bool rowOnly) async {
     List<Map> maps = await LifeDb.db.query(
       TodoTable.name,
       columns: [],
-      where: '${TodoTable.columnGoalActionId} = ?',
-      whereArgs: [goalActionId],
-    );
-    if (maps.length > 0) {
-      return TodoTable.fromMap(maps.first);
-    }
-    return null;
-  }
-
-  Future<List<Todo>> getViaGoalId(int goalId, bool rowOnly) async {
-    List<Map> maps = await LifeDb.db.query(
-      TodoTable.name,
-      columns: [],
-      where: '${TodoTable.columnGoalId} = ?',
-      whereArgs: [goalId],
+      where: '${TodoTable.columnGoalUuid} = ?',
+      whereArgs: [goalUuid],
     );
     var todoList =  maps.map((map) {
       return TodoTable.fromMap(map);
@@ -64,25 +51,25 @@ class TodoProvider {
     if (!rowOnly) {
       for (var todo in todoList) {
         todo.goalAction =
-        await _goalProvider.getGoalAction(todo.goalActionId, rowOnly);
-        todo.goal = await _goalProvider.getViaId(todo.goalId, rowOnly);
+        await _goalProvider.getGoalAction(todo.goalActionUuid, rowOnly);
+        todo.goal = await _goalProvider.getViaUuid(todo.goalUuid, rowOnly);
       }
     }
     return todoList;
   }
 
-  Future<Todo> getViaUniqueIndexId(int goalId, int goalActionId, bool rowOnly) async {
+  Future<Todo> getViaKey(String goalUuid, String goalActionUuid, bool rowOnly) async {
     List<Map> maps = await LifeDb.db.query(
       TodoTable.name,
       columns: [],
-      where: '${TodoTable.columnGoalId} = ? and ${TodoTable.columnGoalActionId} = ?',
-      whereArgs: [goalId, goalActionId],
+      where: '${TodoTable.columnGoalUuid} = ? and ${TodoTable.columnGoalActionUuid} = ?',
+      whereArgs: [goalUuid, goalActionUuid],
     );
     if (maps.length > 0) {
       var todo = TodoTable.fromMap(maps.first);
       if (!rowOnly) {
-        todo.goalAction = await _goalProvider.getGoalAction(todo.goalActionId, rowOnly);
-        todo.goal = await _goalProvider.getViaId(todo.goalId, rowOnly);
+        todo.goalAction = await _goalProvider.getGoalAction(todo.goalActionUuid, rowOnly);
+        todo.goal = await _goalProvider.getViaUuid(todo.goalUuid, rowOnly);
       }
       return todo;
     }
@@ -94,34 +81,29 @@ class TodoProvider {
   }
 
   Future<int> update(Todo todo) async {
-    assert(todo.id != null);
-    return LifeDb.db.update(TodoTable.name, TodoTable.toMap(todo),
-        where: "${TodoTable.columnId} = ?", whereArgs: [todo.id]);
-  }
-
-  Future<int> save(Todo todo) async {
-    int affected = 0;
-    if (todo.id == null) {
-      todo.id = await insert(todo);
-      affected = 1;
-    } else {
-      affected = await update(todo);
-    }
-    return affected;
-  }
-
-  Future<int> delete(int id) async {
-    return LifeDb.db.delete(
-      TodoTable.name,
-      where: "${TodoTable.columnId} = ?",
-      whereArgs: [id],
+    return LifeDb.db.update(
+      TodoTable.name, TodoTable.toMap(todo),
+      where: "${TodoTable.columnGoalUuid} = ? and ${TodoTable.columnGoalActionUuid} = ?",
+      whereArgs: [todo.goalUuid, todo.goalActionUuid],
     );
   }
 
-  Future<int> deleteViaUniqueId(int goalId, int goalActionId) async {
+  Future<int> save(Todo todo) async {
+    return await update(todo);
+  }
+
+  Future<int> delete(Todo todo) async {
     return LifeDb.db.delete(
       TodoTable.name,
-      where: "${TodoTable.columnGoalId} = ? and ${TodoTable.columnGoalActionId} = ?",
+      where: "${TodoTable.columnGoalUuid} = ? and ${TodoTable.columnGoalActionUuid} = ?",
+      whereArgs: [todo.goalUuid, todo.goalActionUuid],
+    );
+  }
+
+  Future<int> deleteViaKey(int goalId, int goalActionId) async {
+    return LifeDb.db.delete(
+      TodoTable.name,
+      where: "${TodoTable.columnGoalUuid} = ? and ${TodoTable.columnGoalActionUuid} = ?",
       whereArgs: [goalId, goalActionId],
     );
   }
@@ -141,21 +123,4 @@ class TodoProvider {
     );
   }
 
-  Future<int> dismissTodo(int id) async {
-    return LifeDb.db.update(
-      TodoTable.name,
-      {'status': TodoStatus.dismiss.index},
-      where: "${TodoTable.columnId} = ?",
-      whereArgs: [id],
-    );
-  }
-
-  Future<int> doneTodo(int id) async {
-    return LifeDb.db.update(
-      TodoTable.name,
-      {'status': TodoStatus.done.index},
-      where: "${TodoTable.columnId} = ?",
-      whereArgs: [id],
-    );
-  }
 }

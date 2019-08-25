@@ -36,6 +36,10 @@ class GoalRepository extends PageRepository<Goal> {
     return _goalProvider.getViaName(name);
   }
 
+  Future<int> add(Goal goal) async {
+    return _goalProvider.insert(goal);
+  }
+
   Future<int> save(Goal goal) async {
     return _goalProvider.save(goal);
   }
@@ -44,16 +48,12 @@ class GoalRepository extends PageRepository<Goal> {
     return _goalProvider.delete(goal);
   }
 
-  Future<int> saveDeleted(Goal goal) async {
-    return _goalProvider.saveDeleted(goal);
-  }
-
   Future<int> deleteGoalAction(GoalAction goalAction) async {
     return _goalProvider.deleteGoalAction(goalAction);
   }
 
-  Future<int> saveDeletedGoalAction(GoalAction goalAction) async {
-    return _goalProvider.saveDeletedGoalAction(goalAction);
+  Future<int> addGoalAction(GoalAction goalAction) async {
+    return _goalProvider.insertGoalAction(goalAction);
   }
 
   Future<int> saveGoalAction(GoalAction goalAction) async {
@@ -79,9 +79,9 @@ class GoalRepository extends PageRepository<Goal> {
   }
 
   Future<int> deleteGoalMomentViaUniqueKey(
-      int goalId, int goalActionId, int momentId) async {
+      String goalUuid, int goalActionId, int momentId) async {
     return _goalProvider.deleteGoalMomentViaUniqueKey(
-        goalId, goalActionId, momentId);
+        goalUuid, goalActionId, momentId);
   }
 
   Future<int> getGoalLastActiveTime(int goalId) async {
@@ -100,8 +100,8 @@ class GoalRepository extends PageRepository<Goal> {
     return _goalProvider.getGoalActionTotalTimeTaken(goalId, goalActionId);
   }
 
-  Future<int> setStatus(int id, GoalStatus status) async {
-    return _goalProvider.setStatus(id, status.index);
+  Future<int> setStatus(String uuid, GoalStatus status) async {
+    return _goalProvider.setStatus(uuid, status.index);
   }
 
 }

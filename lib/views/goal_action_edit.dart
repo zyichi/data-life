@@ -157,7 +157,7 @@ class _GoalActionEditState extends State<GoalActionEdit> {
       _title = '任务';
     } else {
       DateTime now = DateTime.now();
-      _goalAction.goalId = widget.goal.id;
+      _goalAction.goalUuid = widget.goal.uuid;
       _goalAction.startDateTime = now;
       _goalAction.stopDateTime =
           _goalAction.startDateTime.add(Duration(hours: 1));

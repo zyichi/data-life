@@ -33,7 +33,7 @@ class MomentProvider {
     for (Moment moment in moments) {
       moment.action = await _actionProvider.getViaId(moment.actionId);
       moment.location = await _locationProvider.getViaId(moment.locationId);
-      List<MomentContact> momentContacts = await getMomentContact(moment.id);
+      List<MomentContact> momentContacts = await getMomentContact(moment.uuid);
       for (MomentContact momentContact in momentContacts) {
         var contact = await _contactProvider.getViaId(momentContact.contactId);
         if (contact != null) {
@@ -58,7 +58,7 @@ class MomentProvider {
       for (Moment moment in moments) {
         moment.action = await _actionProvider.getViaId(moment.actionId);
         moment.location = await _locationProvider.getViaId(moment.locationId);
-        List<MomentContact> momentContacts = await getMomentContact(moment.id);
+        List<MomentContact> momentContacts = await getMomentContact(moment.uuid);
         for (MomentContact momentContact in momentContacts) {
           var contact = await _contactProvider.getViaId(
               momentContact.contactId);
@@ -76,15 +76,15 @@ class MomentProvider {
   }
 
   Future<int> update(Moment moment) async {
-    assert(moment.id != null);
+    assert(moment.uuid != null);
     return LifeDb.db.update(MomentTable.name, MomentTable.toMap(moment),
-        where: "${MomentTable.columnId} = ?", whereArgs: [moment.id]);
+        where: "${MomentTable.columnUuid} = ?", whereArgs: [moment.uuid]);
   }
 
   Future<int> save(Moment moment) async {
     int affected = 0;
-    if (moment.id == null) {
-      moment.id = await insert(moment);
+    if (moment.uuid == null) {
+      await insert(moment);
       affected = 1;
     } else {
       affected = await update(moment);
@@ -95,17 +95,17 @@ class MomentProvider {
   Future<int> delete(Moment moment) async {
     return LifeDb.db.delete(
       MomentTable.name,
-      where: "${MomentTable.columnId} = ?",
-      whereArgs: [moment.id],
+      where: "${MomentTable.columnUuid} = ?",
+      whereArgs: [moment.uuid],
     );
   }
 
-  Future<List<MomentContact>> getMomentContact(int momentId) async {
+  Future<List<MomentContact>> getMomentContact(String momentUuid) async {
     List<Map> maps = await LifeDb.db.query(
       MomentContactTable.name,
       columns: [],
-      where: "${MomentContactTable.columnMomentId} = ?",
-      whereArgs: [momentId],
+      where: "${MomentContactTable.columnMomentUuid} = ?",
+      whereArgs: [momentUuid],
     );
     return maps.map((map) {
       return MomentContactTable.fromMap(map);
@@ -117,16 +117,16 @@ class MomentProvider {
         MomentContactTable.name, MomentContactTable.toMap(momentContact));
   }
 
-  Future<int> deleteMomentContactViaMomentId(int momentId) async {
+  Future<int> deleteMomentContactViaMomentId(String momentUuid) async {
     return LifeDb.db.delete(MomentContactTable.name,
-        where: "${MomentContactTable.columnMomentId} = ?",
-        whereArgs: [momentId]);
+        where: "${MomentContactTable.columnMomentUuid} = ?",
+        whereArgs: [momentUuid]);
   }
 
   Future<int> deleteMomentContact(int momentId, int contactId) async {
     return LifeDb.db.delete(MomentContactTable.name,
         where:
-            "${MomentContactTable.columnMomentId} = ? and ${MomentContactTable.columnContactId} = ?",
+            "${MomentContactTable.columnMomentUuid} = ? and ${MomentContactTable.columnContactId} = ?",
         whereArgs: [momentId, contactId]);
   }
 

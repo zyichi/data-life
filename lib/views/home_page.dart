@@ -2,14 +2,10 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter/services.dart';
-import 'package:page_transition/page_transition.dart';
 
 import 'package:data_life/views/moment_list.dart';
 import 'package:data_life/views/goal_list.dart';
 import 'package:data_life/views/todo_list.dart';
-import 'package:data_life/views/action_page.dart';
-import 'package:data_life/views/location_page.dart';
-import 'package:data_life/views/contact_page.dart';
 import 'package:data_life/views/goal_edit.dart';
 import 'package:data_life/views/moment_edit.dart';
 import 'package:data_life/views/me_view.dart';
@@ -30,7 +26,6 @@ import 'package:data_life/blocs/action_bloc.dart';
 
 import 'package:data_life/paging/page_bloc.dart';
 
-import 'package:data_life/localizations.dart';
 
 class _Tab {
   final String label;
@@ -135,9 +130,6 @@ class HomePageState extends State<HomePage>
         action: SnackBarAction(
           label: 'UNDO',
           onPressed: () {
-            // We add back the deleted moment as new moment, so moment.id must
-            // set to null.
-            state.moment.id = null;
             _momentBloc.dispatch(AddMoment(moment: state.moment));
           },
         ),
@@ -169,9 +161,6 @@ class HomePageState extends State<HomePage>
         action: SnackBarAction(
           label: 'UNDO',
           onPressed: () {
-            // We add back the deleted goal as new goal, so goal.id must
-            // set to null.
-            state.goal.id = null;
             _goalBloc.dispatch(AddGoal(goal: state.goal));
           },
         ),
@@ -515,7 +504,4 @@ class HomePageState extends State<HomePage>
     );
   }
 
-  Color _captionColor() {
-    return Theme.of(context).textTheme.caption.color;
-  }
 }

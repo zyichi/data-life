@@ -3,7 +3,7 @@ import 'package:data_life/models/moment.dart';
 
 class MomentTable {
   static const name = 'moment';
-  static const columnId = '_id';
+  static const columnUuid = 'uuid';
   static const columnActionId = 'actionId';
   static const columnLocationId = 'locationId';
   static const columnSentiment = 'sentiment';
@@ -17,7 +17,7 @@ class MomentTable {
 
   static const createSql = '''
 create table $name (
-  $columnId integer primary key autoincrement,
+  $columnUuid text primary key,
   $columnActionId integer defalut null,
   $columnLocationId integer defalut null,
   $columnSentiment integer not null,
@@ -34,7 +34,7 @@ create table $name (
 
   static Moment fromMap(Map map) {
     final moment = Moment();
-    moment.id = map[MomentTable.columnId] as int;
+    moment.uuid = map[MomentTable.columnUuid];
     moment.actionId = map[MomentTable.columnActionId] as int;
     moment.locationId = map[MomentTable.columnLocationId] as int;
     moment.sentiment = Sentiment.values[map[MomentTable.columnSentiment]];
@@ -50,6 +50,7 @@ create table $name (
 
   static Map<String, dynamic> toMap(Moment moment) {
     var map = <String, dynamic>{
+      MomentTable.columnUuid: moment.uuid,
       MomentTable.columnActionId: moment.actionId,
       MomentTable.columnLocationId: moment.locationId,
       MomentTable.columnSentiment: moment.sentiment.index,
@@ -61,9 +62,6 @@ create table $name (
       MomentTable.columnCreateTime: moment.createTime,
       MomentTable.columnUpdateTime: moment.updateTime,
     };
-    if (moment.id != null) {
-      map[MomentTable.columnId] = moment.id;
-    }
     return map;
   }
 

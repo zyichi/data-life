@@ -18,7 +18,6 @@ class Moment {
   }
 
   String uuid;
-  int id;
   int actionId;
   int locationId;
   Sentiment sentiment;
@@ -82,7 +81,7 @@ class Moment {
   }
   
   bool isSameWith(Moment moment) {
-    if (id != moment.id) return false;
+    if (uuid != moment.uuid) return false;
     if (actionId != moment.actionId) return false;
     if (locationId != moment.locationId) return false;
     if (!isContentSameWith(moment)) return false;
@@ -122,7 +121,7 @@ class Moment {
   }
 
   void copy(Moment moment) {
-    id = moment.id;
+    uuid = moment.uuid;
     actionId = moment.actionId;
     locationId = moment.locationId;
     sentiment = moment.sentiment;
