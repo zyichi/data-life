@@ -99,8 +99,8 @@ class HomePageState extends State<HomePage>
         view: TodoList(name: 'todo'),
         fabIconData: null,
         fabOnPressed: null,
-        label: '今日待办',
-        title: '待办',
+        label: '待办',
+        title: '今日待办',
       ),
       _Tab(
         view: MeView(),

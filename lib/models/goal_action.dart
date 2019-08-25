@@ -1,7 +1,6 @@
-import 'package:equatable/equatable.dart';
-
 import 'package:data_life/models/action.dart';
 import 'package:data_life/models/repeat_types.dart';
+import 'package:flutter/cupertino.dart';
 
 
 enum GoalActionStatus {
@@ -10,7 +9,7 @@ enum GoalActionStatus {
   finished,
 }
 
-class GoalAction extends Equatable {
+class GoalAction {
   GoalAction();
 
   int id;
@@ -37,6 +36,12 @@ class GoalAction extends Equatable {
   
   MyAction _action;
 
+  DateTime get startDateTime => DateTime.fromMillisecondsSinceEpoch(this.startTime);
+  set startDateTime(DateTime dateTime) => this.startTime = dateTime.millisecondsSinceEpoch;
+  DateTime get stopDateTime => DateTime.fromMillisecondsSinceEpoch(this.stopTime);
+  set stopDateTime(DateTime dateTime) => this.stopTime = dateTime.millisecondsSinceEpoch;
+  int get durationInDays => this.stopDateTime.difference(this.startDateTime).inDays;
+
   MyAction get action => _action;
   set action(MyAction a) {
     _action = a;
@@ -50,8 +55,23 @@ class GoalAction extends Equatable {
     return true;
   }
 
-  @override
-  List get props => [goalId, actionId, action.name];
+  String durationStrInHms(BuildContext context) {
+    var parts = <String>[];
+    Duration duration = this.stopDateTime.difference(this.startDateTime);
+    int days = duration.inDays;
+    if (days > 0) {
+      parts.add('$days 天');
+    }
+    int hours = duration.inHours % 24;
+    if (hours > 0) {
+      parts.add('$hours 小时');
+    }
+    int minutes = duration.inMinutes % 60;
+    if (minutes > 0) {
+      parts.add('$minutes 分钟');
+    }
+    return parts.join(' ');
+  }
 
   Repeat getRepeat() {
     var repeat = Repeat();

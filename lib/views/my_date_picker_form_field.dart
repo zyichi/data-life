@@ -2,11 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:intl/intl.dart';
 
-import 'package:data_life/views/my_form_text_field.dart';
-
+import 'package:data_life/views/my_form_field.dart';
 
 const double _kPickerSheetHeight = 216;
-
 
 class MyDatePickerFormField extends StatefulWidget {
   MyDatePickerFormField({
@@ -37,7 +35,6 @@ class MyDatePickerFormField extends StatefulWidget {
   _MyDatePickerFormFieldState createState() => _MyDatePickerFormFieldState();
 }
 
-
 class _MyDatePickerFormFieldState extends State<MyDatePickerFormField> {
   DateTime _currentDateTime;
 
@@ -49,55 +46,52 @@ class _MyDatePickerFormFieldState extends State<MyDatePickerFormField> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: <Widget>[
-        MyFormFieldLabel(
-          label: widget.labelName,
-          padding: widget.labelPadding,
-        ),
-        InkWell(
-          child: Padding(
-            padding: widget.valuePadding,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: <Widget>[
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 8),
-                  child: Text(
-                    DateFormat(DateFormat.YEAR_ABBR_MONTH_WEEKDAY_DAY).format(_currentDateTime),
-                    style: TextStyle(
-                      fontSize: 16,
-                    ),
+    return MyFormField(
+      label: widget.labelName,
+      labelPadding: widget.labelPadding,
+      child: InkWell(
+        child: Padding(
+          padding: widget.valuePadding,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: <Widget>[
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                child: Text(
+                  _formatDateTime(_currentDateTime),
+                  style: TextStyle(
+                    fontSize: 16,
                   ),
                 ),
-                widget.mutable ? Icon(Icons.chevron_right,
-                  color: Colors.grey[500],
-                ) : Container(),
-              ],
-            ),
+              ),
+              widget.mutable
+                  ? Icon(
+                      Icons.chevron_right,
+                      color: Colors.grey,
+                    )
+                  : Container(),
+            ],
           ),
-          onTap: () {
-            showCupertinoModalPopup<void>(
-                context: context,
-                builder: (BuildContext context) {
-                  return _buildBottomPicker(
-                    CupertinoDatePicker(
-                      mode: widget.mode,
-                      initialDateTime: widget.initialDateTime,
-                      onDateTimeChanged: (DateTime newDateTime) {
-                        setState(() {
-                          _currentDateTime = newDateTime;
-                        });
-                        widget.onChanged(newDateTime);
-                      },
-                    ),
-                  );
-                }
-            );
-          },
         ),
-      ],
+        onTap: () {
+          showCupertinoModalPopup<void>(
+              context: context,
+              builder: (BuildContext context) {
+                return _buildBottomPicker(
+                  CupertinoDatePicker(
+                    mode: widget.mode,
+                    initialDateTime: widget.initialDateTime,
+                    onDateTimeChanged: (DateTime newDateTime) {
+                      setState(() {
+                        _currentDateTime = newDateTime;
+                      });
+                      widget.onChanged(newDateTime);
+                    },
+                  ),
+                );
+              });
+        },
+      ),
     );
   }
 
@@ -113,7 +107,7 @@ class _MyDatePickerFormFieldState extends State<MyDatePickerFormField> {
         ),
         child: GestureDetector(
           // Blocks taps from propagating to the modal sheet and popping.
-          onTap: () { },
+          onTap: () {},
           child: SafeArea(
             top: false,
             child: picker,
@@ -123,4 +117,15 @@ class _MyDatePickerFormFieldState extends State<MyDatePickerFormField> {
     );
   }
 
+  String _formatDateTime(DateTime dateTime) {
+    switch (widget.mode) {
+      case CupertinoDatePickerMode.time:
+        return DateFormat.jm().format(dateTime);
+      case CupertinoDatePickerMode.date:
+        return DateFormat.yMMMMd().format(dateTime);
+      case CupertinoDatePickerMode.dateAndTime:
+        return DateFormat.yMMMd().add_jm().format(dateTime);
+    }
+    return null;
+  }
 }

@@ -78,7 +78,6 @@ class _UniqueCheckFormFieldState extends State<UniqueCheckFormField> {
   @override
   Widget build(BuildContext context) {
     return MyFormTextField(
-      isShowLabel: false,
       valueTextStyle: widget.textStyle,
       controller: _controller,
       focusNode: widget.focusNode,
@@ -86,7 +85,7 @@ class _UniqueCheckFormFieldState extends State<UniqueCheckFormField> {
         return widget.validator(value, _isUnique);
       },
       inputHint: widget.hintText,
-      valueMutable: widget.mutable,
+      valueEditable: widget.mutable,
       autovalidate: _isEdited,
       autofocus: widget.autofocus,
       valueChanged: widget.textChanged,

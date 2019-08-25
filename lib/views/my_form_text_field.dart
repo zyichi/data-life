@@ -1,135 +1,100 @@
 import 'package:flutter/material.dart';
 
+import 'package:data_life/views/my_form_field.dart';
 
-class MyImmutableFormTextField extends StatelessWidget {
+
+const myFormTextFieldValueStyle = TextStyle(
+  fontSize: 16,
+);
+
+
+class MyReadOnlyTextField extends StatelessWidget {
   final String name;
   final String value;
 
-  MyImmutableFormTextField({this.name, this.value});
+  MyReadOnlyTextField({this.name, this.value});
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(top: 0, bottom: 0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: <Widget>[
-          Text(
-            name,
-            style: Theme.of(context).textTheme.caption,
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8),
-            child: Text(value),
-          )
-        ],
+    return MyFormField(
+      label: name,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        child: Text(value,
+          style: myFormTextFieldValueStyle,
+        ),
       ),
     );
   }
 }
-
-
-class MyFormFieldLabel extends StatefulWidget {
-  final String label;
-  final EdgeInsets padding;
-  final TextStyle textStyle;
-
-  const MyFormFieldLabel(
-      {Key key,
-        this.label,
-        this.textStyle,
-        this.padding = EdgeInsets.zero})
-      : super(key: key);
-
-  @override
-  _MyFormFieldLabelState createState() => _MyFormFieldLabelState();
-}
-
-class _MyFormFieldLabelState extends State<MyFormFieldLabel> {
-  TextStyle _textStyle;
-
-  @override
-  void initState() {
-    super.initState();
-
-    _textStyle = widget.textStyle;
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    if (widget.textStyle == null) {
-      _textStyle = Theme.of(context).textTheme.caption;
-    }
-    return Padding(
-      padding: widget.padding,
-      child: Text(
-        widget.label,
-        style: _textStyle,
-      ),
-    );
-  }
-}
-
 
 class MyFormTextField extends StatefulWidget {
   final String name;
-  final String initialValue;
+  final String value;
   final String inputHint;
   final ValueChanged<String> valueChanged;
-  final bool valueMutable;
+  final bool valueEditable;
   final FormFieldValidator<String> validator;
-  final bool isShowLabel;
   final TextStyle labelTextStyle;
   final TextStyle valueTextStyle;
   final FocusNode focusNode;
   final TextEditingController controller;
   final bool autofocus;
   final bool autovalidate;
+  final TextInputType inputType;
 
   MyFormTextField({
     this.name,
-    this.initialValue,
+    this.value,
     this.inputHint,
     this.valueChanged,
-    this.valueMutable,
+    this.valueEditable,
     this.validator,
-    this.isShowLabel = true,
     this.labelTextStyle,
-    this.valueTextStyle,
+    this.valueTextStyle = myFormTextFieldValueStyle,
     this.focusNode,
     this.controller,
     this.autofocus = false,
     this.autovalidate = false,
+    this.inputType = TextInputType.text,
   });
 
   @override
   _MyFormTextFieldState createState() => _MyFormTextFieldState();
+
+  static Widget buildFieldRemoveButton(VoidCallback onTap) {
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      child: Container(
+        width: 40,
+        height: 36,
+        child: Icon(
+          Icons.remove_circle_outline,
+          color: Colors.red,
+          size: 24,
+        ),
+      ),
+      onTap: onTap,
+    );
+  }
+
 }
 
 class _MyFormTextFieldState extends State<MyFormTextField> {
   TextEditingController _valueController;
-  FocusNode _valueFocusNode;
   bool _isEdited = false;
-  TextStyle _labelTextStyle;
-  TextStyle _valueTextStyle;
 
   @override
   void initState() {
     super.initState();
 
-    _labelTextStyle = widget.labelTextStyle;
-    _valueTextStyle = widget.valueTextStyle;
-
-    _valueFocusNode = widget.focusNode;
-
     _valueController = widget.controller;
     if (_valueController == null) {
       _valueController = TextEditingController();
     }
-    if (widget.initialValue != null) {
-      _valueController.text = widget.initialValue;
+    if (widget.value != null) {
+      _valueController.text = widget.value;
     }
-
     _valueController.addListener(() {
       if (!_isEdited && _valueController.text.isNotEmpty) {
         setState(() {
@@ -142,62 +107,50 @@ class _MyFormTextFieldState extends State<MyFormTextField> {
 
   @override
   Widget build(BuildContext context) {
-    if (_labelTextStyle == null) {
-      _labelTextStyle = Theme.of(context).textTheme.caption;
-    }
-    if (_valueTextStyle == null) {
-      _valueTextStyle = Theme.of(context).textTheme.body1.copyWith(
-        fontSize: 16,
-      );
-    }
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: <Widget>[
-        widget.isShowLabel ? MyFormFieldLabel(
-          textStyle: _labelTextStyle,
-          label: widget.name,
-        ) : Container(),
-        Row(
-          children: <Widget>[
-            Expanded(
-              child: TextFormField(
-                decoration: InputDecoration(
-                  hintText: widget.inputHint,
-                  border: InputBorder.none,
-                  isDense: true,
-                  contentPadding: EdgeInsets.only(top: 8, bottom: 0),
-                ),
-                style: _valueTextStyle,
-                keyboardType: TextInputType.number,
-                controller: _valueController,
-                focusNode: _valueFocusNode,
-                autovalidate: _isEdited,
-                validator: widget.validator,
+    return MyFormField(
+      label: widget.name,
+      child: Row(
+        children: <Widget>[
+          Expanded(
+            child: TextFormField(
+              decoration: InputDecoration(
+                hintText: widget.inputHint,
+                border: InputBorder.none,
+                isDense: true,
+                contentPadding: EdgeInsets.only(top: 8, bottom: 0),
               ),
+              style: widget.valueTextStyle,
+              keyboardType: widget.inputType,
+              controller: _valueController,
+              focusNode: widget.focusNode,
+              autovalidate: _isEdited,
+              validator: widget.validator,
+              autofocus: widget.autofocus,
             ),
-            widget.valueMutable && _valueController.text.isNotEmpty
-                ? GestureDetector(
-                    behavior: HitTestBehavior.opaque,
-                    child: Container(
-                      width: 40,
-                      height: 36,
-                      child: Icon(
-                        Icons.remove_circle_outline,
-                        color: Colors.red,
-                        size: 24,
-                      ),
+          ),
+          widget.valueEditable && _valueController.text.isNotEmpty
+              ? GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  child: Container(
+                    width: 40,
+                    height: 36,
+                    child: Icon(
+                      Icons.remove_circle_outline,
+                      color: Colors.red,
+                      size: 24,
                     ),
-                    onTap: () {
-                      final bool textChanged = _valueController.text.isNotEmpty;
-                      _valueController.clear();
-                      if (textChanged && widget.valueChanged != null) {
-                        widget.valueChanged(_valueController.text);
-                      }
-                    },
-                  ) : Container(),
-          ],
-        )
-      ],
+                  ),
+                  onTap: () {
+                    final bool textChanged = _valueController.text.isNotEmpty;
+                    _valueController.clear();
+                    if (textChanged && widget.valueChanged != null) {
+                      widget.valueChanged(_valueController.text);
+                    }
+                  },
+                )
+              : Container(),
+        ],
+      ),
     );
   }
 }

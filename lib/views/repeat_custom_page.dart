@@ -56,7 +56,7 @@ class _MultiPickItemState extends State<MultiPickItem> {
       child: Container(
         width: widget.maxWidth,
         height: widget.maxHeight,
-        color: _selected ? Colors.blue : Colors.grey[300],
+        color: _selected ? Colors.green : Colors.grey[300],
         child: Padding(
           padding: EdgeInsets.all(8),
           child: Center(

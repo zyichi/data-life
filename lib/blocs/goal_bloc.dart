@@ -276,7 +276,13 @@ class GoalBloc extends Bloc<GoalEvent, GoalState> {
       yield GoalActionAdded();
     }
     if (event is UpdateGoalAction) {
-      yield GoalActionUpdated();
+      try {
+        await goalRepository.saveGoalAction(event.newGoalAction);
+        yield GoalActionUpdated();
+      } catch (e) {
+        var error = 'Process UpdateGoalAction failed: $e';
+        yield GoalFailed(error: error);
+      }
     }
     if (event is MomentAddedGoalEvent) {
       try {
@@ -288,8 +294,8 @@ class GoalBloc extends Bloc<GoalEvent, GoalState> {
           yield GoalUpdated(oldGoal: null, newGoal: goal);
         }
       } catch (e) {
-        print('Process MomentAddedGoalEvent failed: $e');
-        yield GoalFailed(error: 'Process MomentAddedGoalEvent failed: $e}');
+        var error = 'Process MomentAddedGoalEvent failed: $e';
+        yield GoalFailed(error: error);
       }
     }
     if (event is MomentUpdatedGoalEvent) {
@@ -304,8 +310,8 @@ class GoalBloc extends Bloc<GoalEvent, GoalState> {
           yield GoalUpdated(oldGoal: null, newGoal: goal);
         }
       } catch (e) {
-        print('Process MomentUpdatedGoalEvent failed: $e');
-        yield GoalFailed(error: 'Process MomentUpdatedGoalEvent failed: $e}');
+        var error = 'Process MomentUpdatedGoalEvent failed: $e';
+        yield GoalFailed(error: error);
       }
     }
     if (event is MomentDeletedGoalEvent) {
@@ -318,8 +324,8 @@ class GoalBloc extends Bloc<GoalEvent, GoalState> {
           yield GoalUpdated(oldGoal: null, newGoal: goal);
         }
       } catch (e) {
-        print('Process MomentDeletedGoalEvent failed: $e');
-        yield GoalFailed(error: 'Process MomentDeletedGoalEvent failed: $e}');
+        var error = 'Process MomentDeletedGoalEvent failed: $e';
+        yield GoalFailed(error: error);
       }
     }
     if (event is GoalNameUniqueCheck) {

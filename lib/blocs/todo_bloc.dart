@@ -203,13 +203,26 @@ class TodoBloc extends Bloc<TodoEvent, TodoState> {
         var addedList = <Todo>[];
         var updatedList = <Todo>[];
         if (oldGoal != null) {
-          for (var goalAction in oldGoal.goalActions) {
-            if (!newGoal.goalActions.contains(goalAction)) {
-              Todo todo = await todoRepository.getViaUniqueIndexId(
-                  oldGoal.id, goalAction.id, true);
-              if (todo != null) {
-                deletedList.add(todo);
-                await todoRepository.delete(todo.id);
+          for (var oldGoalAction in oldGoal.goalActions) {
+            var foundedInNew = newGoal.goalActions.firstWhere((newGoalAction) {
+              if (oldGoalAction.actionId != newGoalAction.actionId &&
+                  oldGoalAction.action?.name != newGoalAction.action?.name) return true;
+              return false;
+            }, orElse: () => null);
+            Todo dbTodo = await todoRepository.getViaUniqueIndexId(
+                oldGoal.id, oldGoalAction.id, true);
+            if (foundedInNew == null) {
+              if (dbTodo != null) {
+                deletedList.add(dbTodo);
+                await todoRepository.delete(dbTodo.id);
+              }
+            } else {
+              if (dbTodo != null) {
+                // Because we update goal by first delete then insert.
+                // We must update old goalId to new goalId.
+                dbTodo.goalId = newGoal.id;
+                await todoRepository.delete(dbTodo.id);
+                await todoRepository.save(dbTodo);
               }
             }
           }
@@ -245,8 +258,11 @@ class TodoBloc extends Bloc<TodoEvent, TodoState> {
       List<Todo> addedList,
       List<Todo> updatedList) async {
     for (var goalAction in goal.goalActions) {
+      print(
+          '_updateTodoFromGoal: goal: ${goal.name}, goalAction: ${goalAction.action.name}');
       Todo dbTodo = await todoRepository.getViaUniqueIndexId(
           goal.id, goalAction.id, true);
+      print('dbTodo is null ${dbTodo == null}');
       if (goal.status == GoalStatus.finished ||
           goal.status == GoalStatus.expired) {
         if (dbTodo != null) {
@@ -262,15 +278,15 @@ class TodoBloc extends Bloc<TodoEvent, TodoState> {
       } else if (goal.status == GoalStatus.ongoing) {
         if (isTodoGoalActionToday(goalAction, now)) {
           if (dbTodo != null) {
-            updatedList.add(dbTodo);
-            if (_isToday(
-                goalAction.lastActiveTime,
-                TimeUtil.todayStart(now).millisecondsSinceEpoch,
-                TimeUtil.tomorrowStart(now).millisecondsSinceEpoch)) {
-              dbTodo.status = TodoStatus.done;
-              dbTodo.doneTime = goalAction.lastActiveTime;
-            } else {
-              dbTodo.status = TodoStatus.waiting;
+            if (dbTodo.status == TodoStatus.waiting) {
+              if (_isToday(
+                  goalAction.lastActiveTime,
+                  TimeUtil.todayStart(now).millisecondsSinceEpoch,
+                  TimeUtil.tomorrowStart(now).millisecondsSinceEpoch)) {
+                dbTodo.status = TodoStatus.done;
+                dbTodo.doneTime = goalAction.lastActiveTime;
+                updatedList.add(dbTodo);
+              }
             }
             await todoRepository.save(dbTodo);
           } else {

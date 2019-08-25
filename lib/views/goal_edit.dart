@@ -99,12 +99,9 @@ class _GoalEditState extends State<GoalEdit> {
 
   final _formKey = GlobalKey<FormState>();
 
-  final _nameFocusNode = FocusNode();
 
   String _title;
   double _progressPercent;
-  String _howLong;
-  String _customHowLong;
 
   @override
   void initState() {
@@ -215,7 +212,6 @@ class _GoalEditState extends State<GoalEdit> {
           _isReadOnly = false;
           _title = '修改目标';
         });
-        FocusScope.of(context).requestFocus(_nameFocusNode);
       },
       child: Icon(
         Icons.edit,
@@ -228,7 +224,7 @@ class _GoalEditState extends State<GoalEdit> {
   bool _isNeedExitConfirm() {
     _updateGoalFromForm();
     if (_isNewGoal) {
-      if (_goal.name.isNotEmpty) {
+      if (_goal.name != null && _goal.name.isNotEmpty) {
         return true;
       } else {
         return false;
@@ -384,7 +380,8 @@ class _GoalEditState extends State<GoalEdit> {
     );
   }
 
-  void _updateGoalFromForm() {}
+  void _updateGoalFromForm() {
+  }
 
   void _editGoal() {
     _updateGoalFromForm();
@@ -483,8 +480,7 @@ class _GoalEditState extends State<GoalEdit> {
         padding:
             const EdgeInsets.only(left: 16, top: 16, right: 16, bottom: 0),
         child: UniqueCheckFormField(
-          initialValue: _goal.name,
-          focusNode: _nameFocusNode,
+          initialValue: _goal.name ?? '',
           textStyle: Theme.of(context).textTheme.subhead.copyWith(fontSize: 24),
           validator: (String text, bool isUnique) {
             if (text.isEmpty) {
@@ -515,8 +511,8 @@ class _GoalEditState extends State<GoalEdit> {
           MyFormTextField(
             name: '目标值',
             inputHint: '输入目标值',
-            initialValue: _getNumDisplayStr(_goal.target),
-            valueMutable: !_isReadOnly,
+            value: _getNumDisplayStr(_goal.target),
+            valueEditable: !_isReadOnly,
             valueChanged: (String text) {
               num value = num.tryParse(text);
               setState(() {
@@ -542,8 +538,8 @@ class _GoalEditState extends State<GoalEdit> {
           MyFormTextField(
             name: '当前进度值',
             inputHint: '输入当前进度值',
-            initialValue: _getNumDisplayStr(_goal.progress),
-            valueMutable: !_isReadOnly,
+            value: _getNumDisplayStr(_goal.progress),
+            valueEditable: !_isReadOnly,
             valueChanged: (String text) {
               num value = num.tryParse(text);
               setState(() {
@@ -625,12 +621,15 @@ class _GoalEditState extends State<GoalEdit> {
               labelPadding: EdgeInsets.symmetric(horizontal: 16),
               valuePadding: EdgeInsets.symmetric(horizontal: 16),
             ),
-            FormFieldError(
-              errorText: fieldState.errorText,
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: FormFieldError(
+                errorText: fieldState.errorText,
+              ),
             ),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              child: MyImmutableFormTextField(
+              child: MyReadOnlyTextField(
                 name: '目标时长',
                 value: '${_goal.durationInDays} 天',
               ),

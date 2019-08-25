@@ -59,6 +59,7 @@ class _RepeatPageState extends State<RepeatPage> {
                 onChanged: (newValue) {
                   _repeatTypeChanged(newValue);
                 },
+                activeColor: Theme.of(context).primaryColorDark,
               ),
               Text(
                 _repeatText,

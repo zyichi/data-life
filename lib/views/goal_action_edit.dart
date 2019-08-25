@@ -1,13 +1,16 @@
+import 'package:data_life/views/my_form_field.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:page_transition/page_transition.dart';
+import 'package:flutter/cupertino.dart';
 
 import 'package:data_life/views/common_dialog.dart';
-import 'package:data_life/views/date_time_picker_form_field.dart';
 import 'package:data_life/views/labeled_text_form_field.dart';
 import 'package:data_life/views/repeat_page.dart';
 import 'package:data_life/views/type_to_str.dart';
+import 'package:data_life/views/my_date_picker_form_field.dart';
+import 'package:data_life/views/my_form_text_field.dart';
 
 import 'package:data_life/models/goal.dart';
 import 'package:data_life/models/action.dart';
@@ -18,7 +21,6 @@ import 'package:data_life/models/repeat_types.dart';
 import 'package:data_life/blocs/goal_bloc.dart';
 
 import 'package:data_life/localizations.dart';
-
 
 final howOftenOptions = [
   HowOften.notRepeat,
@@ -119,9 +121,7 @@ class GoalActionEdit extends StatefulWidget {
   final Goal goal;
   final GoalAction goalAction;
 
-  const GoalActionEdit(
-      {this.goal, this.goalAction})
-      : assert(goal != null);
+  const GoalActionEdit({this.goal, this.goalAction}) : assert(goal != null);
 
   @override
   _GoalActionEditState createState() {
@@ -133,13 +133,13 @@ class _GoalActionEditState extends State<GoalActionEdit> {
   final _formKey = GlobalKey<FormState>();
   final GoalAction _goalAction = GoalAction();
   bool _isReadOnly = false;
-  final FocusNode _actionNameFocusNode = FocusNode();
   final TextEditingController _actionNameController = TextEditingController();
   GoalBloc _goalEditBloc;
   bool _autoValidateActionName = false;
   String _repeatText;
   Repeat _customRepeat;
   String _title;
+  String _durationStr;
 
   @override
   void initState() {
@@ -158,13 +158,15 @@ class _GoalActionEditState extends State<GoalActionEdit> {
     } else {
       DateTime now = DateTime.now();
       _goalAction.goalId = widget.goal.id;
-      _goalAction.startTime = now.millisecondsSinceEpoch;
-      _goalAction.stopTime =
-          _goalAction.startTime + Duration(hours: 1).inMilliseconds;
+      _goalAction.startDateTime = now;
+      _goalAction.stopDateTime =
+          _goalAction.startDateTime.add(Duration(hours: 1));
       _goalAction.setRepeat(Repeat.oneTime(now));
 
       _title = '添加新任务';
     }
+
+    _durationStr = _getDurationStr();
 
     _actionNameController.addListener(() {
       if (!_autoValidateActionName && _actionNameController.text.isNotEmpty) {
@@ -194,119 +196,36 @@ class _GoalActionEditState extends State<GoalActionEdit> {
       body: SafeArea(
         top: false,
         bottom: false,
-        child: Form(
-          key: _formKey,
-          onWillPop: _onWillPop,
-          child: ListView(
-            padding: EdgeInsets.symmetric(vertical: 16),
-            children: <Widget>[
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: _createActionNameFormField(),
-              ),
-              Divider(),
-              SizedBox(height: 16),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: FormField(
-                  builder: (fieldState) {
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: <Widget>[
-                        DateTimePickerFormField(
-                          labelText: 'From',
-                          initialDateTime:
-                          DateTime.fromMillisecondsSinceEpoch(_goalAction.startTime),
-                          selectDateTime: (time) {
-                            _goalAction.startTime = time.millisecondsSinceEpoch;
-                            fieldState.didChange(null);
-                          },
-                          enabled: !_isReadOnly,
-                        ),
-                        DateTimePickerFormField(
-                          labelText: 'To',
-                          initialDateTime:
-                          DateTime.fromMillisecondsSinceEpoch(_goalAction.stopTime),
-                          selectDateTime: (time) {
-                            _goalAction.stopTime = time.millisecondsSinceEpoch;
-                            fieldState.didChange(null);
-                          },
-                          enabled: !_isReadOnly,
-                        ),
-                        FormFieldError(
-                          errorText: fieldState.errorText,
-                        )
-                      ],
-                    );
-                  },
-                  autovalidate: true,
-                  validator: (value) {
-                    if (_isReadOnly) {
-                      return null;
-                    }
-                    var now = DateTime.now();
-                    var nowDate = DateTime(now.year, now.month, now.day);
-                    if (_goalAction.startTime < nowDate.millisecondsSinceEpoch) {
-                      return '开始时间必须在当前时间之后';
-                    }
-                    if (_goalAction.startTime > _goalAction.stopTime) {
-                      return '开始时间必须早于结束时间';
-                    }
-                    return null;
-                  },
+        child: AbsorbPointer(
+          absorbing: _isReadOnly,
+          child: Form(
+            key: _formKey,
+            onWillPop: _onWillPop,
+            child: ListView(
+              padding: EdgeInsets.symmetric(vertical: 16),
+              children: <Widget>[
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: _buildActionNameField(),
                 ),
-              ),
-              SizedBox(height: 8),
-              Divider(),
-              SizedBox(height: 16),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: <Widget>[
-                    LabelFormField(
-                      label: 'Repeat',
-                    ),
-                    InkWell(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 8),
-                        child: Text(
-                          _repeatText,
-                          style: Theme.of(context).textTheme.subhead,
-                        ),
-                      ),
-                      onTap: _isReadOnly
-                          ? null
-                          : () async {
-                              _customRepeat = await Navigator.push(
-                                  context,
-                                  PageTransition(
-                                    child: RepeatPage(
-                                      goalAction: _goalAction,
-                                      customRepeat: _customRepeat,
-                                    ),
-                                    type: PageTransitionType.rightToLeft,
-                                  ));
-                              setState(() {
-                                _repeatText = TypeToStr.repeatToReadableText(
-                                    _goalAction.getRepeat(), context);
-                              });
-                            },
-                    )
-                  ],
-                ),
-              ),
-            ],
+                Divider(),
+                _buildTimeField(),
+                Divider(),
+                SizedBox(height: 16),
+                _buildRepeatField(),
+              ],
+            ),
           ),
         ),
       ),
     );
   }
 
+  String _getDurationStr() {
+    return _goalAction.durationStrInHms(context);
+  }
+
   Widget _createFloatingActionButton() {
-    if (_isNewGoalAction) {
-      return Container();
-    }
     if (!_isReadOnly) {
       return Container();
     }
@@ -317,7 +236,6 @@ class _GoalActionEditState extends State<GoalActionEdit> {
           _isReadOnly = false;
           _title = '修改任务';
         });
-        FocusScope.of(context).requestFocus(_actionNameFocusNode);
       },
       child: Icon(
         Icons.edit,
@@ -336,7 +254,14 @@ class _GoalActionEditState extends State<GoalActionEdit> {
         onPressed: () {
           if (_formKey.currentState.validate()) {
             _editGoalAction();
-            Navigator.of(context).pop(true);
+            if (_isNewGoalAction) {
+              Navigator.of(context).pop();
+            } else {
+              setState(() {
+                _isReadOnly = true;
+              });
+
+            }
           }
         },
       );
@@ -344,6 +269,9 @@ class _GoalActionEditState extends State<GoalActionEdit> {
   }
 
   bool _isNeedExitConfirm() {
+    if (_isReadOnly) {
+      return false;
+    }
     _updateGoalActionFromForm();
     if (_isNewGoalAction) {
       if (_goalAction.action != null) {
@@ -352,9 +280,6 @@ class _GoalActionEditState extends State<GoalActionEdit> {
         return false;
       }
     } else {
-      if (_isReadOnly) {
-        return false;
-      }
       if (_goalAction.isContentSameWith(widget.goalAction)) {
         return false;
       } else {
@@ -371,53 +296,69 @@ class _GoalActionEditState extends State<GoalActionEdit> {
         'Are you sure you want to discard your changes to the goal action?');
   }
 
-  Widget _createActionNameFormField() {
-    return TypeAheadFormField(
-      hideOnEmpty: true,
-      hideOnLoading: true,
-      getImmediateSuggestions: true,
-      textFieldConfiguration: TextFieldConfiguration(
-        decoration: InputDecoration(
-          hintText: 'Enter action',
-          border: InputBorder.none,
-        ),
-        controller: _actionNameController,
-        focusNode: _actionNameFocusNode,
-        style: Theme.of(context).textTheme.subhead.copyWith(fontSize: 24),
-        // autofocus: !_isReadOnly,
-        enabled: _isNewGoalAction,
-      ),
-      onSuggestionSelected: (MyAction action) {
-        _actionNameController.text = action.name;
-        _goalAction.action = action;
-      },
-      itemBuilder: (context, suggestion) {
-        final action = suggestion as MyAction;
-        return Padding(
-          padding: const EdgeInsets.only(left: 8.0, top: 8.0, bottom: 8.0),
-          child: Text(
-            action.name,
+  Widget _buildActionNameField() {
+    return Stack(
+      children: <Widget>[
+        AbsorbPointer(
+          absorbing: !_isNewGoalAction,
+          child: TypeAheadFormField(
+            hideOnEmpty: true,
+            hideOnLoading: true,
+            getImmediateSuggestions: true,
+            textFieldConfiguration: TextFieldConfiguration(
+              decoration: InputDecoration(
+                hintText: 'Enter action',
+                border: InputBorder.none,
+              ),
+              controller: _actionNameController,
+              style: Theme.of(context).textTheme.subhead.copyWith(fontSize: 24),
+              autofocus: _isNewGoalAction,
+            ),
+            onSuggestionSelected: (MyAction action) {
+              _actionNameController.text = action.name;
+              _goalAction.action = action;
+            },
+            itemBuilder: (context, suggestion) {
+              final action = suggestion as MyAction;
+              return Padding(
+                padding: const EdgeInsets.only(left: 8.0, top: 8.0, bottom: 8.0),
+                child: Text(
+                  action.name,
+                ),
+              );
+            },
+            suggestionsCallback: (pattern) {
+              return _goalEditBloc.getActionSuggestions(pattern);
+            },
+            validator: (value) {
+              if (!_isNewGoalAction) {
+                return null;
+              }
+              if (value.isEmpty) {
+                return 'Please enter action';
+              }
+              for (var goalAction in widget.goal.goalActions) {
+                if (goalAction.action.name == value) {
+                  return 'Action already exist in goal';
+                }
+              }
+              return null;
+            },
+            autovalidate: _autoValidateActionName,
           ),
-        );
-      },
-      suggestionsCallback: (pattern) {
-        return _goalEditBloc.getActionSuggestions(pattern);
-      },
-      validator: (value) {
-        if (!_isNewGoalAction) {
-          return null;
-        }
-        if (value.isEmpty) {
-          return 'Please enter action';
-        }
-        for (var goalAction in widget.goal.goalActions) {
-          if (goalAction.action.name == value) {
-            return 'Action already exist in goal';
-          }
-        }
-        return null;
-      },
-      autovalidate: _autoValidateActionName,
+        ),
+        _isNewGoalAction
+            ? Positioned(
+                right: 0,
+                top: 0,
+                bottom: 0,
+                child: MyFormTextField.buildFieldRemoveButton(() {
+                  _actionNameController.clear();
+                  _goalAction.action = null;
+                }),
+              )
+            : Container(),
+      ],
     );
   }
 
@@ -451,4 +392,118 @@ class _GoalActionEditState extends State<GoalActionEdit> {
     _goalEditBloc.dispatch(DeleteGoalAction(goalAction: widget.goalAction));
   }
 
+  Widget _buildTimeField() {
+    return FormField(
+      builder: (FormFieldState fieldState) {
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: <Widget>[
+            SizedBox(height: 16),
+            MyDatePickerFormField(
+              labelName: '开始时间',
+              onChanged: (DateTime newDateTime) {
+                fieldState.didChange(null);
+                setState(() {
+                  _goalAction.startDateTime = newDateTime;
+                  _durationStr = _getDurationStr();
+                });
+              },
+              mutable: !_isReadOnly,
+              initialDateTime: _goalAction.startDateTime,
+              mode: CupertinoDatePickerMode.dateAndTime,
+              labelPadding: EdgeInsets.symmetric(horizontal: 16),
+              valuePadding: EdgeInsets.symmetric(horizontal: 16),
+            ),
+            SizedBox(height: 8),
+            MyDatePickerFormField(
+              labelName: '结束时间',
+              onChanged: (DateTime newDateTime) {
+                fieldState.didChange(null);
+                setState(() {
+                  _goalAction.stopDateTime = newDateTime;
+                  _durationStr = _getDurationStr();
+                });
+              },
+              mutable: !_isReadOnly,
+              initialDateTime: _goalAction.stopDateTime,
+              mode: CupertinoDatePickerMode.dateAndTime,
+              labelPadding: EdgeInsets.symmetric(horizontal: 16),
+              valuePadding: EdgeInsets.symmetric(horizontal: 16),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: FormFieldError(
+                errorText: fieldState.errorText,
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: MyReadOnlyTextField(
+                name: '持续时间',
+                value: _durationStr,
+              ),
+            ),
+          ],
+        );
+      },
+      autovalidate: true,
+      validator: (value) {
+        if (_isReadOnly) {
+          return null;
+        }
+        var now = DateTime.now();
+        var nowDate = DateTime(now.year, now.month, now.day);
+        if (_isNewGoalAction) {
+          if (_goalAction.startTime < nowDate.millisecondsSinceEpoch) {
+            return '开始时间必须在当前时间之后';
+          }
+        }
+        if (_goalAction.startTime > _goalAction.stopTime) {
+          return '开始时间必须早于结束时间';
+        }
+        return null;
+      },
+    );
+  }
+
+  Widget _buildRepeatField() {
+    return MyFormField(
+      label: '重复',
+      labelPadding: EdgeInsets.symmetric(horizontal: 16),
+      child: InkWell(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: <Widget>[
+              Text(
+                _repeatText,
+              ),
+              !_isReadOnly
+                  ? Icon(
+                      Icons.chevron_right,
+                      color: Colors.grey,
+                    )
+                  : Container(),
+            ],
+          ),
+        ),
+        onTap: () async {
+          _customRepeat = await Navigator.push(
+              context,
+              PageTransition(
+                child: RepeatPage(
+                  goalAction: _goalAction,
+                  customRepeat: _customRepeat,
+                ),
+                type: PageTransitionType.rightToLeft,
+              ));
+          setState(() {
+            _repeatText = TypeToStr.repeatToReadableText(
+                _goalAction.getRepeat(), context);
+          });
+        },
+      ),
+    );
+  }
 }

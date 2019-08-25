@@ -2,6 +2,8 @@ import 'package:data_life/models/contact.dart';
 import 'package:data_life/models/action.dart';
 import 'package:data_life/models/location.dart';
 
+import 'package:uuid/uuid.dart';
+
 enum Sentiment {
   VerySatisfied,
   Satisfied,
@@ -11,8 +13,11 @@ enum Sentiment {
 }
 
 class Moment {
-  Moment();
+  Moment() {
+    this.uuid = Uuid().v4();
+  }
 
+  String uuid;
   int id;
   int actionId;
   int locationId;
