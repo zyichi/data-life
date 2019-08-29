@@ -168,7 +168,7 @@ class MomentBloc extends Bloc<MomentEvent, MomentState> {
     } else {
       moment.createTime = now;
     }
-    await momentRepository.save(moment);
+    await momentRepository.add(moment);
 
     // Process contact.
     for (Contact contact in moment.contacts) {
@@ -218,7 +218,7 @@ class MomentBloc extends Bloc<MomentEvent, MomentState> {
     await locationRepository.save(location);
 
     // Update contacts.
-    await momentRepository.deleteMomentContactViaMomentId(moment.uuid);
+    await momentRepository.deleteMomentContactViaMomentUuid(moment.uuid);
     for (Contact contact in moment.contacts) {
       contact.lastMeetTime =
           await momentRepository.getContactLastMeetTime(contact.id);

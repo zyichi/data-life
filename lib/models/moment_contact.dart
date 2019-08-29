@@ -1,5 +1,4 @@
 class MomentContact {
-  int id;
   String momentUuid;
   int contactId;
   int momentBeginTime;

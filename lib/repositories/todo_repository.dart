@@ -17,8 +17,8 @@ class TodoRepository extends PageRepository<Todo> {
     return _todoProvider.getViaGoalUuid(goalUuid, rowOnly);
   }
 
-  Future<Todo> getViaKey(String goalUuid, String goalActionUuid, bool rowOnly) async {
-    return _todoProvider.getViaKey(goalUuid, goalActionUuid, rowOnly);
+  Future<Todo> getViaKey(String goalUuid, int actionId, bool rowOnly) async {
+    return _todoProvider.getViaKey(goalUuid, actionId, rowOnly);
   }
 
   Future<int> count() async {

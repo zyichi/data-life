@@ -3,7 +3,6 @@ import 'package:data_life/models/time_types.dart';
 
 class GoalTable {
   static const name = 'goal';
-  static const deletedName = 'deleted_goal';
 
   static const columnUuid = 'uuid';
   static const columnName = 'name';
@@ -14,6 +13,7 @@ class GoalTable {
   static const columnStatus = 'status';
   static const columnDurationType = 'durationType';
   static const columnLastActiveTime = 'lastActiveTime';
+  static const columnDoneTime = 'doneTime';
   static const columnTotalTimeTaken = 'totalTimeTaken';
   static const columnCreateTime = 'createTime';
   static const columnUpdateTime = 'updateTime';
@@ -22,7 +22,6 @@ class GoalTable {
 create unique index goal_name_idx on $name(
   $columnName);
 ''';
-
   static String getCreateTableSql(String tableName) {
     return '''
 create table $tableName (
@@ -35,6 +34,7 @@ create table $tableName (
   $columnStatus integer default null,
   $columnDurationType integer default null,
   $columnLastActiveTime integer default null,
+  $columnDoneTime integer default null,
   $columnTotalTimeTaken integer default null,
   $columnCreateTime integer not null,
   $columnUpdateTime integer default null)
@@ -43,7 +43,6 @@ create table $tableName (
 
   static List<String> get initSqlList => [
         getCreateTableSql(GoalTable.name),
-        getCreateTableSql(GoalTable.deletedName),
         createIndexSql
       ];
 
@@ -59,6 +58,7 @@ create table $tableName (
     goal.durationType = DurationType.values[map[GoalTable.columnDurationType] ?? DurationType.none.index];
     goal.totalTimeTaken = map[GoalTable.columnTotalTimeTaken] as int;
     goal.lastActiveTime = map[GoalTable.columnLastActiveTime] as int;
+    goal.doneTime = map[GoalTable.columnDoneTime] as int;
     goal.createTime = map[GoalTable.columnCreateTime] as int;
     goal.updateTime = map[GoalTable.columnUpdateTime] as int;
     return goal;
@@ -75,6 +75,7 @@ create table $tableName (
       GoalTable.columnStatus: goal.status?.index,
       GoalTable.columnDurationType: goal.durationType?.index,
       GoalTable.columnLastActiveTime: goal.lastActiveTime,
+      GoalTable.columnDoneTime: goal.doneTime,
       GoalTable.columnTotalTimeTaken: goal.totalTimeTaken,
       GoalTable.columnCreateTime: goal.createTime,
       GoalTable.columnUpdateTime: goal.updateTime,

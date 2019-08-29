@@ -4,8 +4,7 @@ import 'package:data_life/models/moment_contact.dart';
 class MomentContactTable {
   static const name = 'moment_contact';
 
-  static const columnId = '_id';
-  static const columnMomentUuid = 'momentId';
+  static const columnMomentUuid = 'momentUuid';
   static const columnContactId = 'contactId';
   // This field is add for easy fetch Contact.lastMeetTime;
   static const columnMomentBeginTime = 'momentBeginTime';
@@ -14,24 +13,19 @@ class MomentContactTable {
 
   static const createSql = '''
 create table $name (
-  $columnId integer primary key autoincrement,
   $columnMomentUuid text not null,
   $columnContactId integer not null,
   $columnMomentBeginTime integer not null,
   $columnMomentDuration integer not null,
-  $columnCreateTime integer not null)
+  $columnCreateTime integer not null,
+  primary key ($columnMomentUuid, $columnContactId)
+  )
 ''';
 
-  static const createIndexSql = '''
-create unique index moment_contact_idx on $name(
-  $columnMomentUuid, $columnContactId);
-''';
-
-  static List<String> get initSqlList => [createSql, createIndexSql];
+  static List<String> get initSqlList => [createSql, ];
 
   static MomentContact fromMap(Map map) {
     final momentContact = MomentContact();
-    momentContact.id = map[MomentContactTable.columnId] as int;
     momentContact.momentUuid = map[MomentContactTable.columnMomentUuid];
     momentContact.contactId = map[MomentContactTable.columnContactId] as int;
     momentContact.momentBeginTime = map[MomentContactTable.columnMomentBeginTime] as int;
@@ -48,9 +42,6 @@ create unique index moment_contact_idx on $name(
       MomentContactTable.columnMomentDuration: momentContact.momentDuration,
       MomentContactTable.columnCreateTime: momentContact.createTime,
     };
-    if (momentContact.id != null) {
-      map[MomentContactTable.columnId] = momentContact.id;
-    }
     return map;
   }
 

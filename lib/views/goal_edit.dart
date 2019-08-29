@@ -152,9 +152,7 @@ class _GoalEditState extends State<GoalEdit> {
           bloc: _goalBloc,
           listener: (context, state) {
             if (state is GoalActionAdded ||
-                state is GoalActionDeleted ||
                 state is GoalActionUpdated) {
-              print('Goal action added/deleted/updated');
               setState(() {});
             }
           },
@@ -268,6 +266,9 @@ class _GoalEditState extends State<GoalEdit> {
         ),
       ),
       onTap: () {
+        setState(() {
+          goal.goalActions.remove(goalAction);
+        });
       },
     );
   }
@@ -389,9 +390,12 @@ class _GoalEditState extends State<GoalEdit> {
       _goalBloc.dispatch(
         AddGoal(goal: _goal),
       );
+      Navigator.of(context).pop();
     } else {
+      setState(() {
+        _isReadOnly = true;
+      });
       if (_goal.isContentSameWith(widget.goal)) {
-        print('Same goal content, not need to update');
         return;
       }
       _goalBloc.dispatch(UpdateGoal(
@@ -425,7 +429,6 @@ class _GoalEditState extends State<GoalEdit> {
       onPressed: () {
         if (_formKey.currentState.validate()) {
           _editGoal();
-          Navigator.of(context).pop();
         }
       },
     );
@@ -631,7 +634,7 @@ class _GoalEditState extends State<GoalEdit> {
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               child: MyReadOnlyTextField(
                 name: '目标时长',
-                value: '${_goal.durationInDays} 天',
+                value: '${_goal.duration.inDays} 天',
               ),
             ),
           ],

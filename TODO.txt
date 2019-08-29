@@ -1,3 +1,5 @@
-* Update goal action totalTimeTaken when save moment.
+remove goal_action.uuid
+remove moment_contact.uuid
 
-* Implement search like QQ search
+change todo.goalActionId to todo.actionId
+add column goal.doneTime

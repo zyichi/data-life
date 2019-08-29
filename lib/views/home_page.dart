@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:data_life/db/life_db.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter/services.dart';
@@ -167,6 +168,13 @@ class HomePageState extends State<HomePage>
       ));
       _todoBloc.dispatch(GoalDeletedTodoEvent(goal: state.goal));
     }
+    if (state is GoalActionUpdated) {
+      _todoBloc.dispatch(GoalActionUpdatedTodoEvent(
+        goal: state.goal,
+        newGoalAction: state.newGoalAction,
+        oldGoalAction: state.oldGoalAction,
+      ));
+    }
     if (state is GoalAdded) {
       _todoBloc.dispatch(GoalAddedTodoEvent(goal: state.goal));
     }
@@ -262,7 +270,8 @@ class HomePageState extends State<HomePage>
             actions: <Widget>[
               IconButton(
                 icon: Icon(Icons.search),
-                onPressed: () {},
+                onPressed: () {
+                },
               ),
               /*
               PopupMenuButton<String>(

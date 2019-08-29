@@ -8,12 +8,11 @@ import 'package:data_life/db/goal_action_table.dart';
 import 'package:data_life/db/contact_table.dart';
 import 'package:data_life/db/location_table.dart';
 import 'package:data_life/db/action_table.dart';
-import 'package:data_life/db/goal_moment_table.dart';
 import 'package:data_life/db/moment_contact_table.dart';
 
 class LifeDb {
   static const dbFile = 'data_life.db';
-  static const version = 2;
+  static const version = 4;
   static String dbPath;
   static Database db;
 
@@ -24,6 +23,7 @@ class LifeDb {
 
   static Future<Database> open() async {
     LifeDb.dbPath = await LifeDb.getPath();
+    print('LifeDb.open: ${LifeDb.dbPath}');
     LifeDb.db = await openDatabase(
       LifeDb.dbPath,
       version: LifeDb.version,
@@ -34,6 +34,7 @@ class LifeDb {
   }
 
   static void create(Database db, int version) async {
+    print('LifeDb.create');
     var initSqlList = MomentTable.initSqlList +
         GoalTable.initSqlList +
         TodoTable.initSqlList +
@@ -46,9 +47,8 @@ class LifeDb {
   }
 
   static void upgrade(Database db, int oldVersion, int newVersion) async {
-    if (oldVersion == 1) {
-      await db.execute(ContactTable.createSql);
-    }
+    print('LifeDb.upgrade');
+    print('Database old version: $oldVersion, new version $newVersion');
   }
 
   static Future delete() async {

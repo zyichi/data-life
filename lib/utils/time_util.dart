@@ -56,19 +56,27 @@ class TimeUtil {
     return s;
   }
 
+  static String formatDurationToDHM(Duration duration, BuildContext context) {
+    return formatMillisToDHM(duration.inMilliseconds, context);
+  }
   static String formatMillisToDHM(int millis, BuildContext context) {
     var l = dayHourMinuteFromMillis(millis);
     int days = l[0];
     int hours = l[1];
     int minutes = l[2];
-    String dayStr = days == 0 ? '' : '$days days';
-    String hourStr = hours == 0 ? '' : '$hours hours';
-    String minuteStr = minutes == 0 ? '' : '$minutes minutes';
-    String s;
-    if (dayStr.isEmpty && hourStr.isEmpty && minuteStr.isEmpty) {
-      s = '0 minutes';
-    } else {
-      s = "$dayStr${dayStr.isEmpty ? '' : ' '}$hourStr${hourStr.isEmpty ? '' : ' '}$minuteStr${minuteStr.isEmpty ? '' : ' '}";
+    var fields = <String>[];
+    if (days > 0) {
+      fields.add('$days 天');
+    }
+    if (hours > 0) {
+      fields.add('$hours 小时');
+    }
+    if (minutes > 0) {
+      fields.add('$minutes 分钟');
+    }
+    var s = fields.join(' ');
+    if (s.isEmpty) {
+      s = '0 分钟';
     }
     return s;
   }

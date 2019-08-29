@@ -44,6 +44,28 @@ class MomentProvider {
     return moments;
   }
 
+  Future<List<Moment>> getAll() async {
+    List<Map> maps = await LifeDb.db.query(
+      MomentTable.name,
+      columns: [],
+    );
+    var moments = maps.map((map) {
+      return MomentTable.fromMap(map);
+    }).toList();
+    for (Moment moment in moments) {
+      moment.action = await _actionProvider.getViaId(moment.actionId);
+      moment.location = await _locationProvider.getViaId(moment.locationId);
+      List<MomentContact> momentContacts = await getMomentContact(moment.uuid);
+      for (MomentContact momentContact in momentContacts) {
+        var contact = await _contactProvider.getViaId(momentContact.contactId);
+        if (contact != null) {
+          moment.contacts.add(contact);
+        }
+      }
+    }
+    return moments;
+  }
+
   Future<List<Moment>> getAfterTime(int timeInMillis, bool rowOnly) async {
     List<Map> maps = await LifeDb.db.query(
       MomentTable.name,
@@ -76,20 +98,8 @@ class MomentProvider {
   }
 
   Future<int> update(Moment moment) async {
-    assert(moment.uuid != null);
     return LifeDb.db.update(MomentTable.name, MomentTable.toMap(moment),
         where: "${MomentTable.columnUuid} = ?", whereArgs: [moment.uuid]);
-  }
-
-  Future<int> save(Moment moment) async {
-    int affected = 0;
-    if (moment.uuid == null) {
-      await insert(moment);
-      affected = 1;
-    } else {
-      affected = await update(moment);
-    }
-    return affected;
   }
 
   Future<int> delete(Moment moment) async {
@@ -117,7 +127,7 @@ class MomentProvider {
         MomentContactTable.name, MomentContactTable.toMap(momentContact));
   }
 
-  Future<int> deleteMomentContactViaMomentId(String momentUuid) async {
+  Future<int> deleteMomentContactViaMomentUuid(String momentUuid) async {
     return LifeDb.db.delete(MomentContactTable.name,
         where: "${MomentContactTable.columnMomentUuid} = ?",
         whereArgs: [momentUuid]);
@@ -130,9 +140,8 @@ class MomentProvider {
         whereArgs: [momentId, contactId]);
   }
 
-  Future<int> saveMomentContact(MomentContact momentContact) async {
-    momentContact.id = await insertMomentContact(momentContact);
-    return 1;
+  Future<int> addMomentContact(MomentContact momentContact) async {
+    return await insertMomentContact(momentContact);
   }
 
   Future<int> getLocationLastVisitTime(

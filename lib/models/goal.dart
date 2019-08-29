@@ -26,6 +26,7 @@ class Goal {
   num progress;
   int startTime;
   int stopTime;
+  int doneTime;
   GoalStatus status = GoalStatus.ongoing;
   DurationType durationType;
   int lastActiveTime = 0;
@@ -55,7 +56,10 @@ class Goal {
   set startDateTime(DateTime dateTime) => this.startTime = dateTime.millisecondsSinceEpoch;
   DateTime get stopDateTime => DateTime.fromMillisecondsSinceEpoch(this.stopTime);
   set stopDateTime(DateTime dateTime) => this.stopTime = dateTime.millisecondsSinceEpoch;
-  int get durationInDays => this.stopDateTime.difference(this.startDateTime).inDays;
+  DateTime get doneDateTime => DateTime.fromMillisecondsSinceEpoch(this.doneTime);
+  set doneDateTime(DateTime dateTime) => this.doneTime = dateTime.millisecondsSinceEpoch;
+  Duration get duration => this.stopDateTime.difference(this.startDateTime);
+  Duration get doneDuration => this.doneDateTime.difference(this.startDateTime);
 
   void updateFieldFromGoalAction() {
     if (goalActions.isNotEmpty) {

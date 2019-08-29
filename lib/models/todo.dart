@@ -12,7 +12,7 @@ class Todo {
   Todo();
 
   String goalUuid;
-  String goalActionUuid;
+  int actionId;
   int startTime;
   int doneTime;
   TodoStatus status;
@@ -25,6 +25,6 @@ class Todo {
   DateTime get startDateTime => DateTime.fromMillisecondsSinceEpoch(this.startTime);
   set startDateTime(DateTime value) => this.startTime = value.millisecondsSinceEpoch;
 
-  DateTime get doneDateTime => DateTime.fromMillisecondsSinceEpoch(this.doneTime);
+  DateTime get doneDateTime => DateTime.fromMillisecondsSinceEpoch(this.doneTime ?? 0);
   set doneDateTime(DateTime value) => this.doneTime = value.millisecondsSinceEpoch;
 }

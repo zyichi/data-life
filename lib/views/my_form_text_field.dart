@@ -83,15 +83,14 @@ class MyFormTextField extends StatefulWidget {
 class _MyFormTextFieldState extends State<MyFormTextField> {
   TextEditingController _valueController;
   bool _isEdited = false;
+  FocusNode _focusNode;
 
   @override
   void initState() {
     super.initState();
 
-    _valueController = widget.controller;
-    if (_valueController == null) {
-      _valueController = TextEditingController();
-    }
+    _valueController = widget.controller ?? TextEditingController();
+    _focusNode = widget.focusNode ?? FocusNode();
     if (widget.value != null) {
       _valueController.text = widget.value;
     }
@@ -122,10 +121,11 @@ class _MyFormTextFieldState extends State<MyFormTextField> {
               style: widget.valueTextStyle,
               keyboardType: widget.inputType,
               controller: _valueController,
-              focusNode: widget.focusNode,
+              focusNode: _focusNode,
               autovalidate: _isEdited,
               validator: widget.validator,
               autofocus: widget.autofocus,
+              enabled: widget.valueEditable,
             ),
           ),
           widget.valueEditable && _valueController.text.isNotEmpty
@@ -143,6 +143,7 @@ class _MyFormTextFieldState extends State<MyFormTextField> {
                   onTap: () {
                     final bool textChanged = _valueController.text.isNotEmpty;
                     _valueController.clear();
+                    FocusScope.of(context).requestFocus(_focusNode);
                     if (textChanged && widget.valueChanged != null) {
                       widget.valueChanged(_valueController.text);
                     }

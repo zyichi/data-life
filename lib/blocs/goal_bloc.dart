@@ -58,30 +58,32 @@ class MomentUpdatedGoalEvent extends GoalEvent {
 class UpdateGoalStatus extends GoalEvent {}
 
 class UpdateGoalAction extends GoalEvent {
+  final Goal goal;
   final GoalAction oldGoalAction;
   final GoalAction newGoalAction;
 
-  UpdateGoalAction({@required this.oldGoalAction, @required this.newGoalAction})
-      : assert(oldGoalAction != null),
+  UpdateGoalAction(
+      {@required this.goal,
+      @required this.oldGoalAction,
+      @required this.newGoalAction})
+      : assert(goal != null),
+        assert(oldGoalAction != null),
         assert(newGoalAction != null);
 }
 
 class PauseGoal extends GoalEvent {
   final Goal goal;
-  PauseGoal({@required this.goal})
-      : assert(goal != null);
+  PauseGoal({@required this.goal}) : assert(goal != null);
 }
 
 class ResumeGoal extends GoalEvent {
   final Goal goal;
-  ResumeGoal({@required this.goal})
-      : assert(goal != null);
+  ResumeGoal({@required this.goal}) : assert(goal != null);
 }
 
 class FinishGoal extends GoalEvent {
   final Goal goal;
-  FinishGoal({@required this.goal})
-      : assert(goal != null);
+  FinishGoal({@required this.goal}) : assert(goal != null);
 }
 
 class DeleteGoal extends GoalEvent {
@@ -119,14 +121,17 @@ class GoalDeleted extends GoalState {
   final Goal goal;
   GoalDeleted({@required this.goal}) : assert(goal != null);
 }
+
 class GoalPaused extends GoalState {
   final Goal goal;
   GoalPaused({this.goal});
 }
+
 class GoalResumed extends GoalState {
   final Goal goal;
   GoalResumed({this.goal});
 }
+
 class GoalFinished extends GoalState {
   final Goal goal;
   GoalFinished({this.goal});
@@ -134,7 +139,19 @@ class GoalFinished extends GoalState {
 
 class GoalActionAdded extends GoalState {}
 
-class GoalActionUpdated extends GoalState {}
+class GoalActionUpdated extends GoalState {
+  final Goal goal;
+  final GoalAction oldGoalAction;
+  final GoalAction newGoalAction;
+
+  GoalActionUpdated(
+      {@required this.goal,
+      @required this.oldGoalAction,
+      @required this.newGoalAction})
+      : assert(goal != null),
+        assert(oldGoalAction != null),
+        assert(newGoalAction != null);
+}
 
 class GoalActionDeleted extends GoalState {
   final GoalAction goalAction;
@@ -186,7 +203,7 @@ class GoalBloc extends Bloc<GoalEvent, GoalState> {
           lastTimeUpdateGoalStatus < tomorrowDate.millisecondsSinceEpoch) {
         return;
       }
-      var goals = await goalRepository.getAllGoals();
+      var goals = await goalRepository.getAll();
       for (var goal in goals) {
         switch (goal.status) {
           case GoalStatus.none:
@@ -226,8 +243,9 @@ class GoalBloc extends Bloc<GoalEvent, GoalState> {
         await _addGoal(newGoal, nowInMillis);
         yield GoalUpdated(newGoal: newGoal, oldGoal: oldGoal);
       } catch (e) {
-        yield GoalFailed(
-            error: 'Update goal ${oldGoal.name} failed: ${e.toString()}');
+        var error = 'Update goal ${oldGoal.name} failed: ${e.toString()}';
+        print(error);
+        yield GoalFailed(error: error);
       }
     }
     if (event is DeleteGoal) {
@@ -236,38 +254,48 @@ class GoalBloc extends Bloc<GoalEvent, GoalState> {
         await _deleteGoal(goal, nowInMillis);
         yield GoalDeleted(goal: goal);
       } catch (e) {
-        yield GoalFailed(
-            error: 'Update goal ${goal.name} failed: ${e.toString()}');
+        var error = 'Delete goal ${goal.name} failed: ${e.toString()}';
+        print(error);
+        yield GoalFailed(error: error);
       }
     }
     if (event is PauseGoal) {
       final goal = event.goal;
       try {
-        await goalRepository.setStatus(goal.uuid, GoalStatus.paused);
+        goal.status = GoalStatus.paused;
+        goal.updateTime = nowInMillis;
+        await goalRepository.save(goal);
         yield GoalPaused(goal: goal);
       } catch (e) {
-        yield GoalFailed(
-            error: 'Pause ${goal.name} failed: ${e.toString()}');
+        var error = 'Pause goal ${goal.name} failed: ${e.toString()}';
+        print(error);
+        yield GoalFailed(error: error);
       }
     }
     if (event is ResumeGoal) {
       final goal = event.goal;
       try {
-        await goalRepository.setStatus(goal.uuid, GoalStatus.ongoing);
+        goal.status = GoalStatus.ongoing;
+        goal.updateTime = nowInMillis;
+        await goalRepository.save(goal);
         yield GoalResumed(goal: goal);
       } catch (e) {
-        yield GoalFailed(
-            error: 'Resume ${goal.name} failed: ${e.toString()}');
+        var error = 'Resume goal ${goal.name} failed: ${e.toString()}';
+        print(error);
+        yield GoalFailed(error: error);
       }
     }
     if (event is FinishGoal) {
       final goal = event.goal;
       try {
-        await goalRepository.setStatus(goal.uuid, GoalStatus.finished);
+        goal.status = GoalStatus.finished;
+        goal.updateTime = nowInMillis;
+        await goalRepository.save(goal);
         yield GoalFinished(goal: goal);
       } catch (e) {
-        yield GoalFailed(
-            error: 'Resume ${goal.name} failed: ${e.toString()}');
+        var error = 'Finish goal ${goal.name} failed: ${e.toString()}';
+        print(error);
+        yield GoalFailed(error: error);
       }
     }
     if (event is DeleteGoalAction) {
@@ -279,9 +307,13 @@ class GoalBloc extends Bloc<GoalEvent, GoalState> {
     if (event is UpdateGoalAction) {
       try {
         await goalRepository.saveGoalAction(event.newGoalAction);
-        yield GoalActionUpdated();
+        yield GoalActionUpdated(
+            goal: event.goal,
+            newGoalAction: event.newGoalAction,
+            oldGoalAction: event.oldGoalAction);
       } catch (e) {
         var error = 'Process UpdateGoalAction failed: $e';
+        print(error);
         yield GoalFailed(error: error);
       }
     }
@@ -296,6 +328,7 @@ class GoalBloc extends Bloc<GoalEvent, GoalState> {
         }
       } catch (e) {
         var error = 'Process MomentAddedGoalEvent failed: $e';
+        print(error);
         yield GoalFailed(error: error);
       }
     }
@@ -304,7 +337,7 @@ class GoalBloc extends Bloc<GoalEvent, GoalState> {
         var oldMoment = event.oldMoment;
         var newMoment = event.newMoment;
         List<Goal> goals =
-        await goalRepository.getViaActionId(oldMoment.action.id, false);
+            await goalRepository.getViaActionId(oldMoment.action.id, false);
         for (var goal in goals) {
           await _updateGoalWhenDeleteMoment(goal, oldMoment, nowInMillis);
           await _updateGoalWhenAddMoment(goal, newMoment, nowInMillis);
@@ -312,6 +345,7 @@ class GoalBloc extends Bloc<GoalEvent, GoalState> {
         }
       } catch (e) {
         var error = 'Process MomentUpdatedGoalEvent failed: $e';
+        print(error);
         yield GoalFailed(error: error);
       }
     }
@@ -319,13 +353,14 @@ class GoalBloc extends Bloc<GoalEvent, GoalState> {
       try {
         var moment = event.moment;
         List<Goal> goals =
-        await goalRepository.getViaActionId(moment.action.id, false);
+            await goalRepository.getViaActionId(moment.action.id, false);
         for (var goal in goals) {
           await _updateGoalWhenDeleteMoment(goal, moment, nowInMillis);
           yield GoalUpdated(oldGoal: null, newGoal: goal);
         }
       } catch (e) {
         var error = 'Process MomentDeletedGoalEvent failed: $e';
+        print(error);
         yield GoalFailed(error: error);
       }
     }
@@ -335,8 +370,9 @@ class GoalBloc extends Bloc<GoalEvent, GoalState> {
         yield GoalNameUniqueCheckResult(
             isUnique: goal == null, text: event.name);
       } catch (e) {
-        yield GoalFailed(
-            error: 'Check if goal name unique failed: ${e.toString()}');
+        var error = 'Check if goal name unique failed: ${e.toString()}';
+        print(error);
+        yield GoalFailed(error: error);
       }
     }
   }
@@ -402,7 +438,8 @@ class GoalBloc extends Bloc<GoalEvent, GoalState> {
     await _saveGoal(goal, nowInMillis);
   }
 
-  Future<void> _updateGoalWhenDeleteMoment(Goal goal, Moment moment, int now) async {
+  Future<void> _updateGoalWhenDeleteMoment(
+      Goal goal, Moment moment, int now) async {
     if (goal.status != GoalStatus.ongoing) {
       return;
     }

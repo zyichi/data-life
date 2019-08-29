@@ -1,6 +1,8 @@
+import 'package:data_life/utils/time_util.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:page_transition/page_transition.dart';
+import 'dart:math';
 
 import 'package:data_life/paging/page_bloc.dart';
 import 'package:data_life/paging/page_list.dart';
@@ -12,7 +14,12 @@ import 'package:data_life/models/goal.dart';
 import 'package:data_life/views/type_to_str.dart';
 import 'package:data_life/views/goal_edit.dart';
 
-import 'package:data_life/utils/time_util.dart';
+enum _GoalItemAction {
+  pause,
+  resume,
+  finish,
+  delete,
+}
 
 class _GoalListItem extends StatefulWidget {
   final Goal goal;
@@ -63,46 +70,7 @@ class __GoalListItemState extends State<_GoalListItem> {
                       widget.goal.name,
                       style: Theme.of(context).textTheme.title,
                     ),
-                    widget.goal.status == GoalStatus.finished || widget.goal.status == GoalStatus.expired
-                        ? IconButton(
-                            icon: Icon(
-                              Icons.more_vert,
-                              color: Colors.transparent,
-                            ),
-                            onPressed: null,
-                          )
-                        : PopupMenuButton<String>(
-                            icon: Icon(
-                              Icons.more_vert,
-                              color: _captionColor(context),
-                            ),
-                            onSelected: (value) {
-                              if (value == 'pause') {
-                                _pauseGoal();
-                              }
-                              if (value == 'resume') {
-                                _resumeGoal();
-                              }
-                              if (value == 'finish') {
-                                _finishGoal();
-                              }
-                            },
-                            itemBuilder: (context) {
-                              return [
-                                PopupMenuItem<String>(
-                                  value:
-                                      widget.goal.status == GoalStatus.paused
-                                          ? 'resume'
-                                          : 'pause',
-                                  child: _createPauseResumeMenuItem(context),
-                                ),
-                                PopupMenuItem<String>(
-                                  value: 'finish',
-                                  child: _createFinishMenuItem(context),
-                                ),
-                              ];
-                            },
-                          ),
+                    _buildMenu(widget.goal),
                   ],
                 ),
               ),
@@ -111,40 +79,7 @@ class __GoalListItemState extends State<_GoalListItem> {
                 padding: const EdgeInsets.only(
                     left: 16, top: 8, right: 16, bottom: 16),
                 child: Column(
-                  children: <Widget>[
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: <Widget>[
-                        Text('目标状态'),
-                        Text(
-                          '${TypeToStr.goalStatusToStr(widget.goal.status, context)}',
-                          style:
-                              Theme.of(context).textTheme.subtitle.copyWith(
-                                    color: widget.goal.status ==
-                                                GoalStatus.ongoing ||
-                                            widget.goal.status ==
-                                                GoalStatus.finished
-                                        ? Theme.of(context).primaryColor
-                                        : Theme.of(context).accentColor,
-                                    fontSize: 14,
-                                  ),
-                        ),
-                      ],
-                    ),
-                    widget.goal.status == GoalStatus.ongoing ||
-                            widget.goal.status == GoalStatus.paused
-                        ? Column(
-                            children: <Widget>[
-                              Divider(),
-                              // _createLastActiveTimeWidget(context),
-                              _createProgressWidget(context),
-                              Divider(),
-                              // _createTotalTimeTakenWidget(context),
-                              _createTimeRemainingWidget(context),
-                            ],
-                          )
-                        : Container(),
-                  ],
+                  children: _buildGoalFields(),
                 ),
               ),
             ],
@@ -154,85 +89,99 @@ class __GoalListItemState extends State<_GoalListItem> {
     }
   }
 
-  Widget _createProgressWidget(BuildContext context) {
-    return _createNameValueItem(
-        '当前进度', '${widget.goal.getProgressPercent()}%', context);
-  }
-
-  Widget _createTimeRemainingWidget(BuildContext context) {
-    var timeRemaining = Duration(
-        milliseconds:
-            widget.goal.stopTime - DateTime.now().millisecondsSinceEpoch);
-    return _createNameValueItem('剩余时间', '${timeRemaining.inDays} 天', context);
-  }
-
-  Widget _createNameValueItem(String name, String value, BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: <Widget>[
-        Text(
-          name,
-        ),
-        Text(
-          value,
-          style: Theme.of(context).textTheme.caption.copyWith(fontSize: 14),
-        ),
-      ],
-    );
-  }
-
-  Widget _createLastActiveTimeWidget(BuildContext context) {
-    String s;
-    // TODO: Add Goal.doneTime for GoalStatus.finished
-    int t = widget.goal.status == GoalStatus.finished
-        ? widget.goal.updateTime
-        : widget.goal.lastActiveTime;
-    if (t == 0 || t == null) {
-      s = '无';
-    } else {
-      s = TimeUtil.dateStringFromMillis(t) +
-          ' ' +
-          TimeUtil.timeStringFromMillis(t, context);
+  List<Widget> _buildGoalFields() {
+    var fields = <Widget>[];
+    fields.add(_buildStatusField());
+    fields.add(Divider(height: 24));
+    switch (widget.goal.status) {
+      case GoalStatus.none:
+        break;
+      case GoalStatus.ongoing:
+        fields.add(_buildProgressField(context));
+        fields.add(Divider(height: 24));
+        fields.add(_buildTimeRemainingField(context));
+        break;
+      case GoalStatus.paused:
+        fields.add(_buildProgressField(context));
+        fields.add(Divider(height: 24));
+        fields.add(_buildTimeRemainingField(context));
+        break;
+      case GoalStatus.finished:
+        fields.add(_buildTargetField());
+        fields.add(Divider(height: 24));
+        fields.add(_buildTotalTimeTakenField());
+        fields.add(Divider(height: 24));
+        fields.add(_buildHowLongField(widget.goal.stopDateTime));
+        break;
+      case GoalStatus.expired:
+        fields.add(_buildProgressField(context));
+        fields.add(Divider(height: 24));
+        fields.add(_buildTotalTimeTakenField());
+        fields.add(Divider(height: 24));
+        fields.add(_buildHowLongField(widget.goal.stopDateTime));
+        break;
     }
+    return fields;
+  }
+
+  Widget _buildTargetField() {
+    return _buildNameValueField(
+      '目标值',
+      widget.goal.target.toString(),
+      null,
+      context,
+    );
+  }
+
+  Widget _buildTotalTimeTakenField() {
+    return _buildNameValueField(
+      '实际花费时间',
+      TimeUtil.formatMillisToDHM(widget.goal.totalTimeTaken, context),
+      null,
+      context,
+    );
+  }
+
+  Widget _buildHowLongField(DateTime endTime) {
+    var millis = endTime.millisecondsSinceEpoch - widget.goal.startTime;
+    millis = max(0, millis);
+    return _buildNameValueField(
+      '完成目标用时',
+      '${Duration(milliseconds: millis).inDays} 天',
+      null,
+      context,
+    );
+  }
+
+  Widget _buildStatusField() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: <Widget>[
+        Text('目标状态'),
         Text(
-          widget.goal.status == GoalStatus.finished ? '完成时间' : '最后活跃',
-        ),
-        Text(
-          s,
-          style: Theme.of(context).textTheme.caption.copyWith(fontSize: 14),
+          '${TypeToStr.goalStatusToStr(widget.goal.status, context)}',
+          style: Theme.of(context).textTheme.subtitle.copyWith(
+                color: widget.goal.status == GoalStatus.ongoing ||
+                        widget.goal.status == GoalStatus.finished
+                    ? Theme.of(context).primaryColor
+                    : Theme.of(context).accentColor,
+                fontSize: 14,
+              ),
         ),
       ],
     );
   }
 
-  Widget _createTotalTimeTakenWidget(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: <Widget>[
-        Text(
-          "总共用时",
-        ),
-        Text(
-          TimeUtil.formatMillisToDHM(widget.goal.totalTimeTaken, context),
-          style: Theme.of(context).textTheme.caption.copyWith(fontSize: 14),
-        ),
-      ],
-    );
-  }
-
-  Widget _createFinishMenuItem(BuildContext context) {
+  Widget _buildMenuItem(String name, IconData iconData) {
     return Row(
       children: <Widget>[
         Icon(
-          Icons.done,
+          iconData,
           color: _captionColor(context),
         ),
         SizedBox(width: 16),
         Text(
-          '完成目标',
+          name,
           style: TextStyle(
             color: _captionColor(context),
           ),
@@ -241,48 +190,128 @@ class __GoalListItemState extends State<_GoalListItem> {
     );
   }
 
-  Widget _createPauseResumeMenuItem(BuildContext context) {
-    if (widget.goal.status == GoalStatus.paused) {
-      return Row(
-        children: <Widget>[
-          Icon(
-            Icons.play_arrow,
-            color: _captionColor(context),
-          ),
-          SizedBox(width: 16),
-          Text(
-            '继续目标',
-            style: TextStyle(
-              color: _captionColor(context),
-            ),
-          ),
-        ],
-      );
-    } else if (widget.goal.status == GoalStatus.ongoing) {
-      return Row(
-        children: <Widget>[
-          Icon(
-            Icons.pause,
-            color: _captionColor(context),
-          ),
-          SizedBox(width: 16),
-          Text(
-            '暂停目标',
-            style: TextStyle(
-              color: _captionColor(context),
-            ),
-          ),
-        ],
-      );
+  Widget _buildPauseMenuItem(Goal goal) {
+    return PopupMenuItem<_GoalItemAction>(
+      value: _GoalItemAction.pause,
+      child: _buildMenuItem('暂停', Icons.pause),
+    );
+  }
+
+  Widget _buildResumeMenuItem(Goal goal) {
+    return PopupMenuItem<_GoalItemAction>(
+      value: _GoalItemAction.resume,
+      child: _buildMenuItem('继续', Icons.play_arrow),
+    );
+  }
+
+  Widget _buildFinishMenuItem(Goal goal) {
+    return PopupMenuItem<_GoalItemAction>(
+      value: _GoalItemAction.finish,
+      child: _buildMenuItem('完成', Icons.done),
+    );
+  }
+
+  Widget _buildDeleteMenuItem(Goal goal) {
+    return PopupMenuItem<_GoalItemAction>(
+      value: _GoalItemAction.delete,
+      child: _buildMenuItem('删除', Icons.delete),
+    );
+  }
+
+  Widget _buildMenu(Goal goal) {
+    var menuItems = <PopupMenuItem<_GoalItemAction>>[];
+    switch (goal.status) {
+      case GoalStatus.none:
+        break;
+      case GoalStatus.ongoing:
+        menuItems.add(_buildPauseMenuItem(goal));
+        menuItems.add(_buildFinishMenuItem(goal));
+        break;
+      case GoalStatus.finished:
+        break;
+      case GoalStatus.expired:
+        menuItems.add(_buildFinishMenuItem(goal));
+        break;
+      case GoalStatus.paused:
+        menuItems.add(_buildResumeMenuItem(goal));
+        menuItems.add(_buildFinishMenuItem(goal));
+        break;
     }
-    return null;
+    menuItems.add(_buildDeleteMenuItem(goal));
+    return PopupMenuButton<_GoalItemAction>(
+      icon: Icon(
+        Icons.more_vert,
+        color: _captionColor(context),
+      ),
+      onSelected: (value) {
+        switch (value) {
+          case _GoalItemAction.pause:
+            _pauseGoal(goal);
+            break;
+          case _GoalItemAction.resume:
+            _resumeGoal(goal);
+            break;
+          case _GoalItemAction.finish:
+            _finishGoal(goal);
+            break;
+          case _GoalItemAction.delete:
+            _deleteGoal(goal);
+            break;
+        }
+      },
+      itemBuilder: (context) {
+        return menuItems;
+      },
+    );
+  }
+
+  Widget _buildProgressField(BuildContext context) {
+    return _buildNameValueField(
+        '当前进度', '${widget.goal.getProgressPercent()}%', null, context);
+  }
+
+  Widget _buildTimeRemainingField(BuildContext context) {
+    var milliseconds =
+        widget.goal.stopTime - DateTime.now().millisecondsSinceEpoch;
+    milliseconds = max(0, milliseconds);
+    return _buildNameValueField(
+      '剩余时间',
+      '${Duration(milliseconds: milliseconds).inDays} 天',
+      null,
+      context,
+    );
+  }
+
+  Widget _buildNameValueField(
+      String name, String value, TextStyle valueStyle, BuildContext context) {
+    if (valueStyle == null) {
+      valueStyle = Theme.of(context).textTheme.caption.copyWith(
+            fontSize: 14,
+          );
+    }
+    var nameStyle = Theme.of(context).textTheme.body1.copyWith(
+          fontSize: 14,
+        );
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: <Widget>[
+        Text(
+          name,
+          style: nameStyle,
+        ),
+        Text(
+          value,
+          style: valueStyle,
+        ),
+      ],
+    );
   }
 
   Color _captionColor(BuildContext context) {
     return Theme.of(context).textTheme.caption.color;
   }
 
-  void _pauseGoal() {
+  void _pauseGoal(Goal goal) {
     setState(() {
       widget.goal.updateTime = DateTime.now().millisecondsSinceEpoch;
       widget.goal.status = GoalStatus.paused;
@@ -292,23 +321,31 @@ class __GoalListItemState extends State<_GoalListItem> {
     ));
   }
 
-  void _resumeGoal() {
+  void _resumeGoal(Goal goal) {
     setState(() {
-      widget.goal.updateTime = DateTime.now().millisecondsSinceEpoch;
-      widget.goal.status = GoalStatus.ongoing;
+      goal.updateTime = DateTime.now().millisecondsSinceEpoch;
+      goal.status = GoalStatus.ongoing;
     });
     widget.goalBloc.dispatch(ResumeGoal(
-      goal: widget.goal,
+      goal: goal,
     ));
   }
 
-  void _finishGoal() {
+  void _finishGoal(Goal goal) {
     setState(() {
-      widget.goal.updateTime = DateTime.now().millisecondsSinceEpoch;
-      widget.goal.status = GoalStatus.finished;
+      var now = DateTime.now();
+      goal.updateTime = now.millisecondsSinceEpoch;
+      goal.doneDateTime = now;
+      goal.status = GoalStatus.finished;
     });
     widget.goalBloc.dispatch(FinishGoal(
-      goal: widget.goal,
+      goal: goal,
+    ));
+  }
+
+  void _deleteGoal(Goal goal) {
+    widget.goalBloc.dispatch(DeleteGoal(
+      goal: goal,
     ));
   }
 }

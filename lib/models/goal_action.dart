@@ -1,8 +1,5 @@
 import 'package:data_life/models/action.dart';
 import 'package:data_life/models/repeat_types.dart';
-import 'package:flutter/cupertino.dart';
-
-import 'package:uuid/uuid.dart';
 
 
 enum GoalActionStatus {
@@ -12,11 +9,6 @@ enum GoalActionStatus {
 }
 
 class GoalAction {
-  GoalAction() {
-    this.uuid = Uuid().v4();
-  }
-
-  String uuid;
   String goalUuid;
   int actionId;
   int startTime;
@@ -44,7 +36,7 @@ class GoalAction {
   set startDateTime(DateTime dateTime) => this.startTime = dateTime.millisecondsSinceEpoch;
   DateTime get stopDateTime => DateTime.fromMillisecondsSinceEpoch(this.stopTime);
   set stopDateTime(DateTime dateTime) => this.stopTime = dateTime.millisecondsSinceEpoch;
-  int get durationInDays => this.stopDateTime.difference(this.startDateTime).inDays;
+  Duration get duration => this.stopDateTime.difference(this.startDateTime);
 
   MyAction get action => _action;
   set action(MyAction a) {
@@ -57,24 +49,6 @@ class GoalAction {
     if (actionId != goalAction.actionId) return false;
     if (action?.name != goalAction.action?.name) return false;
     return true;
-  }
-
-  String durationStrInHms(BuildContext context) {
-    var parts = <String>[];
-    Duration duration = this.stopDateTime.difference(this.startDateTime);
-    int days = duration.inDays;
-    if (days > 0) {
-      parts.add('$days 天');
-    }
-    int hours = duration.inHours % 24;
-    if (hours > 0) {
-      parts.add('$hours 小时');
-    }
-    int minutes = duration.inMinutes % 60;
-    if (minutes > 0) {
-      parts.add('$minutes 分钟');
-    }
-    return parts.join(' ');
   }
 
   Repeat getRepeat() {
@@ -106,7 +80,6 @@ class GoalAction {
   }
 
   void copy(GoalAction goalAction) {
-    uuid = goalAction.uuid;
     goalUuid = goalAction.goalUuid;
     actionId = goalAction.actionId;
     startTime = goalAction.startTime;
@@ -126,7 +99,6 @@ class GoalAction {
   }
 
   bool isSameWith(GoalAction goalAction) {
-    if (uuid != goalAction.uuid) return false;
     if (!isContentSameWith(goalAction)) return false;
     if (!action.isSameWith(goalAction.action)) return false;
     return true;

@@ -21,6 +21,8 @@ import 'package:data_life/models/repeat_types.dart';
 import 'package:data_life/blocs/goal_bloc.dart';
 
 import 'package:data_life/localizations.dart';
+import 'package:data_life/utils/time_util.dart';
+
 
 final howOftenOptions = [
   HowOften.notRepeat,
@@ -134,6 +136,7 @@ class _GoalActionEditState extends State<GoalActionEdit> {
   final GoalAction _goalAction = GoalAction();
   bool _isReadOnly = false;
   final TextEditingController _actionNameController = TextEditingController();
+  final FocusNode _actionNameFocusNode = FocusNode();
   GoalBloc _goalEditBloc;
   bool _autoValidateActionName = false;
   String _repeatText;
@@ -222,7 +225,7 @@ class _GoalActionEditState extends State<GoalActionEdit> {
   }
 
   String _getDurationStr() {
-    return _goalAction.durationStrInHms(context);
+    return TimeUtil.formatDurationToDHM(_goalAction.duration, context);
   }
 
   Widget _createFloatingActionButton() {
@@ -254,14 +257,6 @@ class _GoalActionEditState extends State<GoalActionEdit> {
         onPressed: () {
           if (_formKey.currentState.validate()) {
             _editGoalAction();
-            if (_isNewGoalAction) {
-              Navigator.of(context).pop();
-            } else {
-              setState(() {
-                _isReadOnly = true;
-              });
-
-            }
           }
         },
       );
@@ -313,15 +308,19 @@ class _GoalActionEditState extends State<GoalActionEdit> {
               controller: _actionNameController,
               style: Theme.of(context).textTheme.subhead.copyWith(fontSize: 24),
               autofocus: _isNewGoalAction,
+              focusNode: _actionNameFocusNode,
             ),
             onSuggestionSelected: (MyAction action) {
-              _actionNameController.text = action.name;
+              setState(() {
+                _actionNameController.text = action.name;
+              });
               _goalAction.action = action;
             },
             itemBuilder: (context, suggestion) {
               final action = suggestion as MyAction;
               return Padding(
-                padding: const EdgeInsets.only(left: 8.0, top: 8.0, bottom: 8.0),
+                padding:
+                    const EdgeInsets.only(left: 8.0, top: 8.0, bottom: 8.0),
                 child: Text(
                   action.name,
                 ),
@@ -347,13 +346,14 @@ class _GoalActionEditState extends State<GoalActionEdit> {
             autovalidate: _autoValidateActionName,
           ),
         ),
-        _isNewGoalAction
+        _isNewGoalAction && _actionNameController.text.isNotEmpty
             ? Positioned(
                 right: 0,
                 top: 0,
                 bottom: 0,
                 child: MyFormTextField.buildFieldRemoveButton(() {
                   _actionNameController.clear();
+                  FocusScope.of(context).requestFocus(_actionNameFocusNode);
                   _goalAction.action = null;
                 }),
               )
@@ -380,16 +380,17 @@ class _GoalActionEditState extends State<GoalActionEdit> {
       });
       widget.goal.goalActions.add(_goalAction);
       _goalEditBloc.dispatch(AddGoalAction(goalAction: _goalAction));
+      Navigator.of(context).pop();
     } else {
       widget.goalAction.copy(_goalAction);
       _goalEditBloc.dispatch(UpdateGoalAction(
-          oldGoalAction: widget.goalAction, newGoalAction: _goalAction));
+          goal: widget.goal,
+          oldGoalAction: widget.goalAction,
+          newGoalAction: _goalAction));
+      setState(() {
+        _isReadOnly = true;
+      });
     }
-  }
-
-  void _deleteGoalAction() {
-    widget.goal.goalActions.remove(widget.goalAction);
-    _goalEditBloc.dispatch(DeleteGoalAction(goalAction: widget.goalAction));
   }
 
   Widget _buildTimeField() {

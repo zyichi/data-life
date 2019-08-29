@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:data_life/db/todo_table.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -190,8 +191,7 @@ class _TodoListState extends State<TodoList>
         child: RefreshIndicator(
           onRefresh: () {
             _refreshCompleter = Completer<void>();
-            // _todoBloc.dispatch(CreateTodayTodo());
-            _todoListBloc.dispatch(RefreshPage());
+            _todoBloc.dispatch(ForceCreateTodo());
             return _refreshCompleter.future;
           },
           child: BlocBuilder(
@@ -245,11 +245,16 @@ class _TodoListState extends State<TodoList>
   }
 
   Widget _createEmptyResults() {
-    return Center(
-      child: Text(
-        '今天无任务',
-        style: Theme.of(context).textTheme.display2,
-      ),
+    return ListView(
+      children: <Widget>[
+        SizedBox(height: 200),
+        Center(
+          child: Text(
+            '今天无任务',
+            style: Theme.of(context).textTheme.display2,
+          ),
+        ),
+      ],
     );
   }
 }

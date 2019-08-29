@@ -6,7 +6,6 @@ import 'dart:convert';
 class GoalActionTable {
   static const name = 'goal_action';
 
-  static const columnUuid = 'uuid';
   static const columnGoalUuid = 'goalUuid';
   static const columnActionId = 'actionId';
   static const columnStartTime = 'startTime';
@@ -23,15 +22,9 @@ class GoalActionTable {
   static const columnCreateTime = 'createTime';
   static const columnUpdateTime = 'updateTime';
 
-  static const createIndexSql = '''
-create unique index goal_action_idx on $name(
-  $columnGoalUuid, $columnActionId);
-''';
-
   static String getCreateTableSql(String tableName) {
     return '''
 create table $tableName (
-  $columnUuid text primary key,
   $columnGoalUuid text not null,
   $columnActionId integer not null,
   $columnStartTime integer default null,
@@ -46,18 +39,18 @@ create table $tableName (
   $columnTotalTimeTaken integer default 0,
   $columnLastActiveTime integer default 0,
   $columnCreateTime integer not null,
-  $columnUpdateTime integer default null)
+  $columnUpdateTime integer default null,
+  primary key ($columnGoalUuid, $columnActionId)
+  )
 ''';
   }
 
   static List<String> get initSqlList => [
     getCreateTableSql(GoalActionTable.name),
-    createIndexSql,
   ];
 
   static GoalAction fromMap(Map map) {
     final goalAction = GoalAction();
-    goalAction.uuid = map[GoalActionTable.columnUuid];
     goalAction.goalUuid = map[GoalActionTable.columnGoalUuid];
     goalAction.actionId = map[GoalActionTable.columnActionId] as int;
     goalAction.startTime = map[GoalActionTable.columnStartTime] as int;
@@ -81,7 +74,6 @@ create table $tableName (
 
   static Map<String, dynamic> toMap(GoalAction goalAction) {
     var map = <String, dynamic>{
-      GoalActionTable.columnUuid: goalAction.uuid,
       GoalActionTable.columnGoalUuid: goalAction.goalUuid,
       GoalActionTable.columnActionId: goalAction.actionId,
       GoalActionTable.columnStartTime: goalAction.startTime,

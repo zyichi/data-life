@@ -19,24 +19,36 @@ class MomentRepository extends PageRepository<Moment> {
     return _momentProvider.get(startIndex: startIndex, count: count);
   }
 
+  Future<List<Moment>> getAll() async {
+    return _momentProvider.getAll();
+  }
+
   Future<List<Moment>> getAfterTime(int timeInMillis, bool rowOnly) async {
     return _momentProvider.getAfterTime(timeInMillis, rowOnly);
   }
 
+  Future<int> add(Moment moment) async {
+    return _momentProvider.insert(moment);
+  }
+
   Future<int> save(Moment moment) async {
-    return _momentProvider.save(moment);
+    return _momentProvider.update(moment);
   }
 
   Future<int> delete(Moment moment) async {
     return _momentProvider.delete(moment);
   }
 
-  Future<int> saveMomentContact(MomentContact momentContact) async {
-    return _momentProvider.saveMomentContact(momentContact);
+  Future<List<MomentContact>> getMomentContact(String momentUuid) async {
+    return _momentProvider.getMomentContact(momentUuid);
   }
 
-  Future<int> deleteMomentContactViaMomentId(String momentUuid) async {
-    return _momentProvider.deleteMomentContactViaMomentId(momentUuid);
+  Future<int> saveMomentContact(MomentContact momentContact) async {
+    return _momentProvider.addMomentContact(momentContact);
+  }
+
+  Future<int> deleteMomentContactViaMomentUuid(String momentUuid) async {
+    return _momentProvider.deleteMomentContactViaMomentUuid(momentUuid);
   }
 
   Future<int> deleteMomentContact(int momentId, int contactId) async {
