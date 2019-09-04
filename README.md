@@ -1,4 +1,4 @@
-# data_life
+# data-life
 
 Digitize my life.
 
