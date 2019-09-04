@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:fluwx/fluwx.dart' as fluwx;
 
 import 'package:data_life/blocs/timer_bloc.dart';
 
@@ -31,6 +31,10 @@ class _LoginPageState extends State<LoginPage> {
   @override
   void initState() {
     super.initState();
+
+    fluwx.responseFromAuth.listen((fluwx.WeChatAuthResponse data) {
+      print('responseFromAuth on data: $data');
+    });
 
     _timerBloc = BlocProvider.of<TimerBloc>(context);
 
@@ -75,14 +79,14 @@ class _LoginPageState extends State<LoginPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
-            _createAppIdentity(),
-            SizedBox(height: 32),
+            _buildAppIdentity(),
+            SizedBox(height: 40),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 32),
-              child: _createLoginArea(_loginMode),
+              child: _buildLoginArea(_loginMode),
             ),
             Spacer(),
-            _createPartnerLoginArea(),
+            _buildPartnerLoginArea(),
             SizedBox(height: 32),
           ],
         ),
@@ -90,7 +94,7 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
-  Widget _createAppIdentity() {
+  Widget _buildAppIdentity() {
     return Center(
       child: Column(
         children: <Widget>[
@@ -109,7 +113,7 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
-  Widget _createLoginArea(_LoginMode loginMode) {
+  Widget _buildLoginArea(_LoginMode loginMode) {
     if (loginMode == _LoginMode.sms) {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -120,11 +124,12 @@ class _LoginPageState extends State<LoginPage> {
               hintText: '请输入手机号',
               prefixIcon: Icon(Icons.smartphone),
               border: UnderlineInputBorder(),
-              labelText: '请输入手机号',
+              // labelText: '请输入手机号',
               helperText: '未注册手机验证后自动创建',
             ),
             controller: _phoneNumberController,
           ),
+          SizedBox(height: 8),
           Row(
             children: <Widget>[
               Expanded(
@@ -133,7 +138,7 @@ class _LoginPageState extends State<LoginPage> {
                     hintText: '请输入验证码',
                     prefixIcon: Icon(Icons.sms),
                     border: UnderlineInputBorder(),
-                    labelText: '请输入验证码',
+                    // labelText: '请输入验证码',
                   ),
                   controller: _smsCodeController,
                 ),
@@ -204,7 +209,7 @@ class _LoginPageState extends State<LoginPage> {
                   });
                 },
               ),
-              _createForgetPasswordWidget(),
+              _buildForgetPassword(),
             ],
           )
         ],
@@ -218,17 +223,18 @@ class _LoginPageState extends State<LoginPage> {
               hintText: '手机号/邮箱/用户名',
               prefixIcon: Icon(Icons.perm_identity),
               border: UnderlineInputBorder(),
-              labelText: '帐号',
+              // labelText: '帐号',
             ),
             controller: _usernameController,
           ),
+          SizedBox(height: 8),
           TextField(
             obscureText: true,
             decoration: InputDecoration(
               hintText: '请输入密码',
               prefixIcon: Icon(Icons.vpn_key),
               border: UnderlineInputBorder(),
-              labelText: '密码',
+              // labelText: '密码',
             ),
             controller: _passwordController,
           ),
@@ -262,7 +268,7 @@ class _LoginPageState extends State<LoginPage> {
                   });
                 },
               ),
-              _createForgetPasswordWidget(),
+              _buildForgetPassword(),
             ],
           )
         ],
@@ -278,7 +284,7 @@ class _LoginPageState extends State<LoginPage> {
     return _phoneNumber.isNotEmpty && _smsCode.length == 6;
   }
 
-  Widget _createForgetPasswordWidget() {
+  Widget _buildForgetPassword() {
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       child: Padding(
@@ -294,7 +300,7 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
-  Widget _createPartnerLoginArea() {
+  Widget _buildPartnerLoginArea() {
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       child: Column(
@@ -320,7 +326,12 @@ class _LoginPageState extends State<LoginPage> {
           ),
         ],
       ),
-      onTap: () {},
+      onTap: () {
+        fluwx.sendAuth(scope: "snsapi_userinfo", state: 'DataLife').then((data) {
+          print('WeChat sendAuth response: $data');
+        });
+      },
     );
   }
+
 }

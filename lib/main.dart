@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:amap/amap.dart';
+import 'package:fluwx/fluwx.dart' as fluwx;
 
 import 'package:data_life/views/splash_page.dart';
 import 'package:data_life/views/home_page.dart';
@@ -80,6 +81,8 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
+
+    _initFluWx();
 
     _momentRepository = MomentRepository(MomentProvider());
     _goalRepository = GoalRepository(GoalProvider());
@@ -179,5 +182,22 @@ class _MyAppState extends State<MyApp> {
         },
       ),
     );
+  }
+
+  Future<void> _initFluWx() async {
+    // Android DataLife release md5:
+    // 17cc016ea7ea443be819599fe0d5d5ce
+
+    // Android DataLife debug md5:
+    // 997b9e0b000e7cfb494707d67a8bf293
+
+    await fluwx.register(
+      appId: 'wxeb5b6b44963adb6e',
+      doOnAndroid: true,
+      doOnIOS: true,
+      enableMTA: false,
+    );
+    var result = await fluwx.isWeChatInstalled();
+    print('Is WeChat installed $result');
   }
 }

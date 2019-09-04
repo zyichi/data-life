@@ -39,7 +39,7 @@ class DbBloc extends Bloc<DbEvent, DbState> {
       try {
         // await LifeDb.delete();
         await LifeDb.open();
-        await _upgradeDb();
+        // await _upgradeDb();
         yield DbOpen();
       } catch (_) {
         yield DbError();
@@ -47,45 +47,8 @@ class DbBloc extends Bloc<DbEvent, DbState> {
     }
   }
 
+/*
   Future<void> _upgradeDb() async {
-    /*
-    LifeDb.db.transaction((txn) async {
-      // Upgrade task table
-      await txn.execute('drop table ${TodoTable.name}');
-      for (var sql in TodoTable.initSqlList) {
-        await txn.execute(sql);
-      }
-
-      // Upgrade goal table
-      await txn.execute('alter table ${GoalTable.name} add ${GoalTable.columnDoneTime} integer default null');
-      await txn.execute('alter table ${GoalTable.name} rename to goal_tmp');
-      for (var sql in GoalTable.initSqlList) {
-        await txn.execute(sql);
-      }
-      await txn.execute('insert into ${GoalTable.name} select * from goal_tmp');
-
-      // Upgrade goal_action table
-      await txn.execute('alter table ${GoalActionTable.name} rename to goal_action_tmp');
-      for (var sql in GoalActionTable.initSqlList) {
-        await txn.execute(sql);
-      }
-      await txn.execute('insert into ${GoalActionTable.name} select * from goal_action_tmp');
-
-      // Upgrade moment table
-      await txn.execute('alter table ${MomentTable.name} rename to moment_tmp');
-      for (var sql in MomentTable.initSqlList) {
-        await txn.execute(sql);
-      }
-      await txn.execute('insert into ${MomentTable.name} select * from moment_tmp');
-
-      // Upgrade moment_contact table
-      await txn.execute('alter table ${MomentContactTable.name} rename to moment_contact_tmp');
-      for (var sql in MomentContactTable.initSqlList) {
-        await txn.execute(sql);
-      }
-      await txn.execute('insert into ${MomentContactTable.name} select * from moment_contact_tmp');
-    });
-
     try {
       var goalRepository = GoalRepository(GoalProvider());
       var goals = await goalRepository.getAll();
@@ -121,14 +84,6 @@ class DbBloc extends Bloc<DbEvent, DbState> {
     } catch (e) {
       print('Upgrade uuid for moment/moment_contact table failed: ${e.toString()}');
     }
-
-    await db.execute('create table tt (_id integer primary key autoincrement, name text)');
-    await db.execute("insert into tt (name) values ('Zhang Yi Chi')");
-    await db.execute("insert into tt (name) values ('Ya Bao')");
-    await db.execute('alter table tt rename to tt_tmp');
-    await db.execute('create table tt (uuid text primary key, name text)');
-    await db.execute('insert into tt select * from tt_tmp');
-    await db.execute('alter table tt add doneTime after _id integer default null');
-     */
   }
+  */
 }
